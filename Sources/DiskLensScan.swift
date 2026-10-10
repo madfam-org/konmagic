@@ -105,7 +105,8 @@ final class LensScanner {
                     var parent=rootNode,current=""
                     for component in try SafeFS.components(path) {
                         current+="/"+component
-                        if let stored=indexed[current] {parent=stored}
+                        let existing=try indexed[current] ?? writer.directory(relative:String(current.dropFirst()))
+                        if let stored=existing {parent=stored;indexed[current]=stored}
                         else {var n=LensNode();n.name=component;n.kind=1;n.relative=String(current.dropFirst());n.parent=parent.id;n.depth=parent.depth+1;parent=try writer.append(n);indexed[current]=parent}
                     }
                     try visit(path:path,parent:parent)

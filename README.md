@@ -156,6 +156,10 @@ See the [GrandPerspective capability contract](docs/GrandPerspective-capabilitie
 for the complete comparison and remaining compatibility gaps. This is an
 independent implementation; no GrandPerspective GPL code or assets are embedded.
 
+The [macOS alternatives survey](docs/macOS-alternatives.md) compares the related
+catalogue, search, organization, duplicate and file-management workflows, with
+explicit remaining gaps and a focused development sequence.
+
 ## Preservation boundaries
 
 - No move, delete, automatic deduplication or privileged filesystem action.

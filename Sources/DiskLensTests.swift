@@ -113,5 +113,13 @@ func runLensTests(at temp:URL) throws -> Int {
     try sql("CREATE TABLE roots(path TEXT); INSERT INTO roots VALUES('/synthetic')")
     let machine=try LensScanner(directory:saved,cancellation:CatalogueCancellation()).recorded(root:"/",ledger:ledger.path)
     try check(try machine.snapshot().totals==recordedInfo.totals && machine.snapshot().entries==recordedInfo.entries+1,"virtual machine root conserves all recorded roots")
+    // A denied parent may still have a separately recorded accessible descendant root.
+    try sql("INSERT INTO blocks VALUES(\(try key("/synthetic/A")),1,\(try block([["Held","directory",0,0,0,1,50,0]])))")
+    try sql("INSERT INTO roots VALUES('/synthetic/A/Held/Accessible'); INSERT INTO directories VALUES(\(try key("/synthetic/A/Held/Accessible")),'{}'); INSERT INTO blocks VALUES(\(try key("/synthetic/A/Held/Accessible")),0,\(try block([["nested.dat","file",30,4096,0,1,60,0]])))")
+    let nestedLedgerBytes=try Data(contentsOf:ledger),nested=try LensScanner(directory:saved,cancellation:CatalogueCancellation()).recorded(root:"/",ledger:ledger.path),nestedInfo=try nested.snapshot()
+    try check(nestedInfo.status=="complete_with_exceptions" && nestedInfo.issues==2,"nested recorded root survives an unscanned parent without hiding exceptions")
+    try check(nestedInfo.totals==LensTotals(bytes:150,allocated:12288,count:4),"nested recorded roots reuse observed ancestors and conserve unique totals")
+    try check(try nested.nodes(where:"n.kind=1 AND n.relative=?",values:["synthetic/A/Held"]).count==1 && nestedInfo.entries==machine.snapshot().entries+3,"nested root stitching creates no duplicate directory branches")
+    try check(try Data(contentsOf:ledger)==nestedLedgerBytes,"nested root stitching leaves the source ledger byte-identical")
     return checks
 }

@@ -53,6 +53,14 @@ final class LensWriter {
         let s=try prepare("UPDATE nodes SET error=? WHERE id=?");defer {sqlite3_finalize(s)}
         sqlite3_bind_text(s,1,String(message.prefix(1000)),-1,transient);sqlite3_bind_int64(s,2,id);guard sqlite3_step(s)==SQLITE_DONE else {throw KonMagicError("Could not retain a coverage exception.")}
     }
+    func directory(relative:String) throws -> LensNode? {
+        let s=try prepare("SELECT "+LensStore.columns+" FROM nodes n LEFT JOIN nodes p ON p.id=n.parent WHERE n.kind=1 AND n.relative=? LIMIT 1");defer {sqlite3_finalize(s)}
+        sqlite3_bind_text(s,1,relative,-1,transient)
+        let status=sqlite3_step(s)
+        if status==SQLITE_ROW {return LensStore.node(s)}
+        guard status==SQLITE_DONE else {throw KonMagicError("Recorded root ancestry could not be reconciled.")}
+        return nil
+    }
     func finish(_ snapshot:LensSnapshot) throws -> LensSnapshot {
         try exec("COMMIT; BEGIN IMMEDIATE")
         // Parents precede their children. Reverse folding conserves totals without retaining all files in memory.
