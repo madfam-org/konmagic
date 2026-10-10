@@ -10,7 +10,7 @@ tribute to Marie Kondo. It has no affiliation with Marie Kondo or KonMari.
 ## Build and run
 
 Requires macOS 13 or later and Apple Command Line Tools with Swift 5.8 or later.
-Uses AppKit, Foundation, CryptoKit, Darwin and the system SQLite library; no
+Uses AppKit, Foundation, CryptoKit, CoreServices, Quartz, Darwin and system SQLite/zlib; no
 package downloads, browser, Python service, Electron or network listener.
 
 ```sh
@@ -54,12 +54,107 @@ describe SDK and runtime compatibility.
    Originals stay intact. A durable receipt records completed targets and
    retained stages if interrupted. Batches are not global transactions.
 
-An optional compatible Workstation Atlas catalogue can provide retained
-filename/path observations through the **All catalogue** source. It is opened read-only; its extracted bodies are
-not read, reindexed or duplicated. Choose its folder through **File → Connect
-catalogue** if access is needed. Native live-folder browsing works without a
-catalogue. Connected catalogue access is retained in private workspace settings.
-Queries and hashing run away from the main UI thread.
+## Atlas Explorer
+
+**Atlas Explorer** connects the complete tagged catalogue and its optional
+whole-disk metadata ledger without modifying either database. Choose their
+folder through **File → Connect catalogue** if access is needed. When a retained
+catalogue is available, the explorer opens alongside the destination workspace.
+Native live-folder browsing remains available without any catalogue.
+
+- **List:** all tagged observations, including protected metadata, with bounded
+  keyset pages. Intersect owner, project, family, purpose, lifecycle, reading
+  status, protection, file kind, extension, modification year, size, confidence
+  and reading method. Search names/paths/tags or the existing full-text index.
+- **Folder tree:** load actual recorded roots and children lazily. Whole-disk
+  browsing decodes bounded compressed metadata blocks and retained volume
+  aliases; it does not rescan or follow source symlinks. Tree navigation displays
+  physical hierarchy; semantic filters apply to lists and maps.
+- **Tag tree:** owner → project → family. Double-click a virtual group to list
+  its real sources. Virtual groups are filters, not physical source buckets.
+- **Treemap:** partition complete matching aggregates by a chosen dimension,
+  weighted by entries or logical regular-file bytes. Small categories roll into
+  an explicitly labelled Other tile and remain in the complete facet list.
+  Zero-byte groups have a minimum hit area. Disk maps use recorded boundary
+  counts; no global byte total is invented for the compressed disk ledger.
+- **Connections:** owner → project, or project → family when Project is selected.
+  Edges count real matching observations. Show the top 12 groups per axis; the
+  complete categories remain available in the facet list.
+
+The inspector carries Atlas tags, confidence, manual-review status, evidence,
+broad visual labels, reading exceptions and dates. A fresh metadata check shows
+whether a source is unavailable or differs in size/time; full byte verification
+still belongs to the separate copy preview. Modified year is UTC filesystem
+metadata, not an inferred event date. Inferred visual labels can overlap.
+
+Content search reuses canonical indexed readings and their validated shared
+aliases. **Show retained content excerpt** reads only an eligible cached body,
+validates a shared canonical hash/extension, bounds decompression to 640,000
+bytes and displays at most 20,000 characters. It does not open the original file.
+Protected bodies remain inaccessible. Partial readings remain labelled partial.
+
+Select real files or folders from the explorer, choose a destination and assign
+them to the same organizational draft. Its exact source/destination preview
+appears immediately. Editing the destination tree updates assignments by stable
+identity. Browse, filter, map and assign actions never apply filesystem changes.
+
+Aggregates are cached privately and invalidated by catalogue/WAL identity.
+Counts reconcile to each catalogue separately; disk metadata overlaps tagged
+observations and their counts must not be added. Logical bytes include duplicate
+files and represent neither allocated storage nor reclaimable space. These are
+retained, point-in-time observations of a changing machine, with explicit access
+exceptions and reading limits. Query cancellation discards superseded searches;
+aggregation, queries, decoding and hashing run away from the main UI thread.
+
+Connected catalogue access, aggregate caches, workspace settings and receipts
+stay in private application support, outside Git. No index is rebuilt, no full
+text is duplicated, and no service or network listener is needed.
+
+## Disk Lens
+
+Open **File → Disk Lens** (Command-D) for independent native disk analysis.
+**Atlas recorded folder** builds a derived snapshot from retained whole-disk
+metadata. **Scan folder** reads current filesystem metadata without opening file
+bodies, following symlinks, or downloading placeholders. A scan is an observation
+of a changing filesystem, with explicit coverage exceptions.
+
+The hierarchy-preserving map offers logical, allocated or unique-file tally
+weights; file/package/folder display modes; twelve color schemes; six palettes;
+custom file-type categories; depth control; volume context; mouse, keyboard and
+scroll navigation. Small branches collapse adaptively and can be zoomed. True
+zero-weight entries have no area and remain in lists and complete exports.
+Device/inode identity avoids hard-link double counting. APFS shared blocks,
+clones, snapshots and directory overhead prevent a reclaimable-space estimate.
+
+Masks hide drawings while retaining area. Compound metadata filters support
+ALL, ANY, include-any/exclude-all logic and compound groups with folder-ancestor exclusions. Filtered views are separate retained
+snapshots. Scan inclusion tests files; exclusions can skip entire directory
+subtrees. Named filters, size units, appearance choices, type colors and recent
+scans persist privately. Saved scans do not imply current source identity.
+
+Save/load complete scans, attach notes, compare matching roots, export current
+maps as PNG/TIFF, or export every retained row with selected TSV properties.
+Duplicate views vary display independently; twins synchronize folder navigation.
+Current-session FSEvents permits incremental refresh of changed folders, with
+full rescans after event gaps or for loaded observations. Preferences control
+last-window behavior and retention of prior-view windows.
+
+The inspector joins an exact source path back to retained Atlas tags and evidence.
+Assign the selected real file/folder to an explicit draft destination and inspect
+the same exact preview used by the workspace. Opening or Quick Look is explicit
+and checks current identity; protected/cloud/linked sources are held. Cleanup
+review reveals the exact source in Finder and never trashes data automatically.
+
+Derived scans live privately under application support. Work streams through
+SQLite and background queues, with a 3 GiB per-scan limit, 25 million-entry bound,
+256-level depth limit and 10 GiB free-space reserve. Stop retains explicit partial
+coverage. The visible list uses 200-row pages; complete data remains in the
+scan and export. A comparison window shows the first 500 changes, with limitations
+stated. Global tagged facets and full-text search remain in Atlas Explorer.
+
+See the [GrandPerspective capability contract](docs/GrandPerspective-capabilities.md)
+for the complete comparison and remaining compatibility gaps. This is an
+independent implementation; no GrandPerspective GPL code or assets are embedded.
 
 ## Preservation boundaries
 
@@ -95,9 +190,23 @@ collisions, complete hashes, empty folders, directory attributes, exclusive
 copies, retained originals and durable receipts. No user file is reorganized.
 
 `--catalog-smoke` optionally measures bounded read-only queries against a local
-compatible catalogue. `--ui-smoke` renders the app's own window with isolated QA
+compatible catalogue. `--explorer-smoke` verifies full aggregate conservation,
+tag decoding and native compressed disk browsing. `--ui-smoke` renders the
+workspace; `--explorer-ui-smoke` renders the app's own explorer with isolated QA
 state; image and state paths are specified through `KONMAGIC_QA_IMAGE` and
 `KONMAGIC_QA_STATE`. Set `KONMAGIC_QA_APPEARANCE=dark` for a dark-mode check.
-Never publish those local outputs.
+Choose an explorer view with `KONMAGIC_QA_VIEW` (`list`, `foldertree`, `tagtree`,
+`treemap`, `connections` or `disk`). Never publish those local outputs.
+
+`--lens-recorded-smoke` imports a bounded recorded folder into private QA state.
+`--lens-ui-smoke` renders an isolated saved scan selected with `KONMAGIC_QA_SCAN`.
+Synthetic Disk Lens checks cover sparse allocation, hard links, symlink holds,
+package maps, proportional/zero-area layout, masks, filter conservation,
+scan exclusions, save/reload, export refusal, comparisons and refresh.
+
+Synthetic catalogue checks cover read-only connections, complete keyset pages,
+count conservation, literal FTS terms, shared canonical content resolution,
+protected-body refusals, compression bounds, cancellation and byte-identical
+disk metadata browsing. Synthetic fixtures never become an actual source plan.
 
 Licensed under [MIT](LICENSE).

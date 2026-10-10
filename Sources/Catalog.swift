@@ -9,6 +9,17 @@ struct CatalogItem {
     let kind: String
     let bytes: Int64
     let context: String
+    var tags: [String:String] = [:]
+    var state = "metadata_only"
+    var barrier = ""
+    var confidence: Double? = nil
+    var evidence: [String] = []
+    var reason = ""
+    var modified: Int64 = 0
+    var observed = ""
+    var manual = false
+    var visualLabels: [String] = []
+    var origin = "Live metadata"
 }
 private final class QueryBudget { let deadline=Date().addingTimeInterval(3) }
 

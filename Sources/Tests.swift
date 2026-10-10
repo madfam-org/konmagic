@@ -83,5 +83,7 @@ func runNativeTests() throws {
     try check(matches.count==1 && matches[0].name=="file-204.txt","Current-folder name search works without a catalogue")
     try check(try library.liveFolder(browsing.path,search:"hidden").isEmpty && library.liveFolder(browsing.path,search:"hidden",includeHidden:true).count==1,"Hidden entries are available only when explicitly included")
     try check(try library.liveFolder(browsing.path,offset:999).isEmpty,"End-of-folder pages are safely empty")
+    checks += try runCatalogueTests(at:temp)
+    checks += try runLensTests(at:temp)
     print("NATIVE_SAFETY_TESTS passed=\(checks); synthetic fixtures only; actual user-source operations=0")
 }
