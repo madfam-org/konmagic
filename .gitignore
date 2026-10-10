@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+build/
+*.app/
+*.dSYM/
+*.icns
+*.png
+*.sqlite3*
+*.json
+*.log
+*.lock
+*.tmp
+.atlas-*/
+.konmagic-*/

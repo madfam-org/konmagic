@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleIdentifier</key><string>org.madfam.konmagic</string>
+  <key>CFBundleName</key><string>KonMagic</string>
+  <key>CFBundleDisplayName</key><string>KonMagic</string>
+  <key>CFBundleExecutable</key><string>KonMagic</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleShortVersionString</key><string>0.1.0</string>
+  <key>CFBundleVersion</key><string>1</string>
+  <key>CFBundleIconFile</key><string>KonMagic.icns</string>
+  <key>LSMinimumSystemVersion</key><string>13.0</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSPrincipalClass</key><string>NSApplication</string>
+  <key>NSDesktopFolderUsageDescription</key><string>Browse selected desktop files and assign them to your reviewed organization draft.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Browse selected documents and create only explicitly approved, verified copies.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Browse your downloads and assign files or whole folders to destinations you choose.</string>
+  <key>NSRemovableVolumesUsageDescription</key><string>Write approved verified copies to an external output folder you select.</string>
+</dict></plist>

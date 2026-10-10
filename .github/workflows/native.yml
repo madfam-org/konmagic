@@ -1,0 +1,13 @@
+name: Native safety checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  native:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build native utility
+        run: /bin/zsh -f scripts/build.command
+      - name: Synthetic preservation tests
+        run: '"$HOME/Library/Caches/KonMagic Build/KonMagic" --self-test'
