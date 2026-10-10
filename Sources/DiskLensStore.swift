@@ -17,6 +17,8 @@ final class LensWriter {
         let fd=openat(folder,url.lastPathComponent,O_RDWR|O_CREAT|O_EXCL|O_NOFOLLOW,0o600);guard fd>=0 else {throw SafeFS.fail("Cannot create a private snapshot")};close(fd)
         var raw:OpaquePointer?
         guard sqlite3_open_v2(url.path,&raw,SQLITE_OPEN_READWRITE|SQLITE_OPEN_NOMUTEX|SQLITE_OPEN_NOFOLLOW,nil)==SQLITE_OK,let raw=raw else {if let raw=raw {sqlite3_close(raw)};throw KonMagicError("Cannot open the private snapshot.")};db=raw
+        // Status readers must not turn a brief shared lock into incomplete scan coverage.
+        guard sqlite3_busy_timeout(db,5_000)==SQLITE_OK else {throw KonMagicError("Cannot configure the private snapshot lock bound.")}
         try exec("PRAGMA journal_mode=DELETE; PRAGMA synchronous=FULL; PRAGMA cache_size=-16384; PRAGMA temp_store=FILE; CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT); CREATE TABLE nodes(id INTEGER PRIMARY KEY,parent INTEGER NOT NULL,name TEXT NOT NULL,kind INTEGER NOT NULL,relative TEXT,bytes INTEGER,allocated INTEGER,modified INTEGER,created INTEGER,accessed INTEGER,device INTEGER,inode INTEGER,links INTEGER,flags INTEGER,package INTEGER,duplicate INTEGER,error TEXT,depth INTEGER,tb INTEGER,ta INTEGER,tc INTEGER); CREATE INDEX children ON nodes(parent); CREATE UNIQUE INDEX directory_paths ON nodes(relative) WHERE kind=1; CREATE TABLE identities(device INTEGER,inode INTEGER,PRIMARY KEY(device,inode)) WITHOUT ROWID; BEGIN IMMEDIATE")
         insert=try prepare("INSERT INTO nodes VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)")
         identity=try prepare("INSERT OR IGNORE INTO identities VALUES(?,?)")

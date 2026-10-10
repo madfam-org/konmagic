@@ -121,5 +121,17 @@ func runLensTests(at temp:URL) throws -> Int {
     try check(nestedInfo.totals==LensTotals(bytes:150,allocated:12288,count:4),"nested recorded roots reuse observed ancestors and conserve unique totals")
     try check(try nested.nodes(where:"n.kind=1 AND n.relative=?",values:["synthetic/A/Held"]).count==1 && nestedInfo.entries==machine.snapshot().entries+3,"nested root stitching creates no duplicate directory branches")
     try check(try Data(contentsOf:ledger)==nestedLedgerBytes,"nested root stitching leaves the source ledger byte-identical")
+    let contended=try LensWriter(directory:saved,cancellation:CatalogueCancellation())
+    var rootOnly=LensNode();rootOnly.kind=1;_ = try contended.append(rootOnly)
+    var observer:OpaquePointer?
+    guard sqlite3_open_v2(contended.url.path,&observer,SQLITE_OPEN_READONLY|SQLITE_OPEN_FULLMUTEX,nil)==SQLITE_OK,let observer=observer else {throw KonMagicError("Synthetic status reader failed")}
+    guard sqlite3_exec(observer,"BEGIN; SELECT count(*) FROM nodes",nil,nil,nil)==SQLITE_OK else {sqlite3_close(observer);throw KonMagicError("Synthetic status read lock failed")}
+    let released=DispatchSemaphore(value:0)
+    DispatchQueue.global().asyncAfter(deadline:.now()+0.1) {sqlite3_exec(observer,"COMMIT",nil,nil,nil);sqlite3_close(observer);released.signal()}
+    try contended.exec("COMMIT; BEGIN IMMEDIATE")
+    try check(released.wait(timeout:.now()+1) == .success,"a brief status-reader lock is released before the bounded writer resumes")
+    var contentionInfo=LensSnapshot();contentionInfo.root="/synthetic";contentionInfo.status="complete"
+    let afterRead=try contended.finish(contentionInfo)
+    try check(afterRead.entries==1 && afterRead.status=="complete","status-reader contention does not falsely mark a derived scan partial")
     return checks
 }
