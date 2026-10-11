@@ -11,7 +11,7 @@ Understand your disk. Find meaning in your content. Design a structure that fits
 
 </div>
 
-This handbook describes **0.5.1**, a public MIT project from MADFAM. It follows the real AppKit implementation from the Toolkit through Storage, Content, Structure and Review. Every screenshot is an actual native view populated with **invented, isolated fixture data**. Movie/model examples are synthetic placeholders; the preview illustration is a generated PNG. Nothing shown comes from a personal catalogue. Comparison and duplicate acceptance images retain their earlier layout, as identified in their captions.
+This handbook describes **0.5.2**, a public MIT project from MADFAM. It follows the real AppKit implementation from the Toolkit through Storage, Content, Structure and Review. Every screenshot is an actual native view populated with **invented, isolated fixture data**. Movie/model examples are synthetic placeholders; the preview illustration is a generated PNG. Nothing shown comes from a personal catalogue. Comparison and duplicate acceptance images retain their earlier layout, as identified in their captions.
 
 <figure markdown>
 ![KonMagic Toolkit with four guided workflow cards and links to documentation](assets/screenshots/light-toolkit.png)

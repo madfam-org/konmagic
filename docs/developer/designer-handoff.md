@@ -55,6 +55,9 @@ Use distinct restrained illustrations—a storage garden, discovery lens, folder
 
 ## 2. Storage: physical disk observation
 
+The 0.5.2 map-focus variant temporarily removes the surrounding navigation and coverage chrome. Compact controls remain above an edge-to-edge map; the source path and scan status remain below it. The inspector can be restored beside the map. Preserve the difference between optical zoom/pan, physical folder exploration, map history, page history and native window full screen. Large records must remain inspectable and compact groups must disclose their aggregate status. See the [focused workspace walkthrough](../guide/storage.md#navigate-and-customize).
+
+
 ![Current Storage](../assets/screenshots/light-storage.png)
 
 ### Layout and information hierarchy

@@ -28,6 +28,12 @@ Ledger import decodes directory blocks, resolves aliases and synthesizes missing
 
 `DiskLensMap` computes bounded adaptive proportional layouts off the main thread. Very small branches become grouped virtual tiles; zero-weight entries remain list/export records. Package boundaries and display modes determine representation.
 
-Map export is PNG/TIFF for the current view. TSV export streams the complete retained rows with selected properties. Saved scans and notes create separate private files. Root-matched comparison uses stable 500-row pages and complete streaming export.
+Map export recalculates the focused hierarchy and mask for current display pixels, 4K or 8K PNG/TIFF, with a 32-megapixel raw-surface bound. Layout and source queries run off the main thread; bounded native image drawing/encoding currently run on the main thread after an explicit export request. TSV export streams the complete retained rows with selected properties. Saved scans and notes create separate private files. Root-matched comparison uses stable 500-row pages and complete streaming export.
 
 Limits: 25 million entries, 256 levels, 3 GiB per derived snapshot and a 10 GiB free-space reserve. Stop or any traversal/storage bound retains explicitly partial coverage.
+
+## Map workspace and level of detail
+
+`LensViewport` wraps the vector-drawn canvas in native `NSScrollView` magnification (1–8×). It retains one document coordinate space, redraws on Retina displays and rebuilds detail after a magnification gesture or debounced resize. `LensMapBuilder` applies strict tile budgets and reserves capacity for unvisited siblings; overflow becomes an explicit weighted aggregate. Each child query is capped at 5,000 with a weighted remainder. Metadata traversal remains cancellable and read-only.
+
+`PageHostController` temporarily collapses its navigation header and uses a smaller viewport minimum in map focus; leaving the Storage page restores navigation. The optional side inspector remains a native accessible equivalent to the spatial map. Optical magnification, physical folder history and window full-screen mode are distinct states.

@@ -27,9 +27,31 @@ Directories, links and zero-weight entries may have no visible area but remain i
 
 ## Navigate and customize
 
-Hover inspects a tile; click locks selection; double-click zooms into a folder. Parent/focus controls and arrow navigation help return to context. Space requests Quick Look after a current-identity check. Protected or cloud-only sources remain held.
+Hover inspects a tile; click locks selection; double-click explores a folder. Optical zoom keeps the physical scope unchanged; folder exploration changes it. Space requests Quick Look after a current-identity check. Protected or cloud-only sources remain held.
 
-**Customize view…** exposes files/packages/folders, twelve color schemes, seven palettes, depth, binary/decimal units and volume context. A package remains a known collection boundary rather than an ordinary reorganization bucket.
+**Focus map** (Shift-Command-M) hides the surrounding page navigation, observation header and side inspector. The map fills the content width with compact controls above it. **Full screen** uses the native macOS window mode; it is separate from map focus. The ellipsis **Map tools** menu keeps filters, notes, comparisons and high-resolution exports available in focus mode. **Inspector** restores the searchable native source list, full metadata and draft placement beside the map. Source inspection remains available through the selected-path strip while the inspector is hidden.
+
+![Edge-to-edge whole-scan map workspace](../assets/screenshots/light-storage-map-focus.png)
+
+| Action | Result |
+|---|---|
+| Pinch, +/− buttons or +/− on the focused canvas | Optical zoom, 1–8× |
+| Two-axis trackpad scroll | Pan the magnified viewport |
+| Option-scroll | Optical zoom |
+| Fit / 0 on the focused canvas | Show the entire current physical scope |
+| Double-click / Explore selection / Return | Explore the selected folder; a file explores its parent |
+| Parent / ancestry menu | Ascend or jump to a retained parent |
+| Whole scan | Return to the snapshot root |
+| Map ‹ / › | Navigate physical folder history independently of page history |
+| I on the focused canvas | Show/hide inspector |
+| Arrow keys | Spatial tile selection |
+| Escape | Unlock hover selection; another Escape exits map focus |
+
+**Balanced**, **Detailed** and **Ultra** use strict budgets of 4,096, 16,384 and 65,536 rectangles. Pinch zoom resolves smaller branches after the gesture rather than starting a query on every frame. Small branches, child-query remainders and excess tiles stay explicit as compact aggregates; their weight is retained. A whole-machine map is a bounded view over retained metadata, not simultaneous drawing of every record. Explore the parent or use the source list/search for details. Zero-weight records still have zero area.
+
+![Focused map with source inspector restored](../assets/screenshots/dark-storage-map-inspector.png)
+
+**Customize…** exposes files/packages/folders, twelve color schemes, seven palettes, depth, binary/decimal units and volume context. Choose **All (adaptive)** depth for more hierarchy when increasing resolution. A package remains a known collection boundary rather than an ordinary reorganization bucket.
 
 <figure markdown>
 ![Disk Lens expanded view options and retained metadata inspector](../assets/screenshots/light-storage-options.png)
@@ -45,7 +67,7 @@ Hover inspects a tile; click locks selection; double-click zooms into a folder. 
 
 A **mask** suppresses selected drawing while retaining its area. A **filtered view** writes a separate derived snapshot. A **scan exclusion** can skip a subtree before enumeration. These are different operations; filters and exclusions affect apparent coverage.
 
-Save/load complete scans, add notes to a separate snapshot, export the current map as PNG/TIFF, export complete selected TSV properties, compare scans, and inspect duplicate evidence. **Volume & snapshots…** observes bounded `diskutil` metadata, shared APFS space and reported snapshot names. It does not purge, mount or delete snapshots.
+Save/load complete scans, add notes to a separate snapshot, export the focused hierarchy as PNG/TIFF at current display pixels, 4K or 8K (maximum 32 megapixels / 128 MiB raw RGBA surface), export complete selected TSV properties, compare scans, and inspect duplicate evidence. **Volume & snapshots…** observes bounded `diskutil` metadata, shared APFS space and reported snapshot names. It does not purge, mount or delete snapshots.
 
 See [comparison and duplicate evidence](evidence.md), the [GrandPerspective contract](../GrandPerspective-capabilities.md), and the [scan engine](../developer/scanning.md).
 
@@ -54,3 +76,5 @@ See [comparison and duplicate evidence](evidence.md), the [GrandPerspective cont
 The snapshot strip separates recorded entries, logical/allocated bytes, access exceptions, cloud entries and repeated hard links. The selection card presents the exact physical source, sizes and file count; complete technical metadata stays under **Metadata & Atlas evidence**.
 
 New private preferences default to the Pastel palette colored by Top folder. Existing saved choices are retained. Rounded tiles, branch outlines and clickable branch headings are presentation overlays; the hierarchy-preserving weight calculation is unchanged. A click locks selection; Escape resumes hover. Map selection and adjacent list remain equivalent ways to reach a source. Decorative spacing and headers do not represent additional disk weight.
+
+Image export recalculates the same focus and mask at its target resolution. It exports the full focused hierarchy, independently of viewport pan; compact groups remain labelled. It never overwrites an existing output or reads source bodies. Encoding and additional drawing buffers can exceed the raw pixel-surface size.

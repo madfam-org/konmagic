@@ -68,6 +68,9 @@ final class KonMagicNavigation:NSObject,NSUserInterfaceValidations {
                 if page == .storage,let before=source.workspace.lenses.first,let after=workspace.lenses.first {
                     after.applyViewPreferences(before.preferences)
                     if let store=before.store {after.open(store);after.mask=before.mask;if let focus=before.focusNode {after.navigate(focus.id,synchronize:false)}}
+                    after.resolution.selectItem(at:before.resolution.indexOfSelectedItem);after.setMapFocus(before.mapFocused)
+                    if after.inspectorVisible != before.inspectorVisible {after.toggleMapInspector()}
+                    after.mapViewport.magnification=before.mapViewport.magnification;after.opticalZoomChanged()
                 }
             }
             return host
@@ -126,7 +129,7 @@ final class PageEntry {
 
 private final class PageDocument:NSView {override var isFlipped:Bool {true}}
 private final class PageViewport:NSScrollView {
-    let minimum:NSSize
+    var minimum:NSSize
     var sizing=false
     init(controller:NSViewController,minimum:NSSize) {
         self.minimum=minimum;super.init(frame:.zero)
@@ -155,6 +158,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
     let slot=NSView(),pageControl=NSSegmentedControl(labels:KonMagicPage.allCases.map(\.title),trackingMode:.selectOne,target:nil,action:nil)
     let back=NSButton(),forward=NSButton(),popout=NSButton(),activity=NSButton(),context=NSTextField(labelWithString:"")
     let guidance=NSTextField(wrappingLabelWithString:""),nextStep=NSButton()
+    var navigationHeader:NSStackView?,navigationLine:NSBox?,normalSlotTop:NSLayoutConstraint?,focusedSlotTop:NSLayoutConstraint?
     init(workspace:KonMagicController,navigation:KonMagicNavigation,primary:Bool) {self.workspace=workspace;self.navigation=navigation;self.primary=primary;super.init(nibName:nil,bundle:nil);workspace.pageHost=self}
     required init?(coder:NSCoder) {fatalError("Use a workspace")}
     func makeWindow(_ existing:NSWindow?=nil,saveFrame:Bool=true) {
@@ -192,9 +196,11 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         let info=NSStackView(views:[words,NSView(),activity,nextStep]);info.spacing=12;guidance.widthAnchor.constraint(lessThanOrEqualToConstant:850).isActive=true
         let line=NSBox();line.boxType = .separator
         let header=NSStackView(views:[top,info]);header.orientation = .vertical;header.alignment = .leading;header.spacing=6
+        navigationHeader=header;navigationLine=line
         header.translatesAutoresizingMaskIntoConstraints=false;line.translatesAutoresizingMaskIntoConstraints=false;slot.translatesAutoresizingMaskIntoConstraints=false
         for v in [header,line,slot] {view.addSubview(v)}
-        NSLayoutConstraint.activate([header.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:16),header.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-16),header.topAnchor.constraint(equalTo:view.topAnchor,constant:10),top.widthAnchor.constraint(equalTo:header.widthAnchor),info.widthAnchor.constraint(equalTo:header.widthAnchor),line.leadingAnchor.constraint(equalTo:view.leadingAnchor),line.trailingAnchor.constraint(equalTo:view.trailingAnchor),line.topAnchor.constraint(equalTo:header.bottomAnchor,constant:8),slot.topAnchor.constraint(equalTo:line.bottomAnchor),slot.leadingAnchor.constraint(equalTo:view.leadingAnchor),slot.trailingAnchor.constraint(equalTo:view.trailingAnchor),slot.bottomAnchor.constraint(equalTo:view.bottomAnchor)])
+        normalSlotTop=slot.topAnchor.constraint(equalTo:line.bottomAnchor);focusedSlotTop=slot.topAnchor.constraint(equalTo:view.topAnchor)
+        NSLayoutConstraint.activate([header.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:16),header.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-16),header.topAnchor.constraint(equalTo:view.topAnchor,constant:10),top.widthAnchor.constraint(equalTo:header.widthAnchor),info.widthAnchor.constraint(equalTo:header.widthAnchor),line.leadingAnchor.constraint(equalTo:view.leadingAnchor),line.trailingAnchor.constraint(equalTo:view.trailingAnchor),line.topAnchor.constraint(equalTo:header.bottomAnchor,constant:8),normalSlotTop!,slot.leadingAnchor.constraint(equalTo:view.leadingAnchor),slot.trailingAnchor.constraint(equalTo:view.trailingAnchor),slot.bottomAnchor.constraint(equalTo:view.bottomAnchor)])
     }
     func entry(_ page:KonMagicPage)->PageEntry {
         let id=String(page.rawValue);if let existing=entries[id] {return existing}
@@ -231,7 +237,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
             slot.subviews.forEach {$0.removeFromSuperview()};scroll.translatesAutoresizingMaskIntoConstraints=false;slot.addSubview(scroll)
             NSLayoutConstraint.activate([scroll.leadingAnchor.constraint(equalTo:slot.leadingAnchor),scroll.trailingAnchor.constraint(equalTo:slot.trailingAnchor),scroll.topAnchor.constraint(equalTo:slot.topAnchor),scroll.bottomAnchor.constraint(equalTo:slot.bottomAnchor)])
         }
-        view.layoutSubtreeIfNeeded();updateNavigation()
+        updateMapFocus();view.layoutSubtreeIfNeeded();updateNavigation()
         if entry.controller === workspace {if first {workspace.arrangeInitialPanes()};workspace.refreshDraft();if let id=workspace.focusedDestinationID {workspace.selectDestination(id)}}
         if let review=entry.controller as? ReorganizationReviewController {review.refresh()}
         if let hub=entry.controller as? ToolkitController {hub.updateDraft()}
@@ -272,6 +278,17 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         window?.title="KonMagic · "+title
         let running=navigation?.transferBusy==true || navigation?.observationBusy==true
         activity.title=running ? "Work continues · Show activity" : "";activity.isHidden = !running
+    }
+    func updateMapFocus() {
+        let lens=current?.controller as? DiskLensController,focused=lens?.mapFocused==true
+        normalSlotTop?.isActive=false;focusedSlotTop?.isActive=false
+        navigationHeader?.isHidden=focused;navigationLine?.isHidden=focused
+        if focused {focusedSlotTop?.isActive=true} else {normalSlotTop?.isActive=true}
+        if let current=current,let viewport=presentations[ObjectIdentifier(current.controller)] as? PageViewport {
+            let minimum=focused ? NSSize(width:lens?.inspectorVisible==true ? 1380:1100,height:500):current.minimum
+            if viewport.minimum != minimum {viewport.minimum=minimum;viewport.contentView.scroll(to:.zero);viewport.tile()}
+        }
+        view.layoutSubtreeIfNeeded()
     }
     @objc func continueJourney() {
         switch current?.base {

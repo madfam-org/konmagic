@@ -13,7 +13,7 @@ private_session=os.environ.get('CODEX_THREAD_ID')
 manifest=ROOT/'docs/assets/screenshots/manifest.json'
 if not manifest.exists(): raise SystemExit('Missing synthetic screenshot manifest')
 m=json.loads(manifest.read_text())
-assert m['synthetic_only'] is True and m['app_version']=='0.5.1'
+assert m['synthetic_only'] is True and m['app_version']=='0.5.2'
 images=m['images'];listed=set()
 for row in images:
  p=manifest.parent/row['file'];listed.add(row['file'])

@@ -18,12 +18,15 @@ This inventory follows the current source tree. Links point to public generic im
 | [DiskLensController.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensController.swift) | Storage controls, selection/current checks, observation work and destination handoff. |
 | [DiskLensExports.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensExports.swift) | Complete export, root-matched metadata difference paging and image export support. |
 | [DiskLensFilters.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensFilters.swift) | Native compound filter editor and type-color customization. |
+| [DiskLensImage.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensImage.swift) | Native support module; inspect the source-linked declaration index. |
 | [DiskLensMap.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensMap.swift) | Proportional adaptive layout and native canvas interaction. |
 | [DiskLensModel.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensModel.swift) | Scan nodes/snapshots/totals, metrics/display/colors, filters and preferences. |
 | [DiskLensScan.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensScan.swift) | Current metadata traversal, historical ledger import and filtered derived observations. |
 | [DiskLensStore.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensStore.swift) | Private SQLite writer, parent folding and bounded retained tree reader. |
 | [DiskLensTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [DiskLensWatcher.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWatcher.swift) | Current-session FSEvents history and gap-aware refresh decisions. |
+| [DiskLensWorkspace.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWorkspace.swift) | Native support module; inspect the source-linked declaration index. |
+| [DiskLensWorkspaceTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWorkspaceTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [Documentation.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Documentation.swift) | Fixed public HTTPS routes and active-page native Help actions. |
 | [DocumentationCapture.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DocumentationCapture.swift) | Restricted generated fixture validation and owned synthetic window screenshot workflow. |
 | [DuplicateReview.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DuplicateReview.swift) | Size candidates, bounded explicit complete-hash proof and no-delete evidence UI. |

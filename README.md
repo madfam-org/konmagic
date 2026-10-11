@@ -6,7 +6,9 @@ Native file/folder viewing includes embedded Quick Look, paged list/gallery, exp
 
 The native Toolkit and Help menu link to the manual, current-page help and engineering handbook. Public screenshots use entirely synthetic fixtures.
 
-Version **0.5.1** refreshes all five pages with appearance-aware pastel panels,
+Version **0.5.2** adds an edge-to-edge Storage workspace, native pinch zoom and
+pan, ancestry/history navigation, up to 65,536 rendered tiles and bounded 4K/8K
+map exports. All five pages retain appearance-aware pastel panels,
 original kitten illustrations, clearer task cards, a selectable Content gallery,
 and a Review trust center. Thumbnail requests are explicit and bounded; verified
 manifest pages keep full path/hash evidence available. The artwork ships inside

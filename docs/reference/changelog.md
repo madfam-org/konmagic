@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.2 · build 11
+
+- Edge-to-edge Storage map focus, optional side inspector and native full-screen control.
+- Native 1–8× pinch/optical zoom, two-axis panning, Fit and readable zoom-aware tiles.
+- Independent physical back/forward history, whole-scan return and ancestry menu.
+- Balanced/detailed/ultra layouts with strict 4,096/16,384/65,536 tile budgets; compact aggregates retain weight.
+- Current-pixel, 4K and 8K exports with a 32-megapixel bound and exclusive private file creation.
+- Separate map/search debouncing, changed-tile hover inspection and cached map colors.
+- Synthetic compact-window, focus/navigation/inspection tests and private real-scan display-cycle benchmark.
+
 ## 0.5.1 · build 10
 
 - Continuous discovery/inspection/classification with retained selection and destination.

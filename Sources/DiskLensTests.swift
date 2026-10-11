@@ -94,6 +94,23 @@ func runLensTests(at temp:URL) throws -> Int {
     let pageStore=LensStore(url:pages.url),page1=try pageStore.nodes(values:["1"],limit:200),page2=try pageStore.nodes(values:["1"],limit:200,offset:200)
     try check(page1.count==200 && page2.count==5 && Set(page1.map(\.id)).isDisjoint(with:Set(page2.map(\.id))),"disk list pages reach every row exactly once")
 
+    let dense=try LensWriter(directory:saved,cancellation:CatalogueCancellation())
+    var denseRoot=LensNode();denseRoot.kind=1;denseRoot.name="Dense synthetic folder";denseRoot=try dense.append(denseRoot)
+    for i in 0..<5205 {var n=LensNode();n.parent=denseRoot.id;n.name="synthetic-\(i).dat";n.bytes=1000;n.allocated=4096;n.links=1;_ = try dense.append(n)}
+    var denseInfo=LensSnapshot();denseInfo.root="/synthetic";denseInfo.source="Synthetic dense metadata";denseInfo.status="complete";denseInfo=try dense.finish(denseInfo)
+    let denseStore=LensStore(url:dense.url);denseRoot=try denseStore.node(1)!
+    for detail in LensDetail.allCases {
+        preferences.display = .files;preferences.depth=999;preferences.showVolume=false
+        let denseMap=try LensMapBuilder(store:denseStore,info:denseInfo,preferences:preferences,mask:LensFilter(),cancellation:CatalogueCancellation(),detail:detail,scale:8).build(focus:denseRoot,bounds:NSRect(x:0,y:0,width:3840,height:2160))
+        try check(denseMap.tiles.count<=detail.tileLimit,"\(detail) obeys strict tile budget")
+        try check(denseMap.tiles.reduce(Int64(0)) {$0+$1.node.total.bytes}==denseInfo.totals.bytes,"\(detail) conserves compact and query-limit remainder weights")
+        try check(denseMap.tiles.contains {$0.virtual && $0.node.parent==denseRoot.id},"\(detail) keeps remainder explicit and navigable to real parent")
+    }
+    let portrait=LensExportSize.make(bounds:NSRect(x:0,y:0,width:1,height:1000),width:7680)
+    try check(portrait.width*portrait.height<=CGFloat(32*1024*1024) && portrait.width>0,"extreme export aspect ratio obeys pixel bound")
+    let wide=LensExportSize.make(bounds:NSRect(x:0,y:0,width:16,height:9),width:7680)
+    try check(wide==NSSize(width:7680,height:4320),"8K export retains aspect ratio")
+
     let ledger=saved.appendingPathComponent("synthetic-ledger.sqlite3")
     var raw:OpaquePointer?;guard sqlite3_open(ledger.path,&raw)==SQLITE_OK,let raw=raw else {throw KonMagicError("Synthetic ledger failed")};defer {sqlite3_close(raw)}
     func sql(_ text:String) throws {guard sqlite3_exec(raw,text,nil,nil,nil)==SQLITE_OK else {throw KonMagicError("Synthetic ledger SQL failed")}}

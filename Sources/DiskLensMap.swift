@@ -3,11 +3,18 @@ import SQLite3
 
 struct LensTile {var node:LensNode,frame:NSRect,label:String,masked=false,virtual=false,path=""}
 struct LensMapResult {var tiles:[LensTile]=[],branches:[LensTile]=[],omittedZero:Int64=0,collapsed=0;var totals=LensTotals()}
+enum LensDetail:Int,CaseIterable {
+    case balanced,high,ultra
+    var title:String {["Balanced · 4k tiles","Detailed · 16k tiles","Ultra · 64k tiles"][rawValue]}
+    var tileLimit:Int {[4096,16384,65536][rawValue]}
+    var minimumArea:CGFloat {[24,12,6][rawValue]}
+}
 final class LensMapBuilder {
     let store:LensStore,info:LensSnapshot,reader:AtlasDatabase,preferences:LensPreferences,mask:LensFilter,cancellation:CatalogueCancellation
     var result=LensMapResult()
-    init(store:LensStore,info:LensSnapshot,preferences:LensPreferences,mask:LensFilter,cancellation:CatalogueCancellation) throws {
-        self.store=store;self.info=info;self.preferences=preferences;self.mask=mask;self.cancellation=cancellation;reader=try AtlasDatabase(store.url.path,seconds:60,cancellation:cancellation)
+    let detail:LensDetail,scale:CGFloat
+    init(store:LensStore,info:LensSnapshot,preferences:LensPreferences,mask:LensFilter,cancellation:CatalogueCancellation,detail:LensDetail = .balanced,scale:CGFloat=1) throws {
+        self.store=store;self.info=info;self.preferences=preferences;self.mask=mask;self.cancellation=cancellation;self.detail=detail;self.scale=min(16,max(1,scale));reader=try AtlasDatabase(store.url.path,seconds:60,cancellation:cancellation)
     }
     // Hierarchy-preserving binary treemap; zero-byte observations keep their true zero area.
     static func rectangles(_ weights:[Int64],rect:NSRect)->[NSRect] {
@@ -36,15 +43,15 @@ final class LensMapBuilder {
                     }
                 }
             }
-            try visit(focus,rect:rect,level:0)
+            try visit(focus,rect:rect,level:0,reserved:0)
         } catch {var n=LensNode();n.name="Map held";n.error=error.localizedDescription;result.tiles=[LensTile(node:n,frame:bounds,label:"Map held · "+error.localizedDescription,virtual:true)]}
         return result
     }
-    private func visit(_ parent:LensNode,rect:NSRect,level:Int) throws {
+    private func visit(_ parent:LensNode,rect:NSRect,level:Int,reserved:Int) throws {
         guard !cancellation.cancelled else {throw KonMagicError("Superseded map cancelled.")}
         if !parent.directory {add(parent,rect:rect);return}
         if level>0,level<=2,rect.width>160,rect.height>100 {result.branches.append(LensTile(node:parent,frame:rect,label:parent.name,path:store.path(parent,info)))}
-        if level>=preferences.depth || (preferences.display != .files && parent.package) || rect.width*rect.height<24 || result.tiles.count>=4096 {
+        if level>=preferences.depth || (preferences.display != .files && parent.package) || rect.width*rect.height*scale*scale<detail.minimumArea || result.tiles.count+reserved>=detail.tileLimit-1 {
             result.collapsed+=1;add(parent,rect:rect,label:parent.name+" · zoom for contents");return
         }
         let column=preferences.measure == .logical ? "tb" : preferences.measure == .allocated ? "ta" : "tc"
@@ -58,15 +65,23 @@ final class LensMapBuilder {
             let leaves=nodes.filter {!$0.directory && !virtual.contains($0.id)}
             if !leaves.isEmpty {
                 nodes.removeAll {!$0.directory && !virtual.contains($0.id)}
-                var n=parent;n.id = -parent.id-100_000_000;n.name="Files directly in "+parent.name;n.total=leaves.reduce(LensTotals()) {$0+$1.total};nodes.append(n);virtual.insert(n.id)
+                var n=parent;n.id = -parent.id-100_000_000;n.parent=parent.id;n.name="Files directly in "+parent.name;n.total=leaves.reduce(LensTotals()) {$0+$1.total};nodes.append(n);virtual.insert(n.id)
             }
         }
         result.omittedZero+=Int64(nodes.filter {$0.total.weight(preferences.measure)==0}.count)
         nodes=nodes.filter {$0.total.weight(preferences.measure)>0}
+        // Reserve a tile for every remaining sibling. Fold excess into an explicit
+        // aggregate instead of dropping its weight or exceeding the render budget.
+        let room=max(1,detail.tileLimit-result.tiles.count-reserved)
+        if nodes.count>room {
+            let kept=max(0,room-1),rest=Array(nodes.dropFirst(kept));nodes=Array(nodes.prefix(kept))
+            var n=parent;n.id = -parent.id-200_000_000;n.parent=parent.id;n.name="Compact group · explore this folder";n.total=rest.reduce(LensTotals()) {$0+$1.total}
+            nodes.append(n);virtual.insert(n.id);result.collapsed+=1
+        }
         let frames=Self.rectangles(nodes.map {$0.total.weight(preferences.measure)},rect:rect)
         for (i,node) in nodes.enumerated() {
             if virtual.contains(node.id) {result.tiles.append(LensTile(node:node,frame:frames[i],label:node.name,virtual:true))}
-            else {try visit(node,rect:frames[i],level:level+1)}
+            else {try visit(node,rect:frames[i],level:level+1,reserved:reserved+nodes.count-i-1)}
         }
     }
     private func add(_ node:LensNode,rect:NSRect,label:String?=nil) {
@@ -76,13 +91,24 @@ final class LensMapBuilder {
 }
 
 final class LensCanvas:NSView {
-    var result=LensMapResult(),preferences=LensPreferences(),selected:Int64=0,locked=false
+    var result=LensMapResult() {didSet {categoryCache.removeAll(keepingCapacity:true)}}
+    var preferences=LensPreferences() {didSet {categoryCache.removeAll(keepingCapacity:true);colorCache.removeAll(keepingCapacity:true)}}
+    var selected:Int64=0,locked=false,interactionHeld=false
+    var displayScale:CGFloat=1
+    private var categoryCache:[Int64:String]=[:],colorCache:[String:NSColor]=[:]
     var selectedRelative:String?,selectedDirectory=false
     var selection:((LensTile)->Void)?,zoom:((LensTile)->Void)?,zoomOut:(()->Void)?,preview:(()->Void)?,focus:((Int)->Void)?
+    var opticalZoom:((CGFloat)->Void)?,fit:(()->Void)?,leaveFocus:(()->Void)?,inspect:(()->Void)?,layoutChanged:(()->Void)?
+    override func setFrameSize(_ newSize:NSSize) {let changed=frame.size != newSize;super.setFrameSize(newSize);if changed {layoutChanged?()}}
     override var isOpaque:Bool {true}
     override var acceptsFirstResponder:Bool {true}
     override func accessibilityRole()->NSAccessibility.Role? {.group}
-    override func accessibilityLabel()->String? {"Hierarchical disk-size map. Hover inspects; click locks selection; double-click zooms; arrows select; Space previews. The adjacent native list offers equivalent accessible navigation."}
+    override func accessibilityLabel()->String? {"Hierarchical disk-size map. Hover inspects; click locks selection; double-click explores folders; pinch zooms; scroll pans; arrows select; Space previews; I opens inspector; 0 fits. The native inspector list offers equivalent accessible navigation."}
+    override func viewDidChangeEffectiveAppearance() {super.viewDidChangeEffectiveAppearance();colorCache.removeAll();needsDisplay=true}
+    func cachedColor(_ tile:LensTile)->NSColor {
+        let category=categoryCache[tile.node.id] ?? value(tile);categoryCache[tile.node.id]=category
+        let c=colorCache[category] ?? color(category);colorCache[category]=c;return c
+    }
     override func updateTrackingAreas() {for area in trackingAreas {removeTrackingArea(area)};addTrackingArea(NSTrackingArea(rect:bounds,options:[.mouseMoved,.activeInKeyWindow,.inVisibleRect],owner:self,userInfo:nil));super.updateTrackingAreas()}
     func value(_ tile:LensTile)->String {
         switch preferences.color {
@@ -117,41 +143,48 @@ final class LensCanvas:NSView {
             ("A little perspective starts here.\nScan a folder or import your recorded machine." as NSString).draw(in:NSRect(x:20,y:bounds.midY-25,width:max(0,bounds.width-40),height:65),withAttributes:[.font:NSFont.systemFont(ofSize:15,weight:.medium),.foregroundColor:FriendlyUI.muted,.paragraphStyle:paragraph]);return}
         for tile in result.tiles {
             guard tile.frame.intersects(rect) else {continue}
-            let r=tile.frame.insetBy(dx:1.5,dy:1.5);guard r.width>0,r.height>0 else {continue}
-            let shape=NSBezierPath(roundedRect:r,xRadius:min(9,r.width/8),yRadius:min(9,r.height/8))
+            let scale=max(1,displayScale),r=tile.frame.insetBy(dx:1.5/scale,dy:1.5/scale);guard r.width>0,r.height>0 else {continue}
+            let shape=NSBezierPath(roundedRect:r,xRadius:min(9/scale,r.width/8),yRadius:min(9/scale,r.height/8))
             if tile.masked {NSColor.quaternaryLabelColor.setFill();r.fill();continue}
-            (tile.virtual ? NSColor.separatorColor : color(value(tile))).setFill();shape.fill();FriendlyUI.surface.withAlphaComponent(0.8).setStroke();shape.lineWidth=1;shape.stroke()
-            if tile.node.id==selected {FriendlyUI.teal.setStroke();shape.lineWidth=3;shape.stroke()}
-            if r.width>85 && r.height>34 {
+            (tile.virtual ? NSColor.separatorColor : cachedColor(tile)).setFill();shape.fill();FriendlyUI.surface.withAlphaComponent(0.8).setStroke();shape.lineWidth=1/scale;shape.stroke()
+            if tile.node.id==selected {FriendlyUI.teal.setStroke();shape.lineWidth=3/scale;shape.stroke()}
+            if r.width>85/scale && r.height>34/scale {
                 let paragraph=NSMutableParagraphStyle();paragraph.lineBreakMode = .byTruncatingTail
                 let amount=preferences.measure == .tally ? String(tile.node.total.count)+" files" : ByteCountFormatter.string(fromByteCount:tile.node.total.weight(preferences.measure),countStyle:preferences.binaryUnits ? .binary:.decimal)
-                let labelRect=r.insetBy(dx:9,dy:9)
-                (tile.label+"\n"+amount as NSString).draw(in:labelRect,withAttributes:[.font:NSFont.systemFont(ofSize:11,weight:.medium),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
+                let labelRect=r.insetBy(dx:9/scale,dy:9/scale)
+                (tile.label+"\n"+amount as NSString).draw(in:labelRect,withAttributes:[.font:NSFont.systemFont(ofSize:11/scale,weight:.medium),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
             }
         }
         for branch in result.branches {
-            let r=branch.frame.insetBy(dx:1,dy:1),outline=NSBezierPath(roundedRect:r,xRadius:10,yRadius:10)
-            FriendlyUI.muted.withAlphaComponent(0.3).setStroke();outline.lineWidth=1.5;outline.stroke()
-            let header=NSRect(x:r.minX+5,y:r.maxY-26,width:r.width-10,height:22)
+            guard branch.frame.intersects(rect) else {continue}
+            let scale=max(1,displayScale),r=branch.frame.insetBy(dx:1/scale,dy:1/scale),outline=NSBezierPath(roundedRect:r,xRadius:10/scale,yRadius:10/scale)
+            FriendlyUI.muted.withAlphaComponent(0.3).setStroke();outline.lineWidth=1.5/scale;outline.stroke()
+            let header=branchHeader(branch)
             let label=NSBezierPath(roundedRect:header,xRadius:6,yRadius:6);FriendlyUI.surface.setFill();label.fill()
             let paragraph=NSMutableParagraphStyle();paragraph.lineBreakMode = .byTruncatingTail
-            ("▸ "+branch.label as NSString).draw(in:header.insetBy(dx:6,dy:3),withAttributes:[.font:NSFont.systemFont(ofSize:11,weight:.semibold),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
+            ("▸ "+branch.label as NSString).draw(in:header.insetBy(dx:6/scale,dy:3/scale),withAttributes:[.font:NSFont.systemFont(ofSize:11/scale,weight:.semibold),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
         }
         if selectedDirectory,let relative=selectedRelative {
             let frames=result.tiles.filter {!$0.virtual && ($0.node.relative==relative || $0.node.relative.hasPrefix(relative.isEmpty ? "":relative+"/"))}.map(\.frame)
-            if let first=frames.first {let box=frames.dropFirst().reduce(first) {$0.union($1)};let outline=NSBezierPath(roundedRect:box.insetBy(dx:1,dy:1),xRadius:10,yRadius:10);outline.lineWidth=3;FriendlyUI.teal.setStroke();outline.stroke()}
+            if let first=frames.first {let scale=max(1,displayScale),box=frames.dropFirst().reduce(first) {$0.union($1)};let outline=NSBezierPath(roundedRect:box.insetBy(dx:1/scale,dy:1/scale),xRadius:10/scale,yRadius:10/scale);outline.lineWidth=3/scale;FriendlyUI.teal.setStroke();outline.stroke()}
         }
     }
+    func branchHeader(_ tile:LensTile)->NSRect {let scale=max(1,displayScale);return NSRect(x:tile.frame.minX+6/scale,y:tile.frame.maxY-27/scale,width:max(0,tile.frame.width-12/scale),height:22/scale)}
     func at(_ event:NSEvent)->LensTile? {let point=convert(event.locationInWindow,from:nil)
-        if let branch=result.branches.reversed().first(where:{NSRect(x:$0.frame.minX+6,y:$0.frame.maxY-27,width:$0.frame.width-12,height:22).contains(point)}) {return branch}
+        if let branch=result.branches.reversed().first(where:{branchHeader($0).contains(point)}) {return branch}
         return result.tiles.first {$0.frame.contains(point) && !$0.masked}
     }
-    override func mouseMoved(with event:NSEvent) {if !locked,let tile=at(event) {selected=tile.node.id;needsDisplay=true;selection?(tile)}}
-    override func mouseDown(with event:NSEvent) {window?.makeFirstResponder(self);guard let tile=at(event) else{return};selected=tile.node.id;locked=true;needsDisplay=true;selection?(tile);if event.clickCount==2 {zoom?(tile)}}
-    override func scrollWheel(with event:NSEvent) {if abs(event.scrollingDeltaY)>1 {focus?(event.scrollingDeltaY>0 ? 1:-1)}}
+    override func mouseMoved(with event:NSEvent) {if !interactionHeld,!locked,let tile=at(event),selected != tile.node.id {selected=tile.node.id;needsDisplay=true;selection?(tile)}}
+    override func mouseDown(with event:NSEvent) {window?.makeFirstResponder(self);guard !interactionHeld,let tile=at(event) else{return};selected=tile.node.id;locked=true;needsDisplay=true;selection?(tile);if event.clickCount==2 {zoom?(tile)}}
+    override func scrollWheel(with event:NSEvent) {if event.modifierFlags.contains(.option) {opticalZoom?(event.scrollingDeltaY>0 ? 1.15:1/1.15)} else {super.scrollWheel(with:event)}}
     override func keyDown(with event:NSEvent) {
+        if event.keyCode==53 {if locked {locked=false;needsDisplay=true} else {leaveFocus?()};return}
+        if let key=event.charactersIgnoringModifiers?.lowercased(),!event.modifierFlags.contains(.command) {
+            if key=="+" || key=="=" {opticalZoom?(1.5);return};if key=="-" {opticalZoom?(1/1.5);return}
+            if key=="0" {fit?();return};if key=="i" {inspect?();return}
+        }
+        guard !interactionHeld else{return}
         if event.keyCode==49 {preview?();return}
-        if event.keyCode==53 {locked=false;return}
         if event.modifierFlags.contains(.command),let text=event.charactersIgnoringModifiers {
             if text=="[" {focus?(1);return};if text=="]" {focus?(-1);return};if text=="-" {zoomOut?();return}
             if text=="=" || text=="+",let tile=result.tiles.first(where:{$0.node.id==selected}) {zoom?(tile);return}
