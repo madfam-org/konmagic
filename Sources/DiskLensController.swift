@@ -57,7 +57,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         let tools=NSPopUpButton(frame:.zero,pullsDown:true);tools.addItem(withTitle:"More tools")
         let groups:[[(String,Selector)]]=[
             [("Recorded Atlas folder…",#selector(chooseRecorded)),("Full rescan",#selector(rescan)),("Scan exclusions…",#selector(scanFilters))],
-            [("Focus up",#selector(focusUp)),("Focus down",#selector(focusDown)),("Duplicate view",#selector(duplicate)),("Twin view",#selector(twin))],
+            [("Inspect & classify in Content",#selector(showCatalogue)),("Focus up",#selector(focusUp)),("Focus down",#selector(focusDown)),("Duplicate view",#selector(duplicate)),("Twin view",#selector(twin))],
             [("Mask…",#selector(editMask)),("Create filtered view…",#selector(filterView)),("Saved filters…",#selector(filterLibrary)),("File-type colors…",#selector(typeColors))],
             [("Save scan…",#selector(saveScan)),("Compare scans…",#selector(compareScan)),("Volume & snapshots…",#selector(showVolumeContext)),("Duplicate evidence…",#selector(duplicateReview)),("Scan notes…",#selector(notes)),("File & folder viewer…",#selector(richPreview))],
             [("Export map PNG / TIFF…",#selector(exportImage)),("Export complete scan text…",#selector(exportText))]]
@@ -308,7 +308,20 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         if [#selector(chooseRecorded),#selector(scanFilters),#selector(filterLibrary),#selector(typeColors)].contains(item.action) {return !busy}
         return store != nil && !busy
     }
-    @objc func showCatalogue() {guard let w=workspace else{return};let path: String? = {guard let store=store,let info=info else{return nil};if let node=selected,node.directory {return store.path(node,info)};if let focus=focusNode {return store.path(focus,info)};return info.root}();w.showExplorer();if let path=path {w.explorer?.showRecordedFolder(path)}}
+    @objc func showCatalogue() {
+        guard let w=workspace else{return}
+        var source:CatalogItem?,scope:String?
+        if let store=store,let info=info {
+            if let node=selected,node.kind==0 || node.directory {
+                let path=store.path(node,info)
+                var item=CatalogItem(id:0,path:path,name:node.name,kind:node.directory ? "directory":"file",bytes:node.bytes,context:"Retained Storage observation")
+                let time=node.modified.multipliedReportingOverflow(by:1_000_000_000)
+                item.origin="Storage snapshot";item.modified=time.overflow ? 0:time.partialValue;item.tags=MetadataLabels.tags(path:path,kind:item.kind,inherited:node.cloud ? "cloud":"user_data");item.barrier=node.cloud ? "cloud":"user_data"
+                source=item;scope=node.directory ? path:URL(fileURLWithPath:path).deletingLastPathComponent().path
+            } else if let focus=focusNode {scope=store.path(focus,info)} else {scope=info.root}
+        }
+        w.showExplorer();if let scope=scope {w.explorer?.acceptStorageSource(source,scope:scope,focused:mapFocused)}
+    }
     @objc func duplicate() {guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first else{return};other.applyViewPreferences(preferences);if let store=store {other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}}
     @objc func twin() {guard store != nil else{return};if twinGroup==nil {twinGroup=UUID().uuidString};guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first,let store=store else{return};other.twinGroup=twinGroup;other.applyViewPreferences(preferences);other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}
     @objc func editMask() {if let filter=LensFilterEditor(mask).edit() {mask=filter;remember(filter);render()}}

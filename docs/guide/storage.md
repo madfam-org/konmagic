@@ -78,3 +78,7 @@ The snapshot strip separates recorded entries, logical/allocated bytes, access e
 New private preferences default to the Pastel palette colored by Top folder. Existing saved choices are retained. Rounded tiles, branch outlines and clickable branch headings are presentation overlays; the hierarchy-preserving weight calculation is unchanged. A click locks selection; Escape resumes hover. Map selection and adjacent list remain equivalent ways to reach a source. Decorative spacing and headers do not represent additional disk weight.
 
 Image export recalculates the same focus and mask at its target resolution. It exports the full focused hierarchy, independently of viewport pan; compact groups remain labelled. It never overwrites an existing output or reads source bodies. Encoding and additional drawing buffers can exceed the raw pixel-surface size.
+
+## Classify a selected source in Content
+
+**Explore content** carries a selected real file or folder and its physical scope into Content. Retained semantic evidence is enriched in the background; the source pin stays explicit even beyond a list page. The inspector opens for classification, destination choice and exact placement. No original content preview or assignment happens automatically. [Content workspace and handoffs](content.md).

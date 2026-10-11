@@ -229,3 +229,9 @@ Evaluate whether a first-time user can choose a tool, identify evidence freshnes
 The desired result is a lovable tool whose kindness comes from clarity and control as much as visual charm.
 
 The discovery journey now keeps the destination/Review actions visible below scrolling evidence. Classification refresh retains matching selections and explicit destination choices. Loading, no-match and held views are first-class states; the complete pre-assignment destinations dialog belongs to this journey. Preserve these states when refining the visual design.
+
+## Content focus variant
+
+The compact top bar keeps six visualization choices, density/Fit when applicable, Preview, Sources, Inspector, focus exit and native full screen. Below it, the dataset and retained-search controls stay present, followed by scope, removable filters, results and bounded paging. The optional Sources rail exposes familiar scopes and semantic dimensions. The optional Inspector rail combines exact source, explicit Quick Look, retained evidence, human classification, chosen draft destination and exact placement actions. A Storage handoff strip carries one explicitly chosen source independently of a page; its label must never imply that a hidden semantic group is an assignable folder. Loading/error states distinguish unavailable observations from empty successful results.
+
+Visual balance comes from the current content itself. Focus suppresses decorative page chrome to maximize usable area while maintaining navigation and trust controls. Dense galleries use smaller cards; large cards increase their preview region. Physical and semantic map contexts remain distinct, and copying remains a separate Review approval.

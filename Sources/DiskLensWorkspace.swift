@@ -6,7 +6,7 @@ import AppKit
 final class LensViewport:NSScrollView {
     var resized:(()->Void)?
     private var sizing=false
-    init(canvas:LensCanvas) {
+    init(canvas:NSView) {
         super.init(frame:.zero);documentView=canvas;drawsBackground=false
         hasHorizontalScroller=true;hasVerticalScroller=true;autohidesScrollers=true
         allowsMagnification=true;minMagnification=1;maxMagnification=8

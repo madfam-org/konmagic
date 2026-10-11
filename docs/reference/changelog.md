@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.3 · build 12
+
+- Content focus fills the window with search and six visualization choices; Sources and Inspector toggle independently. Native full screen stays separate from focus mode.
+- Unchanged pages and aggregates are reused when switching views. Physical and tag trees retain their own cached roots, expansion, selection and scroll context; refreshed scopes invalidate their authority.
+- Gallery density changes card size and adaptive column count, retaining visible-row recycling and explicit bounded thumbnail requests. Keyboard arrows reach exact sources; Return explores folders and Space requests a preview.
+- Inline macOS Quick Look appears only after an explicit eligible-file request. Selection, scope changes and leaving the page release obsolete representations; folders retain the full source viewer.
+- Storage hands off the selected exact source and physical scope. Retained catalogue evidence enriches a separate visible source pin, including sources beyond the current page. Classification refresh retains that exact source; maps keep assignment actions held. Search and scope changes clear the pin.
+- Synthetic acceptance checks and read-only private real-catalogue benchmarks cover focused geometry, cached switching, selection authority, classification and assignment into unverified Review.
+
 ## 0.5.2 · build 11
 
 - Edge-to-edge Storage map focus, optional side inspector and native full-screen control.

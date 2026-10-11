@@ -55,7 +55,11 @@ extension KonMagicDelegate {
         tasks.append(("content-filters",{let e=self.controller.explorer!;e.mode.selectedSegment=0;e.filters=[.owner:"Personal",.family:"Video"];e.changeVisualization();e.refresh()}))
         tasks.append(("content-gallery",{let e=self.controller.explorer!;e.folder=root.appendingPathComponent("Sources/Projects/Orbit").path;e.filters=[:];e.refresh();e.mode.selectedSegment=5;e.changeVisualization()}))
         tasks.append(("content-gallery-thumbnails",{let e=self.controller.explorer!;e.loadGalleryThumbnails();if let i=e.records.firstIndex(where:{$0.name=="Prototype.png"}) {e.table.selectRowIndexes(IndexSet(integer:i),byExtendingSelection:false);e.showMetadata()}}))
-        tasks.append(("recorded-disk",{let e=self.controller.explorer!;e.dataset.selectItem(at:1);e.folder=root.appendingPathComponent("Sources").path;e.changeDataset()}))
+        tasks.append(("content-workspace-focus",{let e=self.controller.explorer!;e.setContentFocus(true);e.density.selectItem(at:0);e.galleryDensityChanged()}))
+        tasks.append(("content-workspace-tree",{let e=self.controller.explorer!;e.folder=root.appendingPathComponent("Sources").path;e.refresh();e.switchContentView(1)}))
+        tasks.append(("content-workspace-map",{let e=self.controller.explorer!;e.folder=nil;e.filters=[:];e.refresh();e.switchContentView(3)}))
+        tasks.append(("content-workspace-preview",{let e=self.controller.explorer!;e.switchContentView(5);if let i=e.records.firstIndex(where:{$0.name=="Prototype.png"}) {e.table.selectRowIndexes(IndexSet(integer:i),byExtendingSelection:false);e.previewInInspector()}}))
+        tasks.append(("recorded-disk",{let e=self.controller.explorer!;e.setContentFocus(false);e.density.selectItem(at:1);e.dataset.selectItem(at:1);e.folder=root.appendingPathComponent("Sources").path;e.changeDataset()}))
         tasks.append(("structure",{host.navigate(.structure);self.controller.outline.expandItem(nil,expandChildren:true);if let node=self.controller.store.value.nodes.first(where:{$0.name=="Orbit"}) {self.controller.selectDestination(node.id)};self.controller.navigate(root.appendingPathComponent("Sources/Projects/Orbit").path)}))
         tasks.append(("review-unverified",{
             do {guard let n=self.controller.store.value.nodes.first(where:{$0.name=="Research"}) else {exit(1)};try self.controller.store.change {try $0.assign([root.appendingPathComponent("Sources/Research/Reading copy A.txt").path],to:n.id)};self.controller.refreshDraft();host.navigate(.review)} catch {exit(1)}
@@ -73,7 +77,8 @@ extension KonMagicDelegate {
         tasks.append(("storage-map-inspector",{let lens=self.controller.lenses.first!;lens.toggleMapInspector();if let node=lens.rows.first(where:{$0.name=="Personal"}) {lens.canvas.locked=true;lens.select(node)}}))
         tasks.append(("storage-map-zoom",{let lens=self.controller.lenses.first!;lens.toggleMapInspector();lens.zoomInMap();lens.zoomInMap()}))
         tasks.append(("storage-map-restored",{let lens=self.controller.lenses.first!;lens.setMapFocus(false);lens.fitMap()}))
-        tasks.append(("content-restored",{host.navigate(.content);let e=self.controller.explorer!;e.dataset.selectItem(at:0);e.folder=nil;e.filters=[:];e.mode.selectedSegment=0;e.changeDataset();e.updateMode()}))
+        tasks.append(("storage-content-handoff",{let lens=self.controller.lenses.first!;let p=root.appendingPathComponent("Sources/Projects/Orbit/Prototype.png").path;let item=CatalogItem(id:0,path:p,name:"Prototype.png",kind:"file",bytes:0,context:"Synthetic handoff");lens.setMapFocus(true);host.navigate(.content);self.controller.explorer!.acceptStorageSource(item,scope:root.appendingPathComponent("Sources/Projects/Orbit").path,focused:true)}))
+        tasks.append(("content-restored",{host.navigate(.content);let e=self.controller.explorer!;e.setContentFocus(false);e.dataset.selectItem(at:0);e.folder=nil;e.filters=[:];e.mode.selectedSegment=0;e.changeDataset();e.updateMode()}))
         tasks.append(("folder-viewer",{self.controller.showSourcePreview(root.appendingPathComponent("Sources/Projects/Orbit").path,allowFixture:true)}))
         tasks.append(("folder-gallery",{if let c=host.current?.controller as? SourcePreviewController {c.mode.selectedSegment=1;c.changePresentation()}}))
         tasks.append(("folder-thumbnails",{if let c=host.current?.controller as? SourcePreviewController {c.loadThumbnails()}}))
@@ -102,7 +107,7 @@ extension KonMagicDelegate {
             }
             let task=tasks[index];index+=1;task.1();self.window.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
             DispatchQueue.main.asyncAfter(deadline:.now()+1.2) {
-                let isTree=task.0=="content-folder-tree" || task.0=="content-tag-tree"
+                let isTree=task.0=="content-folder-tree" || task.0=="content-tag-tree" || task.0=="content-workspace-tree"
                 if isTree,let e=self.controller.explorer {for node in e.roots {e.tree.expandItem(node,expandChildren:true)}}
                 if let c=host.current?.controller as? SourcePreviewController {
                     if task.0=="folder-viewer" {checkViewer(c.items.count==6 && c.preview.previewItem==nil,"folder metadata without body request")}
@@ -112,6 +117,8 @@ extension KonMagicDelegate {
                 }
                 if task.0=="content-gallery",let e=self.controller.explorer {checkViewer(e.gallery.images.isEmpty && e.gallery.requests.isEmpty && e.gallery.cards.count==6,"gallery browsing requests no original bodies")}
                 DispatchQueue.main.asyncAfter(deadline:.now()+(isTree ? 0.8:task.0=="image-viewer" || task.0=="folder-thumbnails" || task.0=="content-gallery-thumbnails" ? 2.0:0.0)) {
+                    if task.0=="storage-content-handoff",let e=self.controller.explorer {checkViewer(!e.pageLoading && !e.handoffLoading && e.records.count==6 && e.selectedRecords().first?.name=="Prototype.png","Storage handoff retains its exact source and recorded sibling page")}
+                    if task.0=="content-workspace-preview",let e=self.controller.explorer {checkViewer(e.inlinePreview.previewItem != nil && e.selectedRecords().first?.name=="Prototype.png","explicit inline preview retains exact selection")}
                     if task.0=="image-viewer",let c=host.current?.controller as? SourcePreviewController {checkViewer(c.preview.previewItem != nil && c.preview.frame.height>=330,"preview reopens after clear")}
                     if task.0=="content-gallery-thumbnails",let e=self.controller.explorer {checkViewer(e.gallery.candidates.count<=24 && e.gallery.inFlight<=3 && e.gallery.images.count<=24 && e.selectedRecords().first?.name=="Prototype.png","bounded content thumbnails and exact gallery selection")}
                     capture(task.0);advance()

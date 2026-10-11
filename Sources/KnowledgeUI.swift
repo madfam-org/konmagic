@@ -16,6 +16,7 @@ extension CatalogueExplorerController {
     func knowledgeChanged() {if let navigation=workspace?.navigation {navigation.knowledgeChanged()} else {reloadKnowledge();workspace?.plan=nil;workspace?.refreshDraft()}}
     func reloadKnowledge() {
         let paths=Set(selectedRecords().map(\.path))
+        if handoff != nil {refreshStorageHandoff()}
         allSummary=nil;summary=nil
         if displayedView==1 {reloadSelectedTreeKnowledge()} else {loadPage(preserving:paths)}
         loadSummary()

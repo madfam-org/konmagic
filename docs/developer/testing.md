@@ -17,6 +17,8 @@ The GitHub native workflow builds on `macos-latest` and runs these checks. UI re
 | `--journey-ui-smoke` | Exact assignment handoff, recycled gallery end-of-page selection, retained cards, Review empty/filtered states, output rename, map-return/chips, inventory paging and transfer holds |
 | `--toolkit-ui-smoke` | Balanced cards and stage/keyboard routes |
 | `--explorer-ui-smoke` | Dataset/list/tree/map views and exact assignment preview |
+| `--content-workspace-ui-smoke` | Validated synthetic fixture: focus geometry, cached views/trees, source authority and Storage/classification/assignment handoff |
+| `--content-workspace-benchmark` | Private isolated state and real read-only catalogue: warm native visualization/display-cycle timings and process RSS |
 | `--storage-workspace-ui-smoke` | Generated documentation fixture only: edge-to-edge/compact sizing, zoom/fit, selection, ancestry, history and navigation restoration |
 | `--storage-map-benchmark` | Fresh private benchmark state plus read-only saved scan; native layout/display-cycle timing and process RSS; no body reads or source operations |
 | `--lens-ui-smoke` | Own-view render, bounded rows and proportional map conservation |
@@ -32,7 +34,7 @@ Ordinary QA can connect real local observations. Its outputs are **always privat
 
 `--documentation-capture` validates the fixture marker, root, catalogue path, output and assignment sources before initializing the app. It composites only this process’s owned synthetic windows, including native alerts and Quick Look layers; it never captures the desktop or another app. Older local SDKs use the owned-window Core Graphics API, while modern toolchains use macOS screencapture with that exact window number. Capture can be unavailable under macOS privacy restrictions; the workflow fails rather than publishing an empty view. It does not change permissions. It traverses the invented source metadata, reads synthetic cached text, verifies one small synthetic plan using the explicit fixture allowance, cancels native editing dialogs, and walks all eight welcome pages. It cancels copy confirmation and never invokes approved copying. The viewer examples explicitly request only invented file/thumbnail content.
 
-The workflow also checks folder metadata without body requests, bounded gallery/thumbnail requests, clearing then reopening native previews, and clearing stale Storage selection summaries on navigation. It captures 47 owned views per appearance, including Content before and after an explicit thumbnail request. It activates its owned window, forces display/flush, and rejects identical compositor frames for the distinct Structure and Recorded disk pages. The output folder must be new. Create a separate fixture for each appearance or rerun. The app’s production source eligibility and current-state guards are not relaxed.
+The workflow also checks folder metadata without body requests, bounded gallery/thumbnail requests, clearing then reopening native previews, and clearing stale Storage selection summaries on navigation. A Storage-to-Content capture must retain the exact selected source and load its recorded sibling page. Fixture directory keys use the same zlib compression level as the native ledger reader. It captures 52 owned views per appearance, including Content before and after an explicit thumbnail request. It activates its owned window, forces display/flush, and rejects identical compositor frames for the distinct Structure and Recorded disk pages. The output folder must be new. Create a separate fixture for each appearance or rerun. The app’s production source eligibility and current-state guards are not relaxed.
 
 ## Refresh public screenshots
 
@@ -53,3 +55,9 @@ Inspect every output for legibility and private-data leaks. Promote only this wo
 `generate-reference.py` rebuilds the gallery/source symbol index. `check-site.py` checks manifest hashes, image provenance fields, local links/anchors, declared app help routes and prohibited private path strings. Visual inspection remains required; a text scanner cannot prove screenshot privacy or usability on its own.
 
 Modal capture timers run in `.modalPanel` run-loop mode so they execute inside AppKit modal loops. A dispatched main-queue timer alone can stall behind `runModal`. Capture owned view caches rather than the entire desktop; newer Swift SDKs remove older window-capture APIs.
+
+## Content workspace acceptance and benchmarks
+
+`--content-workspace-ui-smoke` requires a newly generated, validated documentation fixture. It checks edge-to-edge focus at regular and compact widths, independent rails, unchanged query generations during view switching, tree model/expansion/selection restoration, recycled gallery identity, exact-source Storage handoff, isolated classification refresh and assignment into unverified Review. Its synthetic decisions are restored; no source transfer is executed. Run separately in both appearances.
+
+`--content-workspace-benchmark` requires a fresh private state below `/private/tmp/konmagic-content-wave-`. Connect the existing real catalogue read-only; working state is never used as benchmark output. It measures readiness and warm AppKit display cycles for list, galleries, maps, connections and cached trees, with process RSS/high-water. No thumbnails, original bodies, source hashes, live traversals or actual assignment writes are requested. Preserve the raw private report and verify working-state/input hashes independently.

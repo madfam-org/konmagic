@@ -13,6 +13,8 @@ This inventory follows the current source tree. Links point to public generic im
 | [CatalogueVisuals.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueVisuals.swift) | Content treemap and bounded semantic relationship drawing. |
 | [ClassificationTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift) | Synthetic editable classification, retained selection, exact handoff and loading-state acceptance. |
 | [ContentGallery.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift) | Exact-source selection cards and explicit bounded, cancellable in-memory thumbnails. |
+| [ContentWorkspace.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentWorkspace.swift) | Edge-to-edge Content focus, independent rails, cached tree state, exact Storage pins and explicit inline Quick Look. |
+| [ContentWorkspaceTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentWorkspaceTests.swift) | Synthetic focused Content journey acceptance and isolated real-catalogue visualization timing. |
 | [ContextHelp.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift) | Native contextual explanations and popover guidance. |
 | [DiskCatalogue.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskCatalogue.swift) | Compressed whole-disk ledger, aliases, exceptions and stamped aggregate caches. |
 | [DiskLensController.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensController.swift) | Storage controls, selection/current checks, observation work and destination handoff. |
@@ -25,7 +27,7 @@ This inventory follows the current source tree. Links point to public generic im
 | [DiskLensStore.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensStore.swift) | Private SQLite writer, parent folding and bounded retained tree reader. |
 | [DiskLensTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [DiskLensWatcher.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWatcher.swift) | Current-session FSEvents history and gap-aware refresh decisions. |
-| [DiskLensWorkspace.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWorkspace.swift) | Native support module; inspect the source-linked declaration index. |
+| [DiskLensWorkspace.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWorkspace.swift) | Focused Storage controls and shared native map magnification/panning viewport. |
 | [DiskLensWorkspaceTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensWorkspaceTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [Documentation.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Documentation.swift) | Fixed public HTTPS routes and active-page native Help actions. |
 | [DocumentationCapture.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DocumentationCapture.swift) | Restricted generated fixture validation and owned synthetic window screenshot workflow. |

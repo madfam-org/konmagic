@@ -16,9 +16,9 @@ else:
  log=(r/f'capture-{a.appearance}.log').read_text()
  if 'DOCUMENTATION_CAPTURE passed=true' not in log:raise SystemExit('Documentation capture did not pass')
  files=sorted((r/('Dark screenshots' if a.appearance=='dark' else 'Light screenshots')).glob('*.png'));fixture='generated-documentation-library-v1'
- if len(files)!=47:raise SystemExit(f'Expected 47 owned-view captures, got {len(files)}')
+ if len(files)!=52:raise SystemExit(f'Expected 52 owned-view captures, got {len(files)}')
 assets=ROOT/'docs/assets/screenshots';manifest=assets/'manifest.json'
-m=json.loads(manifest.read_text()) if manifest.exists() else {'schema':1,'app_version':'0.5.2','synthetic_only':True,'images':[]}
+m=json.loads(manifest.read_text()) if manifest.exists() else {'schema':1,'app_version':'0.5.3','synthetic_only':True,'images':[]}
 for f in files:
  if f.is_symlink() or not f.is_file():raise SystemExit('Linked or absent capture')
  name=f.stem.removeprefix('review-') if a.review_metadata else f.stem
@@ -30,8 +30,8 @@ for f in files:
  if name=='duplicates':caption='Synthetic equal-size candidate fixture with 601 invented records. It exceeds the 100-file proof bound and enables no automatic body hashing or deletion.'
  shutil.copyfile(f,assets/target)
  width,height=struct.unpack('>II',f.read_bytes()[16:24])
- row=dict(width=width,height=height,file=target,title=title,alt=f'KonMagic native {title.lower()} with synthetic example data',caption=caption,appearance=a.appearance,app_version='0.5.2',fixture=fixture,scenario='--review-ui-smoke' if a.review_metadata else '--documentation-capture',sha256=hashlib.sha256(f.read_bytes()).hexdigest())
+ row=dict(width=width,height=height,file=target,title=title,alt=f'KonMagic native {title.lower()} with synthetic example data',caption=caption,appearance=a.appearance,app_version='0.5.3',fixture=fixture,scenario='--review-ui-smoke' if a.review_metadata else '--documentation-capture',sha256=hashlib.sha256(f.read_bytes()).hexdigest())
  m['images']=[x for x in m['images'] if x['file']!=target]+[row]
-m['app_version']='0.5.2'
+m['app_version']='0.5.3'
 m['images']=sorted(m['images'],key=lambda x:x['file']);manifest.write_text(json.dumps(m,indent=2,sort_keys=True)+'\n')
 print(f'Promoted {len(files)} reviewed invented captures; manifest total {len(m["images"])}.')

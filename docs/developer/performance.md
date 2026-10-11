@@ -51,3 +51,11 @@ Both modes require an owned temporary benchmark state. The wrapper checks workin
 
 
 `--storage-map-benchmark` measures native layout/display cycles against an existing read-only `.konmagic-scan`, including the whole-machine root. Set `KONMAGIC_QA_STATE` to a fresh owned `/private/tmp/konmagic-storage-wave-*/State` containing an isolated workspace and `KONMAGIC_BENCHMARK_SCAN` to the saved scan. It samples balanced, detailed and ultra fit views plus 4× ultra optical zoom. It reports recorded coverage, visible rectangle counts, display-cycle timing and process RSS. It does not perform a new scan, read source bodies or change the working draft; benchmark preferences and reports are written only to temporary state. Record input scan identities/hashes and working decision hashes before/after, and keep real reports outside Git. Samples include a 50 ms polling interval and the native display cycle; they do not measure physical input-to-photon latency or steady-state panning frame rate.
+
+## Focused Content workspace
+
+View changes reuse the current 200-row page and retained aggregate summary. Separate tree snapshots retain root objects, up to 256 expanded nodes, selected node identities and scroll origins. Dataset/scope changes, explicit refresh and changed tag stamps prevent stale authority. No visualization switch automatically requests source thumbnails or bodies. Gallery density changes recycle only visible/adjacent native cards; each page has at most 200 sources, at most 24 explicitly requested thumbnails and three requests in flight.
+
+The private Content workspace benchmark measures initial all-content readiness, first gallery creation, density changes, map/tag switching and cached physical-tree restoration. It asserts page/summary query generations and the isolated draft remain unchanged through warm switching. Values are native layout/display-cycle samples on a retained real catalogue, not sustained frame-rate or input-to-photon claims; record warm/cold conditions and cumulative process peak RSS.
+
+Rapid selection changes coalesce current-metadata checks with a 120 ms debounce and a generation ticket. Reading a retained excerpt remains a separate action. Inline Quick Look has an independent ticket so obsolete requests cannot bind to another selected source.

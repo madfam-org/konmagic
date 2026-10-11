@@ -7,7 +7,7 @@ struct PerformanceSample:Codable {
     var detail:String? = nil
 }
 struct PerformanceReport:Codable {
-    var schema=1,appVersion="0.5.2",mode:String
+    var schema=1,appVersion="0.5.3",mode:String
     var date=ISO8601DateFormatter().string(from:Date())
     var system=ProcessInfo.processInfo.operatingSystemVersionString
     var logicalCPUs=ProcessInfo.processInfo.activeProcessorCount
@@ -28,7 +28,7 @@ func benchmarkSample(_ name:String,start:UInt64,value:Int64=0,status:String="ok"
     return PerformanceSample(name:name,status:status,milliseconds:elapsed,value:value,residentBytes:memory.0,peakResidentBytes:memory.1,detail:detail)
 }
 func validateBenchmarkState(_ state:URL) throws {
-    guard state.path.hasPrefix("/private/tmp/konmagic-storage-wave-") || state.path.hasPrefix("/private/tmp/konmagic-journey-wave-") || state.path.hasPrefix("/private/tmp/konmagic-benchmark-") else {throw KonMagicError("Benchmarks require a fresh owned private temporary state; the working app state is never a benchmark output.")}
+    guard state.path.hasPrefix("/private/tmp/konmagic-content-wave-") || state.path.hasPrefix("/private/tmp/konmagic-storage-wave-") || state.path.hasPrefix("/private/tmp/konmagic-journey-wave-") || state.path.hasPrefix("/private/tmp/konmagic-benchmark-") else {throw KonMagicError("Benchmarks require a fresh owned private temporary state; the working app state is never a benchmark output.")}
     let fd=try SafeFS.openDirectory(state.path);defer {close(fd)}
     var info=stat();guard fstat(fd,&info)==0,info.st_uid==getuid(),info.st_mode & 0o077==0 else {throw KonMagicError("Benchmark state must be owned and private.")}
 }

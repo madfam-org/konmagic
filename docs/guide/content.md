@@ -7,6 +7,38 @@ Content Explorer joins classifications, provenance and retained readings with ex
 <figcaption>A bounded list uses 200-row pages. Complete aggregate groups remain available for narrowing the view.</figcaption>
 </figure>
 
+## An edge-to-edge discovery workspace
+
+Choose **Focus content** (Shift-Command-M) to give the results the full window. Compact search, the dataset chooser and all six views stay visible. **Sources** and **Inspector** restore their rails independently; **Full screen** uses the native macOS window mode. The **More** menu retains collections, rules, refresh, clear filters and the illustrated guide.
+
+![Content focus with adaptive gallery cards](../assets/screenshots/light-content-workspace-focus.png)
+
+| Control | Result |
+|---|---|
+| List / Folders / Tags / Map / Connections / Gallery | Switch the current retained slice; unchanged pages and aggregates are reused |
+| Option-Command-1 through 6 | Switch visualization |
+| Command-F | Focus the retained-observation search |
+| Sources / Inspector | Independently toggle semantic navigation and source/classification/placement details |
+| Small cards / Comfortable / Large cards | Change gallery density; columns adapt to available width |
+| Pinch / two-axis scroll in a map | Magnify and pan the semantic map, 1–8× |
+| Fit map | Restore the entire current semantic map |
+| Gallery arrows / Shift-arrows | Navigate exact sources / extend selection |
+| Gallery Return / Space | Explore a folder or explicitly request a source preview |
+
+Physical and tag trees retain separate roots, expansion and scroll state across view switches. At most 256 expanded nodes are remembered; child pages remain bounded. Physical trees show retained hierarchy; semantic intersections apply to lists and maps. Maps and tag groups filter sources and carry no source-assignment authority.
+
+![Focused retained physical hierarchy](../assets/screenshots/dark-content-workspace-tree.png)
+
+![Focused semantic map](../assets/screenshots/light-content-workspace-map.png)
+
+## Continue from Storage
+
+Select a real file or folder in Storage and choose **Explore content**. Content carries the exact source into a visible **From Storage** pin and opens its physical scope. A file uses its parent folder; a folder remains its own assignable bucket while its children can be browsed. The pin remains usable even when the selected source falls beyond the current 200-row page. A matching retained catalogue observation supplies semantic evidence; otherwise the retained scan metadata remains explicitly identified.
+
+![Exact-source handoff from Storage into Content classification and placement](../assets/screenshots/light-storage-content-handoff.png)
+
+Choose the pin to inspect it again, or select another visible source. Refine tags, choose a destination, preview exact paths, then add the choice to Review. Maps and tag groups hold pinned source actions. A changed search, semantic filter, dataset or physical scope clears the handoff. **Return to Storage** restores the physical observation without changing original files.
+
 ## Names, paths and indexed content
 
 Choose a familiar location or All retained content, then search. **Names, paths & tags** matches retained metadata. **Indexed content** searches the existing catalogue’s FTS index, including eligible canonical/shared readings. It does not open every original document. Operator-looking terms are treated as literal tokens rather than raw SQL or FTS syntax.
@@ -34,6 +66,10 @@ The inspector shows retained classification and provenance, current metadata whe
 <figcaption>The displayed reading is invented text stored in the synthetic catalogue, not a fresh source-body ingestion.</figcaption>
 </figure>
 
+**Preview** or **Preview here** explicitly loads one eligible file into the inspector’s native Quick Look viewer. The macOS preview providers determine supported PDF, image, document, audio, video and model formats. Playback does not auto-start. **Clear preview** releases content and thumbnail requests; changing source or leaving Content releases obsolete inline content. Browsing and selection do not request original bodies.
+
+![Explicit native preview beside classification and exact draft placement](../assets/screenshots/dark-content-workspace-preview.png)
+
 **View file / folder…** opens the native current-source viewer. Unlike a retained excerpt, this is an explicit request to view an eligible original file. Folder selection remains metadata only until a file or thumbnail request. [Rich previews](previews.md).
 
 ## Recorded disk and access exceptions
@@ -58,7 +94,7 @@ To place a real source, choose an explicit destination, inspect its full propose
 
 Only visible rows and adjacent rows have native cards. Scrolling reaches every source on the page, while returning to an unchanged gallery reuses its cards. Type icons use retained metadata; original custom icons and thumbnails are not requested by ordinary browsing.
 
-**Load 24 thumbnails** explicitly requests eligible current source contents through macOS providers. It handles at most three requests concurrently, holds protected/cloud/linked sources and files over 128 MiB, and times out each request after 15 seconds. Images stay in memory. Changing the page/scope, leaving Content, or **Clear images** cancels requests and releases representations. Unsupported files keep icons.
+**Thumbnails** explicitly requests eligible current source contents through macOS providers. It handles at most three requests concurrently, holds protected/cloud/linked sources and files over 128 MiB, and times out each request after 15 seconds. Images stay in memory. Changing the page/scope, leaving Content, or **Clear images** cancels requests and releases representations. Unsupported files keep icons.
 
 The right inspector summarizes the exact retained source and supported thumbnail. **Details & retained evidence** expands the technical observation; **View file / folder…** opens the full native viewer. Camera, GPS, similarity and duplicate proof are not inferred from a filename or illustrative mock.
 

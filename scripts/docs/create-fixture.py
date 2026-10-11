@@ -62,7 +62,8 @@ disk.executescript('''CREATE TABLE meta(key TEXT,value TEXT);CREATE TABLE roots(
 disk.executemany('INSERT INTO meta VALUES(?,?)', [('entries',str(len(entries))),('status','finished'),('updated','2026-10-10T12:00:00Z'),('kinds',json.dumps({'file':sum(p.is_file() for p in entries), 'directory':sum(p.is_dir() for p in entries)})),('boundaries',json.dumps({'user_data':len(entries)}))])
 disk.execute('INSERT INTO roots VALUES(?,?)',(str(sources),'finished'))
 for d in [sources]+[p for p in entries if p.is_dir()]:
-    key=zlib.compress(str(d).encode());rows=[]
+    # Directory keys must match AtlasDatabase.pack's zlib level exactly.
+    key=zlib.compress(str(d).encode(),level=1);rows=[]
     for p in sorted(d.iterdir()):
         s=p.stat();rows.append([p.name,'directory' if p.is_dir() else 'file',s.st_size,s.st_blocks*512,s.st_mtime_ns,s.st_dev,s.st_ino,0])
     disk.execute('INSERT INTO directories VALUES(?,?,?,?)',(key,'{}',len(rows),'user_data'))

@@ -52,3 +52,7 @@ These checks do not confer the descriptor-pinned, full-hash guarantee of copying
 **Recorded folder tree** carries the current physical folder into Content’s recorded dataset. Its coverage may be historical or absent. **Map this folder** launches a new bounded metadata-only Disk Lens scan. Neither action asks to read all original bodies or copy the folder.
 
 Managed repositories/application libraries, sensitive ancestry, symlinked paths and cloud-only content remain held. Broader macOS privileges do not override this policy. [Preview implementation and safety](../developer/previews.md).
+
+## Inline Content previews
+
+Content’s **Preview** / **Preview here** action explicitly requests one eligible current file in its Inspector rail. Quick Look playback does not auto-start. Folders open the full metadata/folder viewer. Changing source, hiding the inspector, clearing previews or leaving Content releases obsolete inline representations. Retained excerpts remain a separate bounded catalogue read. Preview providers determine format support; viewing never establishes a full hash proof or approves a transfer.

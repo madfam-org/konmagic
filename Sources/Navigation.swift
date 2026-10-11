@@ -64,6 +64,7 @@ final class KonMagicNavigation:NSObject,NSUserInterfaceValidations {
                     after.searchMode.selectItem(at:before.searchMode.indexOfSelectedItem);after.mode.selectedSegment=before.mode.selectedSegment
                     after.dimension.selectItem(at:before.dimension.indexOfSelectedItem);after.metric.selectItem(at:before.metric.indexOfSelectedItem)
                     after.updateMode();after.resetPaging();after.loadPage();after.loadSummary();if after.mode.selectedSegment==1 {after.loadRoots()}
+                    after.setContentFocus(before.contentFocused);after.sourcesVisible=before.sourcesVisible;after.contentInspectorVisible=before.contentInspectorVisible;after.density.selectItem(at:before.density.indexOfSelectedItem);after.updateContentPanels()
                 }
                 if page == .storage,let before=source.workspace.lenses.first,let after=workspace.lenses.first {
                     after.applyViewPreferences(before.preferences)
@@ -223,7 +224,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         _ = view
         if remember,let old=current,old.id != entry.id {history.append(old.id);history=Array(history.suffix(32));future=[]}
         if let old=current,old.id != entry.id,let viewer=old.controller as? SourcePreviewController {viewer.clearContents()}
-        if let old=current,old.id != entry.id,let explorer=old.controller as? CatalogueExplorerController {explorer.gallery.clear()}
+        if let old=current,old.id != entry.id,let explorer=old.controller as? CatalogueExplorerController {explorer.gallery.clear();explorer.clearInlinePreview()}
         let first=presentations[ObjectIdentifier(entry.controller)]==nil
         current=entry
         let scroll:NSScrollView
@@ -280,12 +281,15 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         activity.title=running ? "Work continues · Show activity" : "";activity.isHidden = !running
     }
     func updateMapFocus() {
-        let lens=current?.controller as? DiskLensController,focused=lens?.mapFocused==true
+        let lens=current?.controller as? DiskLensController,explorer=current?.controller as? CatalogueExplorerController
+        let focused=lens?.mapFocused==true || explorer?.contentFocused==true
         normalSlotTop?.isActive=false;focusedSlotTop?.isActive=false
         navigationHeader?.isHidden=focused;navigationLine?.isHidden=focused
         if focused {focusedSlotTop?.isActive=true} else {normalSlotTop?.isActive=true}
         if let current=current,let viewport=presentations[ObjectIdentifier(current.controller)] as? PageViewport {
-            let minimum=focused ? NSSize(width:lens?.inspectorVisible==true ? 1380:1100,height:500):current.minimum
+            let minimum: NSSize
+            if focused,let explorer=explorer {minimum=NSSize(width:explorer.sourcesVisible && explorer.contentInspectorVisible ? 1180:1100,height:500)}
+            else {minimum=focused ? NSSize(width:lens?.inspectorVisible==true ? 1380:1100,height:500):current.minimum}
             if viewport.minimum != minimum {viewport.minimum=minimum;viewport.contentView.scroll(to:.zero);viewport.tile()}
         }
         view.layoutSubtreeIfNeeded()
