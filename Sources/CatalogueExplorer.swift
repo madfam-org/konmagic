@@ -1,6 +1,11 @@
 import AppKit
 import Darwin
 
+struct ExplorerDrillContext {
+    let folder:String?,filters:[CatalogueDimension:String],query:String
+    let visualization:Int,dimension:Int,metric:Int,searchMode:Int
+}
+
 final class ExplorerNode:NSObject {
     var item:CatalogItem?
     var title:String
@@ -27,6 +32,8 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     let facetTable=NSTableView(),table=NSTableView(),tree=NSOutlineView(),inspector=KonMagicInspector(),map=CatalogueMapView()
     let contentHost=NSView(),bodyButton=NSButton(),nextButton=NSButton(),previousButton=NSButton()
     let correctButton=NSButton(),assignButton=NSButton(),revealButton=NSButton()
+    let proposedPath=NSTextField(wrappingLabelWithString:"Choose a destination to preview placement."),backToMap=NSButton(),filterChips=NSStackView(),chipScroll=NSScrollView()
+    var drillContext:ExplorerDrillContext?
     var listScroll:NSScrollView!,treeScroll:NSScrollView!
     var records:[CatalogItem]=[],roots:[ExplorerNode]=[],facets:[CatalogueFacet]=[]
     var filters:[CatalogueDimension:String]=[:],folder:String?,cursor:String?,cursorHistory:[String?]=[]
@@ -65,8 +72,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         metric.addItems(withTitles:["Entries","Logical file bytes"]);metric.target=self;metric.action=#selector(changeMetric)
         mode.selectedSegment=0;mode.target=self;mode.action=#selector(changeVisualization)
         overview.font=NSFont.systemFont(ofSize:11);overview.textColor = .secondaryLabelColor
-        let home=button("← Toolkit",#selector(returnToToolkit))
-        let header=row([home,text("Content Explorer",size:21,weight:.bold),dataset,NSView(),button("Tips",#selector(showTips(_:))),button("Edit destinations",#selector(editDestinations))])
+        let header=row([text("Browse",size:12,weight:.medium),dataset,NSView(),button("Tips",#selector(showTips(_:))),button("Edit destinations",#selector(editDestinations))])
         places.addItem(withTitle:"All retained content")
         for name in ["Downloads","Documents","Desktop","Pictures","Movies","Music"] {places.addItem(withTitle:name);places.lastItem?.representedObject=FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(name).path}
         places.selectItem(at:1);places.target=self;places.action=#selector(changePlace)
@@ -95,13 +101,15 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
             NSLayoutConstraint.activate([child.leadingAnchor.constraint(equalTo:contentHost.leadingAnchor),child.trailingAnchor.constraint(equalTo:contentHost.trailingAnchor),child.topAnchor.constraint(equalTo:contentHost.topAnchor),child.bottomAnchor.constraint(equalTo:contentHost.bottomAnchor)])
         }
         treeScroll.isHidden=true;map.isHidden=true
-        map.activated={[weak self] choices in guard let self=self,!choices.isEmpty else{return};for (d,v) in choices {self.filters[d]=v};self.mode.selectedSegment=0;self.updateMode();self.resetPaging();self.loadPage();self.loadSummary()}
+        map.activated={[weak self] choices in self?.drillInto(choices)}
         nextButton.title="Next 200";nextButton.target=self;nextButton.action=#selector(nextPage);nextButton.bezelStyle = .rounded
         previousButton.title="Previous";previousButton.target=self;previousButton.action=#selector(previousPage);previousButton.bezelStyle = .rounded
         location.font=NSFont.systemFont(ofSize:10);location.textColor = .secondaryLabelColor
-        let center=column([row([mode,metric]),filterLabel,row([button("↑ Parent",#selector(parentFolder)),location]),contentHost,row([previousButton,nextButton]),status])
+        backToMap.title="Back to map";backToMap.target=self;backToMap.action=#selector(restoreDrillContext);backToMap.bezelStyle = .rounded;backToMap.isHidden=true
+        filterChips.orientation = .horizontal;filterChips.spacing=6;chipScroll.documentView=filterChips;chipScroll.hasHorizontalScroller=true;chipScroll.autohidesScrollers=true;chipScroll.drawsBackground=false;chipScroll.heightAnchor.constraint(equalToConstant:30).isActive=true;chipScroll.isHidden=true
+        let center=column([row([mode,metric]),row([backToMap,filterLabel]),chipScroll,row([button("↑ Parent",#selector(parentFolder)),location]),contentHost,row([previousButton,nextButton]),status])
         contentHost.heightAnchor.constraint(greaterThanOrEqualToConstant:410).isActive=true
-        for v in [contentHost,filterLabel,status] {v.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true}
+        for v in [contentHost,chipScroll,status] {v.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true}
         center.widthAnchor.constraint(greaterThanOrEqualToConstant:570).isActive=true
 
         inspector.isEditable=false;inspector.isSelectable=true;inspector.font=NSFont.monospacedSystemFont(ofSize:11,weight:.regular);inspector.textContainerInset=NSSize(width:12,height:12)
@@ -115,10 +123,12 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         destination.target=self;destination.action=#selector(destinationChanged)
         filterLabel.maximumNumberOfLines=2
         bodyButton.title="Show retained content excerpt";bodyButton.target=self;bodyButton.action=#selector(showReading);bodyButton.bezelStyle = .rounded;bodyButton.isEnabled=false
-        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,assignButton,text("Exact preview appears in the workspace.",size:11)])
+        proposedPath.font=NSFont.systemFont(ofSize:11);proposedPath.textColor = .secondaryLabelColor;proposedPath.maximumNumberOfLines=3;proposedPath.lineBreakMode = .byTruncatingMiddle
+        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,proposedPath,assignButton])
         right.widthAnchor.constraint(equalToConstant:340).isActive=true
         detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:330).isActive=true
         destination.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
+        proposedPath.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
         let content=row([left,center,right]);content.alignment = .top
         let outer=column([header,overview,query,content]);outer.spacing=14;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
         NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:18),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-18),outer.topAnchor.constraint(equalTo:view.topAnchor,constant:16),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor,constant:-16)])
@@ -129,11 +139,31 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     }
     func refreshDestinations() {
         guard isViewLoaded,let w=workspace?.store.value else{return}
-        let selected=destination.selectedItem?.representedObject as? String
+        let selected=workspace?.focusedDestinationID ?? destination.selectedItem?.representedObject as? String
         destination.removeAllItems()
         destination.addItem(withTitle:"Choose a draft destination…")
         for n in w.nodes {if let path=try? w.path(n.id) {destination.addItem(withTitle:path);destination.lastItem?.representedObject=n.id}}
         if let selected=selected,let item=destination.itemArray.first(where:{$0.representedObject as? String==selected}) {destination.select(item)}
+        updateSelectionControls()
+    }
+    func drillInto(_ choices:[CatalogueDimension:String]) {
+        guard !choices.isEmpty else{return}
+        drillContext=ExplorerDrillContext(folder:folder,filters:filters,query:search.stringValue,visualization:mode.selectedSegment,dimension:dimension.indexOfSelectedItem,metric:metric.indexOfSelectedItem,searchMode:searchMode.indexOfSelectedItem)
+        backToMap.title=mode.selectedSegment==2 ? "Back to tag tree":"Back to map";backToMap.isHidden=false
+        for (d,v) in choices {filters[d]=v};mode.selectedSegment=0;updateMode();resetPaging();loadPage();loadSummary()
+    }
+    @objc func restoreDrillContext() {
+        guard let c=drillContext else{return};folder=c.folder;filters=c.filters;search.stringValue=c.query;mode.selectedSegment=c.visualization;dimension.selectItem(at:c.dimension);metric.selectItem(at:c.metric);searchMode.selectItem(at:c.searchMode)
+        drillContext=nil;backToMap.isHidden=true;updateMode();resetPaging();loadPage();loadSummary();if c.visualization==2 {loadTagTree()}
+    }
+    func updateFilterChips() {
+        filterChips.arrangedSubviews.forEach {filterChips.removeArrangedSubview($0);$0.removeFromSuperview()}
+        for d in CatalogueDimension.allCases {if let value=filters[d] {let b=button(d.title+": "+value+"  ×",#selector(removeFilter(_:)));b.tag=CatalogueDimension.allCases.firstIndex(of:d)!;b.controlSize = .small;b.toolTip="Remove only the "+d.title+" filter";b.setAccessibilityLabel(b.toolTip!);filterChips.addArrangedSubview(b)}}
+        chipScroll.isHidden=filters.isEmpty;filterChips.frame=NSRect(origin:.zero,size:NSSize(width:filterChips.fittingSize.width,height:28))
+    }
+    @objc func removeFilter(_ sender:NSButton) {guard sender.tag>=0,sender.tag<CatalogueDimension.allCases.count else{return};filters.removeValue(forKey:CatalogueDimension.allCases[sender.tag]);resetPaging();loadPage();loadSummary();if mode.selectedSegment==2 {loadTagTree()}}
+    func showRecordedFolder(_ path:String) {
+        _ = view;dataset.selectItem(at:1);changeDataset();folder=path;resetPaging();mode.selectedSegment=0;updateMode();loadPage();loadSummary()
     }
     func slice()->CatalogueSlice {var s=CatalogueSlice();s.folder=folder;s.directChildren=folder != nil && search.stringValue.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty;s.search=search.stringValue;s.contentSearch=searchMode.indexOfSelectedItem==1;s.facets=filters;s.cursor=cursor;return s}
     func resetPaging() {cursor=nil;cursorHistory=[];diskOffset=0;nextCursor=nil;nextDiskOffset=nil}
@@ -142,6 +172,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func clearFilters() {filters=[:];folder=nil;search.stringValue="";resetPaging();loadPage();loadSummary();if mode.selectedSegment==1 {loadRoots()}}
     @objc func refresh() {allSummary=nil;resetPaging();loadPage();loadSummary();if mode.selectedSegment==1 {loadRoots()}}
     @objc func changeDataset() {
+        drillContext=nil;backToMap.isHidden=true
         filters=[:];folder=nil;search.stringValue="";resetPaging();mode.selectedSegment=0;updateMode()
         searchMode.isEnabled=tagged;dimension.isEnabled=tagged;metric.isEnabled=tagged;places.isEnabled=dataset.indexOfSelectedItem != 2;places.item(at:0)?.title=tagged ? "All retained content" : "Recorded roots"
         dimension.removeAllItems();dimension.addItems(withTitles:tagged ? CatalogueDimension.allCases.map(\.title) : ["Protection · global disk counts"])
@@ -158,6 +189,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     func updateMode() {
         displayedView=mode.selectedSegment;listScroll.isHidden=displayedView != 0;treeScroll.isHidden=displayedView != 1 && displayedView != 2;map.isHidden=displayedView<3
         bodyButton.isEnabled=false
+        metadataTicket+=1;updateSelectionControls();showMetadata();workspace?.pageHost?.updateNavigation()
         if displayedView==1 {status.stringValue="Physical hierarchy · retained observations · facets apply to lists and maps."}
         if displayedView==2 {status.stringValue="Owner → project → family · double-click a tag group to list its real sources."}
         if displayedView==4 {status.stringValue="Top 12 groups per axis · edges count matching observations · complete categories remain in the facet list."}
@@ -173,6 +205,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         var descriptions:[String]=[]
         for d in CatalogueDimension.allCases {if let value=filters[d] {descriptions.append(d.title+" = "+value)}}
         filterLabel.stringValue=descriptions.isEmpty ? "All observations · no semantic filters" : descriptions.joined(separator:" · ");filterLabel.toolTip=filterLabel.stringValue
+        updateFilterChips();workspace?.pageHost?.updateNavigation()
         location.stringValue=folder ?? (source==0 ? "All tagged roots" : source==1 ? "Recorded disk roots" : "Recorded access and traversal exceptions")
         status.stringValue="Loading one bounded page…"
         browsing.async {[weak self] in
@@ -293,7 +326,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func openTreeSelection() {
         guard let node=tree.item(atRow:tree.clickedRow) as? ExplorerNode else{return}
         if node.more,let parent=node.parent {tree.collapseItem(parent);loadChildren(parent);return}
-        if mode.selectedSegment==2 {for (d,v) in node.choices {filters[d]=v};folder=nil;mode.selectedSegment=0;updateMode();resetPaging();loadPage();loadSummary();return}
+        if mode.selectedSegment==2 {drillInto(node.choices);return}
         if let item=node.item {open(item)}
     }
     @objc func openObservation() {let row=table.clickedRow;guard row>=0,row<records.count else{return};open(records[row])}
@@ -316,12 +349,18 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     }
     func tableViewSelectionDidChange(_ note:Notification) {if let selected=note.object as? NSTableView,selected === table {showMetadata()}}
     func tableView(_ tableView:NSTableView,pasteboardWriterForRow row:Int)->NSPasteboardWriting? {guard tableView===table else{return nil};return URL(fileURLWithPath:records[row].path) as NSURL}
-    @objc func destinationChanged() {updateSelectionControls()}
+    @objc func destinationChanged() {workspace?.focusedDestinationID=destination.selectedItem?.representedObject as? String;updateSelectionControls();workspace?.pageHost?.updateNavigation()}
     func updateSelectionControls() {
         let selected=selectedRecords()
         correctButton.isEnabled = !selected.isEmpty && selected.count<=200
         revealButton.isEnabled = !selected.isEmpty
         assignButton.isEnabled = !selected.isEmpty && selected.allSatisfy {$0.kind=="file" || $0.kind=="directory"} && destination.selectedItem?.representedObject != nil && workspace?.busy != true
+        if let item=selected.first,let w=workspace?.store.value,let id=destination.selectedItem?.representedObject as? String {
+            var proposed=w.assignments.first {$0.source==item.path} ?? Assignment(source:item.path,node:id,outputName:item.name);proposed.node=id
+            let to=(try? w.destination(proposed)) ?? "Invalid draft destination"
+            proposedPath.stringValue="Proposed copy → "+to+(selected.count>1 ? "\nPlus \(selected.count-1) other selected sources.":"");proposedPath.toolTip=item.path+"\n→ "+to
+        } else {proposedPath.stringValue=selected.isEmpty ? "Select real sources in List or Folder tree to preview placement.":"Choose a destination to preview placement.";proposedPath.toolTip=nil}
+        workspace?.pageHost?.updateNavigation()
     }
     func showMetadata() {
         updateSelectionControls()
@@ -364,13 +403,13 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     }
     @objc func revealSource() {if let item=selectedRecords().first {NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath:item.path)])}}
     @objc func returnToToolkit() {workspace?.showToolkit()}
-    @objc func editDestinations() {workspace?.showWorkspace()}
+    @objc func editDestinations() {if let id=destination.selectedItem?.representedObject as? String {workspace?.focusedDestinationID=id};workspace?.showWorkspace()}
     @objc func assignSelected() {
         guard let workspace=workspace,let id=destination.selectedItem?.representedObject as? String else{return}
         guard !workspace.busy else {status.stringValue="Wait for the active verification or copy to finish before changing its draft.";return}
         let paths=selectedRecords().filter {$0.kind=="file" || $0.kind=="directory"}.map(\.path)
         guard !paths.isEmpty else {status.stringValue="Select real files or folders in List or Folder tree. Virtual tag/map groups are filters, not source folders.";return}
-        do {try workspace.store.change {try $0.assign(paths,to:id)};workspace.plan=nil;workspace.refreshDraft();showMetadata();status.stringValue="\(paths.count) drops / buckets assigned in the draft. Exact source → destination paths are visible; no filesystem action ran."}
+        do {try workspace.store.change {try $0.assign(paths,to:id)};workspace.plan=nil;workspace.focusedDestinationID=id;workspace.refreshDraft();showMetadata();status.stringValue="\(paths.count) drops / buckets assigned in the draft. Exact source → destination paths are visible; no filesystem action ran.";workspace.status.stringValue=status.stringValue;workspace.presentAssignments(paths)}
         catch {status.stringValue=error.localizedDescription}
     }
     func show() {

@@ -22,6 +22,13 @@ All windows share one private draft and tag decisions; changing a destination
 updates every view and invalidates stale verified previews. Extra windows do
 not apply any filesystem operation.
 
+The page header offers a next step for your current stage. Storage hands its
+physical folder scope to Content. Removable facet chips and **Back to map**
+keep exploration understandable. A chosen destination follows you between
+Content and Structure; selecting and assigning real sources opens their
+focused exact-path Review. Review shows full selectable paths, searchable
+assignments and paged verified contents without leaving the main window.
+
 ```sh
 /bin/zsh -f scripts/build.command
 "$HOME/Library/Caches/KonMagic Build/KonMagic" --self-test

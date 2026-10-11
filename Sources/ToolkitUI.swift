@@ -101,5 +101,5 @@ extension KonMagicController {
     @objc func showToolkit() {pageHost?.navigate(.toolkit)}
     @objc func showWorkspace() {pageHost?.navigate(.structure)}
     @objc func showReview() {pageHost?.navigate(.review)}
-    func focusReview() {draft.window?.makeFirstResponder(draft);showDraftPaths();status.stringValue=store.value.assignments.isEmpty ? "Your draft is empty. Choose sources and destinations before reviewing paths." : "Review the exact source → destination pairs. Verify separately before approving any copy."}
+    func focusReview() {review?.refresh();review?.view.window?.makeFirstResponder(review?.table)}
 }

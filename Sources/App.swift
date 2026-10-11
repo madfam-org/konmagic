@@ -24,7 +24,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     let knowledge:KnowledgeStore
     var catalog: Catalog
     let outline = NSOutlineView(), sources = NSTableView(), draft = NSTableView()
-    let search = NSSearchField(), scope = NSPopUpButton(), status = NSTextField(labelWithString:""),
+    let search = NSSearchField(), scope = NSPopUpButton(), status = WorkflowStatusField(labelWithString:""),
         sourceLocation = NSTextField(labelWithString:""),
         selection = NSTextField(labelWithString:"Choose a destination in the structure"),
         outputLabel = NSTextField(labelWithString:""), draftCount = NSTextField(labelWithString:"No assignments yet")
@@ -50,6 +50,10 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     weak var pageHost:PageHostController?
     weak var navigation:KonMagicNavigation?
     var explorer:CatalogueExplorerController?
+    var review:ReorganizationReviewController?
+    var focusedDestinationID:String?
+    var refreshingTree=false
+    let assignSourceButton=NSButton(),renameFolderButton=NSButton(),removeFolderButton=NSButton(),reviewDraftButton=NSButton()
     var lenses:[DiskLensController]=[]
 
     init(store: WorkspaceStore, catalog: Catalog, knowledge:KnowledgeStore?=nil) throws { self.store=store;self.knowledge=try knowledge ?? KnowledgeStore(directory:store.directory);self.catalog=Catalog(path:catalog.path,knowledge:self.knowledge); super.init(nibName:nil,bundle:nil) }
@@ -83,10 +87,9 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     }
     override func loadView() {
         view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1320,height:800))
-        let title=label("KonMagic",size:22,weight:.bold)
-        let subtitle=label("Your structure. Your decisions. Exact previews before copies.",size:12);subtitle.textColor = .secondaryLabelColor
         spinner.style = .spinning;spinner.isDisplayedWhenStopped=false;spinner.controlSize = .small
-        let head=row([button("← Toolkit",#selector(showToolkit)),vertical([title,subtitle],padding:0),NSView(),spinner,button("Disk Lens",#selector(showDiskLens),symbol:"chart.pie"),button("Content Explorer",#selector(showExplorer),symbol:"square.grid.2x2"),button("Tips",#selector(showWorkspaceTips(_:))),button("Guide",#selector(showGuide),symbol:"questionmark.circle")])
+        status.changed={[weak self] in self?.review?.refreshStatus()}
+        let head=row([label("Shape destinations, then assign the sources you know.",size:13,weight:.medium),NSView(),spinner,button("Tips",#selector(showWorkspaceTips(_:))),button("Guide",#selector(showGuide),symbol:"questionmark.circle")])
         split.isVertical=true;split.dividerStyle = .thin;split.translatesAutoresizingMaskIntoConstraints=false
 
         outline.dataSource=self;outline.delegate=self;outline.headerView=nil;outline.rowHeight=29
@@ -94,8 +97,10 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         let column=NSTableColumn(identifier:NSUserInterfaceItemIdentifier("structure"));column.width=265;outline.addTableColumn(column);outline.outlineTableColumn=column
         outline.registerForDraggedTypes([.fileURL,draftType,nodeType]);outline.setDraggingSourceOperationMask([.copy,.move],forLocal:true)
         let treeScroll=scroll(outline)
+        renameFolderButton.title="Rename";renameFolderButton.target=self;renameFolderButton.action=#selector(renameFolder);renameFolderButton.bezelStyle = .rounded
+        removeFolderButton.title="Remove";removeFolderButton.target=self;removeFolderButton.action=#selector(removeFolder);removeFolderButton.bezelStyle = .rounded
         let structure=vertical([label("DESTINATION STRUCTURE",size:11,weight:.semibold),label("Virtual until you approve a copy",size:11),treeScroll,
-            row([button("New",#selector(newFolder),symbol:"folder.badge.plus"),button("Rename",#selector(renameFolder)),button("Remove",#selector(removeFolder))]),
+            row([button("New",#selector(newFolder),symbol:"folder.badge.plus"),renameFolderButton,removeFolderButton]),
             button("Undo draft edit",#selector(undoDraft),symbol:"arrow.uturn.backward")])
         structure.widthAnchor.constraint(greaterThanOrEqualToConstant:290).isActive=true
         treeScroll.widthAnchor.constraint(equalTo:structure.widthAnchor,constant:-32).isActive=true
@@ -108,10 +113,11 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         sources.setDraggingSourceOperationMask(.copy,forLocal:true);sources.registerForDraggedTypes([draftType])
         let sourceScroll=scroll(sources)
         sourceLocation.font=NSFont.systemFont(ofSize:10);sourceLocation.textColor = .secondaryLabelColor;sourceLocation.lineBreakMode = .byTruncatingMiddle
+        assignSourceButton.title="Assign selected →";assignSourceButton.target=self;assignSourceButton.action=#selector(assignSelection);assignSourceButton.bezelStyle = .rounded
         let browse=vertical([label("SOURCE LIBRARY",size:11,weight:.semibold),row([scope,button("Choose folder…",#selector(chooseScope))]),sourceLocation,search,
             label("Drag a file or folder onto your destination tree.",size:11),sourceScroll,
             row([button("↑ Parent",#selector(parentScope)),button("Previous",#selector(previousPage)),button("Next 200",#selector(nextPage))]),
-            button("Assign selected →",#selector(assignSelection),symbol:"arrow.right.circle")])
+            assignSourceButton])
         sourceScroll.widthAnchor.constraint(equalTo:browse.widthAnchor,constant:-32).isActive=true
         browse.widthAnchor.constraint(greaterThanOrEqualToConstant:340).isActive=true
 
@@ -127,10 +133,11 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         applyButton.title="Review & copy…";applyButton.target=self;applyButton.action=#selector(applyCopy);applyButton.bezelStyle = .rounded;applyButton.isEnabled=false
         selection.font=NSFont.systemFont(ofSize:11,weight:.medium);selection.maximumNumberOfLines=2
         outputLabel.font=NSFont.systemFont(ofSize:10);outputLabel.lineBreakMode = .byTruncatingMiddle
+        reviewDraftButton.title="Open exact-path review →";reviewDraftButton.target=self;reviewDraftButton.action=#selector(showReview);reviewDraftButton.bezelStyle = .rounded
         let planning=vertical([label("YOUR REORGANIZATION DRAFT",size:11,weight:.semibold),selection,draftCount,draftScroll,
             row([button("Remove assignment",#selector(removeAssignment)),button("Rename output",#selector(renameOutput))]),inspectScroll,
             label("OUTPUT ROOT",size:10,weight:.semibold),outputLabel,button("Choose output…",#selector(chooseOutput)),
-            row([previewButton,applyButton]),button("Receipts & recovery",#selector(openJournal),symbol:"clock.arrow.circlepath")])
+            reviewDraftButton,button("Receipts & recovery",#selector(openJournal),symbol:"clock.arrow.circlepath")])
         for s in [draftScroll,inspectScroll] {s.widthAnchor.constraint(equalTo:planning.widthAnchor,constant:-32).isActive=true}
         planning.widthAnchor.constraint(greaterThanOrEqualToConstant:410).isActive=true
         for v in [structure,browse,planning] {split.addArrangedSubview(v)}
@@ -162,8 +169,24 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         cell.toolTip=try? store.value.path(n.id);return cell
     }
     func outlineViewSelectionDidChange(_ n:Notification) {
+        guard !refreshingTree else{return}
+        focusedDestinationID=selectedNode?.id
         selection.stringValue=selectedNode.flatMap {try? store.value.path($0.id)} ?? "Choose a destination in the structure"
+        explorer?.refreshDestinations();for lens in lenses {lens.refreshDestinations()};updateStructureControls();pageHost?.updateNavigation()
     }
+    func updateStructureControls() {
+        let n=selectedNode
+        renameFolderButton.isEnabled = !busy && n != nil
+        removeFolderButton.isEnabled = !busy && n.map {node in store.value.children(node.id).isEmpty && !store.value.assignments.contains(where:{$0.node==node.id})}==true
+        assignSourceButton.isEnabled = !busy && n != nil && !sources.selectedRowIndexes.isEmpty
+        assignSourceButton.toolTip=n.flatMap {try? store.value.path($0.id)}.map {"Assign the selected sources to "+$0} ?? "Choose a destination in the left tree first."
+    }
+    func selectDestination(_ id:String) {
+        _ = view;guard let entry=treeEntries[id] else{return};var cursor=store.value.nodes.first {$0.id==id}?.parent
+        while let p=cursor {if let e=treeEntries[p] {outline.expandItem(e)};cursor=store.value.nodes.first {$0.id==p}?.parent}
+        let r=outline.row(forItem:entry);if r>=0 {outline.selectRowIndexes(IndexSet(integer:r),byExtendingSelection:false);outline.scrollRowToVisible(r)}
+    }
+    func presentAssignments(_ paths:[String]) {showReview();review?.select(paths:paths)}
     func draggedPaths(_ pasteboard:NSPasteboard) -> [String] {
         let encoded=(pasteboard.pasteboardItems ?? []).compactMap {$0.string(forType:draftType)}
         if !encoded.isEmpty {return encoded.flatMap {$0.data(using:.utf8).flatMap {try? JSONDecoder().decode([String].self,from:$0)} ?? []}}
@@ -210,7 +233,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         guard table===sources else{return nil};let p=NSPasteboardItem()
         if let d=try? JSONEncoder().encode([items[row].path]),let s=String(data:d,encoding:.utf8) {p.setString(s,forType:draftType)};return p
     }
-    func tableViewSelectionDidChange(_ n:Notification) {if let table=n.object as? NSTableView,table === draft {showDraftPaths()}}
+    func tableViewSelectionDidChange(_ n:Notification) {if let table=n.object as? NSTableView,table === draft {showDraftPaths()};updateStructureControls()}
     func showDraftPaths() {
         let a=store.value.assignments
         let selected=draft.selectedRowIndexes.isEmpty ? Array(a.indices) : Array(draft.selectedRowIndexes)
@@ -220,15 +243,16 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
             let parts:[String]=["SOURCE · retained",a[i].source,"","CHOSEN DESTINATION · proposed copy",destination]
             paragraphs.append(parts.joined(separator:"\n"))
         }
-        inspector.string=paragraphs.joined(separator:"\n\n────────────────────\n\n")
+        inspector.string=paragraphs.isEmpty ? "YOUR FIRST ASSIGNMENT\nSelect a destination on the left, then drag files or whole folders onto it. You can also discover sources in Content.\n\nYour choices stay virtual. Exact-path review and verification are separate steps." : paragraphs.joined(separator:"\n\n────────────────────\n\n")
         if let p=plan {inspector.string+="\n\nVERIFIED PREVIEW\n\(p.fileCount) files · \(ByteCountFormatter.string(fromByteCount:p.bytes,countStyle:.file))\nWhole folders keep every relative path. No source operation has run."}
     }
     func refreshDraft() {if let navigation=navigation {navigation.refreshDraft()} else {refreshDraftLocally()}}
     func refreshDraftLocally() {
         for lens in lenses {lens.refreshDestinations()}
-        explorer?.refreshDestinations();toolkit?.updateDraft()
+        explorer?.refreshDestinations();toolkit?.updateDraft();review?.refresh()
         guard isViewLoaded else {return}
-        let selectedID=selectedNode?.id
+        let selectedID=focusedDestinationID ?? selectedNode?.id
+        refreshingTree=true
         let expanded=store.value.nodes.filter {treeEntries[$0.id].map {outline.isItemExpanded($0)} ?? false}.map(\.id)
         for n in store.value.nodes where treeEntries[n.id]==nil {treeEntries[n.id]=TreeEntry(n.id)}
         outline.reloadData();for id in expanded {if let e=treeEntries[id] {outline.expandItem(e)}}
@@ -239,9 +263,11 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
             }
         }
         if let id=selectedID,let e=treeEntries[id],outline.row(forItem:e)>=0 {outline.selectRowIndexes(IndexSet(integer:outline.row(forItem:e)),byExtendingSelection:false)} else {outline.deselectAll(nil)}
+        refreshingTree=false
+        selection.stringValue=selectedNode.flatMap {try? store.value.path($0.id)} ?? "Choose a destination in the structure"
         draft.reloadData();draftCount.stringValue="\(store.value.assignments.count) drops / buckets · draft only"
         outputLabel.stringValue=store.value.output;outputLabel.toolTip=store.value.output
-        applyButton.isEnabled=plan != nil && !busy;previewButton.isEnabled = !busy && !store.value.assignments.isEmpty;showDraftPaths()
+        applyButton.isEnabled=plan != nil && !busy;previewButton.isEnabled = !busy && !store.value.assignments.isEmpty;showDraftPaths();updateStructureControls()
     }
     @objc func showExplorer() {pageHost?.navigate(.content)}
     @objc func showDiskLens() {pageHost?.navigate(.storage)}
@@ -264,8 +290,9 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
             }
             DispatchQueue.main.async {
                 guard let self=self,self.request==serial else{return};self.spinner.stopAnimation(nil)
-                switch result {case .success(let rows):self.items=rows;self.sources.reloadData();self.status.stringValue="\(rows.count) entries · page \(page/200+1) · \(path != nil ? "current folder metadata" : "retained catalogue observations"). Double-click a bucket to browse."
-                case .failure(let e):self.status.stringValue=e.localizedDescription;self.items=[];self.sources.reloadData()}
+                switch result {case .success(let rows):self.sources.deselectAll(nil);self.items=rows;self.sources.reloadData();if !self.busy {self.status.stringValue="\(rows.count) entries · page \(page/200+1) · \(path != nil ? "current folder metadata" : "retained catalogue observations"). Double-click a bucket to browse."}
+                case .failure(let e):if !self.busy {self.status.stringValue=e.localizedDescription};self.items=[];self.sources.reloadData()}
+                self.updateStructureControls()
             }
         }
     }
@@ -287,24 +314,37 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     func ask(_ title:String, initial:String, then:(String)throws->Void) {
         guard !busy else{return};let a=NSAlert();a.messageText=title;a.informativeText="Changes only the organizational draft. Original files remain untouched."
         let f=NSTextField(string:initial);f.frame=NSRect(x:0,y:0,width:360,height:26);a.accessoryView=f;a.addButton(withTitle:"Save draft");a.addButton(withTitle:"Cancel")
-        if a.runModal() == .alertFirstButtonReturn {do {try then(f.stringValue);plan=nil;refreshDraft()} catch {showError(error)}}
+        let validation=DialogValidation(fields:[f]) {a.buttons.first?.isEnabled=(try? Workspace.checkName(f.stringValue)) != nil}
+        if validation.run(a) == .alertFirstButtonReturn,!busy {do {try then(f.stringValue);plan=nil;refreshDraft()} catch {showError(error)}}
     }
-    @objc func newFolder() {let parent=selectedNode?.id;ask("New destination folder",initial:"") {name in try store.change {$0.nodes.append(FolderNode(parent:parent,name:name))}}}
+    @objc func newFolder() {
+        guard !busy else{return}
+        let a=NSAlert();a.messageText="New virtual destination";a.informativeText="Choose its parent and a clear name. This edits your draft; no real folder is created."
+        let parent=NSPopUpButton();parent.addItem(withTitle:"Top level")
+        for n in store.value.nodes {parent.addItem(withTitle:(try? store.value.path(n.id)) ?? n.name);parent.lastItem?.representedObject=n.id}
+        if let id=selectedNode?.id,let item=parent.itemArray.first(where:{$0.representedObject as? String==id}) {parent.select(item)}
+        let name=NSTextField(string:"");name.placeholderString="Folder name";name.setAccessibilityLabel("New destination folder name")
+        for field in [parent,name] {field.widthAnchor.constraint(equalToConstant:420).isActive=true}
+        let feedback=label("Enter a name without slashes or colons.",size:11);feedback.textColor = .secondaryLabelColor
+        a.accessoryView=dialogAccessory([label("Parent destination",weight:.semibold),parent,label("Folder name",weight:.semibold),name,feedback]);a.addButton(withTitle:"Create in draft");a.addButton(withTitle:"Cancel")
+        let validation=DialogValidation(fields:[name],popups:[parent]) {[weak self] in guard let self=self else{return};let valid=(try? Workspace.checkName(name.stringValue)) != nil;let id=parent.selectedItem?.representedObject as? String;let collision=self.store.value.children(id).contains {Workspace.key($0.name)==Workspace.key(name.stringValue)};a.buttons.first?.isEnabled=valid && !collision;feedback.stringValue=collision ? "That parent already has a folder with this name.":valid ? "Ready to add a virtual destination.":"Enter a name without slashes or colons."}
+        if validation.run(a) == .alertFirstButtonReturn,!busy {do {let n=FolderNode(parent:parent.selectedItem?.representedObject as? String,name:name.stringValue);try store.change {$0.nodes.append(n)};plan=nil;refreshDraft();selectDestination(n.id)} catch {showError(error)}}
+    }
     @objc func renameFolder() {guard let n=selectedNode else{return};ask("Rename destination",initial:n.name) {name in try store.change {if let i=$0.nodes.firstIndex(where:{$0.id==n.id}) {$0.nodes[i].name=name}}}}
     @objc func removeFolder() {
         guard !busy,let n=selectedNode else{return};do {try store.change {w in guard w.children(n.id).isEmpty,!w.assignments.contains(where:{$0.node==n.id}) else {throw KonMagicError("Remove or reassign this folder's children and assignments first.")};w.nodes.removeAll {$0.id==n.id}};plan=nil;refreshDraft()} catch {showError(error)}
     }
     @objc func undoDraft() {guard !busy else{return};do {try store.undoDraft();plan=nil;refreshDraft()} catch {showError(error)}}
-    @objc func assignSelection() {guard !busy,let n=selectedNode else{return};do {let paths=sources.selectedRowIndexes.map {items[$0].path};try store.change {try $0.assign(paths,to:n.id)};plan=nil;refreshDraft()} catch {showError(error)}}
+    @objc func assignSelection() {guard !busy,let n=selectedNode else{return};do {let paths=sources.selectedRowIndexes.compactMap {$0<items.count ? items[$0].path:nil};guard !paths.isEmpty else{return};try store.change {try $0.assign(paths,to:n.id)};plan=nil;refreshDraft();presentAssignments(paths)} catch {showError(error)}}
     @objc func removeAssignment() {guard !busy else{return};let ids=Set(draft.selectedRowIndexes.map {store.value.assignments[$0].id});do {try store.change {$0.assignments.removeAll {ids.contains($0.id)}};plan=nil;refreshDraft()} catch {showError(error)}}
     @objc func renameOutput() {let r=draft.selectedRow;guard r>=0,r<store.value.assignments.count else{return};let a=store.value.assignments[r];ask("Rename this copied drop or bucket",initial:a.outputName) {name in try Workspace.checkName(name);try store.change {if let i=$0.assignments.firstIndex(where:{$0.id==a.id}) {$0.assignments[i].outputName=name}}}}
     func setBusy(_ b:Bool) {transferBusy=b;if b {spinner.startAnimation(nil)} else {spinner.stopAnimation(nil)};refreshDraft()}
     @objc func verifyPreview() {
-        guard !busy else{return};setBusy(true);plan=nil;applyButton.isEnabled=false;status.stringValue="Checking capacity, folder relationships and complete file hashes in the background…";let workspace=store.value
+        guard !busy,!store.value.assignments.isEmpty else{return};_ = view;showReview();plan=nil;setBusy(true);applyButton.isEnabled=false;status.stringValue="Checking capacity, folder relationships and complete file hashes in the background…";let workspace=store.value
         transfers.async {[weak self] in
             let result:Result<CopyPlan,Error>=Result {try SafeFS.preview(workspace)}
             DispatchQueue.main.async {guard let self=self else{return};self.setBusy(false)
-                switch result {case .success(let p):self.plan=p;self.refreshDraft();self.status.stringValue="Verified \(p.fileCount) files. Nothing copied. Review every exact path before applying.";self.showPlan(p)
+                switch result {case .success(let p):self.plan=p;self.refreshDraft();self.status.stringValue="Verified \(p.fileCount) files. Nothing copied. Review every exact path before applying.";if self.pageHost==nil {self.showPlan(p)}
                 case .failure(let e):self.showError(e);self.status.stringValue="Preview held. All originals remain in place."}
             }
         }
@@ -424,7 +464,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             windowMenu.addItem(withTitle:"Bring All to Front",action:#selector(NSApplication.arrangeInFront(_:)),keyEquivalent:"")
             NSApp.windowsMenu=windowMenu
             NSApp.mainMenu=menu;NSApp.activate(ignoringOtherApps:true)
-            if qa {if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
+            if qa {if CommandLine.arguments.contains("--journey-ui-smoke") {runJourneyQA()} else if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
 
         } catch {let a=NSAlert();a.messageText="KonMagic could not open safely";a.informativeText=error.localizedDescription;a.runModal();NSApp.terminate(nil)}
     }

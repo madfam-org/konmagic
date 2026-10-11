@@ -8,7 +8,8 @@ enum KonMagicPage:Int,CaseIterable {
         case .toolkit:return NSSize(width:1050,height:0) // Toolkit already owns its vertical scroll surface.
         case .storage:return NSSize(width:1380,height:880)
         case .content:return NSSize(width:1230,height:800)
-        case .structure,.review:return NSSize(width:1180,height:800)
+        case .structure:return NSSize(width:1180,height:800)
+        case .review:return NSSize(width:1100,height:740)
         }
     }
 }
@@ -24,7 +25,7 @@ final class KonMagicNavigation:NSObject,NSUserInterfaceValidations {
     var workspaces:[KonMagicController] {hosts.map(\.workspace)}
     var transferBusy:Bool {workspaces.contains {$0.transferBusy}}
     var observationBusy:Bool {hosts.contains {$0.observationBusy}}
-    var active:PageHostController {NSApp.keyWindow?.contentViewController as? PageHostController ?? main}
+    var active:PageHostController {NSApp.keyWindow?.contentViewController as? PageHostController ?? NSApp.mainWindow?.contentViewController as? PageHostController ?? main}
     func refreshDraft() {
         for workspace in workspaces {
             if let plan=workspace.plan,(try? SafeFS.workspaceHash(workspace.store.value)) != plan.workspaceHash {workspace.plan=nil}
@@ -52,6 +53,7 @@ final class KonMagicNavigation:NSObject,NSUserInterfaceValidations {
         guard let root=root else{return nil}
         do {
             let workspace=try KonMagicController(store:root.store,catalog:root.catalog,knowledge:root.knowledge)
+            workspace.focusedDestinationID=origin?.workspace.focusedDestinationID
             workspace.navigation=self
             let host=PageHostController(workspace:workspace,navigation:self,primary:false)
             additional.append(host);host.makeWindow();host.navigate(page)
@@ -91,7 +93,8 @@ final class KonMagicNavigation:NSObject,NSUserInterfaceValidations {
     func validateUserInterfaceItem(_ item:NSValidatedUserInterfaceItem)->Bool {
         if item.action==#selector(back) {return !active.history.isEmpty}
         if item.action==#selector(forward) {return !active.future.isEmpty}
-        if [#selector(chooseScope),#selector(connectCatalog),#selector(chooseOutput),#selector(verifyPreview),#selector(undoDraft)].contains(item.action) {return !transferBusy}
+        if item.action==#selector(verifyPreview) {return !transferBusy && !active.workspace.store.value.assignments.isEmpty}
+        if [#selector(chooseScope),#selector(connectCatalog),#selector(chooseOutput),#selector(undoDraft)].contains(item.action) {return !transferBusy}
         return true
     }
     @objc func openPage(_ sender:NSMenuItem) {if let page=KonMagicPage(rawValue:sender.tag) {_ = open(page,from:active)}}
@@ -150,6 +153,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
     var current:PageEntry?,history:[String]=[],future:[String]=[]
     let slot=NSView(),pageControl=NSSegmentedControl(labels:KonMagicPage.allCases.map(\.title),trackingMode:.selectOne,target:nil,action:nil)
     let back=NSButton(),forward=NSButton(),popout=NSButton(),activity=NSButton(),context=NSTextField(labelWithString:"")
+    let guidance=NSTextField(wrappingLabelWithString:""),nextStep=NSButton()
     init(workspace:KonMagicController,navigation:KonMagicNavigation,primary:Bool) {self.workspace=workspace;self.navigation=navigation;self.primary=primary;super.init(nibName:nil,bundle:nil);workspace.pageHost=self}
     required init?(coder:NSCoder) {fatalError("Use a workspace")}
     func makeWindow(_ existing:NSWindow?=nil,saveFrame:Bool=true) {
@@ -174,12 +178,15 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         setup(forward,"","chevron.right",#selector(goForward));forward.toolTip="Forward (⌘])";forward.setAccessibilityLabel("Next page")
         setup(popout,"Open page in new window","rectangle.on.rectangle",#selector(openCurrent));popout.toolTip="Open an independent view of this page (⇧⌘N). Private decisions stay shared."
         pageControl.target=self;pageControl.action=#selector(changePage);pageControl.setAccessibilityLabel("Pages in this window. Command 0 through 4.")
+        for page in KonMagicPage.allCases {pageControl.setToolTip(["Choose a workflow · ⌘0","Observe disk size and physical structure · ⌘1","Browse, filter and correct retained content · ⌘2","Edit virtual destinations and assign sources · ⌘3","Inspect exact paths before separate verification and approval · ⌘4"][page.rawValue],forSegment:page.rawValue)}
         let top=NSStackView(views:[back,forward,pageControl,NSView(),popout]);top.spacing=10;top.orientation = .horizontal
         if !primary {let b=NSButton(title:"Main window",target:self,action:#selector(showMain));b.bezelStyle = .rounded;top.addArrangedSubview(b)}
-        context.font=NSFont.systemFont(ofSize:11,weight:.medium);context.textColor = .secondaryLabelColor
+        context.font=NSFont.systemFont(ofSize:15,weight:.semibold)
+        guidance.font=NSFont.systemFont(ofSize:12);guidance.textColor = .secondaryLabelColor;guidance.maximumNumberOfLines=2
+        setup(nextStep,"","arrow.right",#selector(continueJourney));nextStep.imagePosition = .imageTrailing;nextStep.setAccessibilityLabel("Contextual next step")
         setup(activity,"","arrow.triangle.2.circlepath",#selector(showRunning));activity.font=NSFont.systemFont(ofSize:11);activity.isBordered=false
-        let safety=NSTextField(labelWithString:"Originals retained");safety.font=NSFont.systemFont(ofSize:11);safety.textColor = .secondaryLabelColor
-        let info=NSStackView(views:[context,NSView(),activity,safety]);info.spacing=12
+        let words=NSStackView(views:[context,guidance]);words.orientation = .vertical;words.alignment = .leading;words.spacing=3
+        let info=NSStackView(views:[words,NSView(),activity,nextStep]);info.spacing=12;guidance.widthAnchor.constraint(lessThanOrEqualToConstant:850).isActive=true
         let line=NSBox();line.boxType = .separator
         let header=NSStackView(views:[top,info]);header.orientation = .vertical;header.alignment = .leading;header.spacing=6
         header.translatesAutoresizingMaskIntoConstraints=false;line.translatesAutoresizingMaskIntoConstraints=false;slot.translatesAutoresizingMaskIntoConstraints=false
@@ -196,7 +203,9 @@ final class PageHostController:NSViewController,NSWindowDelegate {
             if workspace.explorer==nil {workspace.explorer=CatalogueExplorerController(workspace:workspace)};controller=workspace.explorer!
         case .storage:
             if workspace.lenses.isEmpty {workspace.lenses.append(DiskLensController(workspace:workspace))};controller=workspace.lenses[0]
-        case .structure,.review:controller=workspace
+        case .structure:controller=workspace
+        case .review:
+            if workspace.review==nil {workspace.review=ReorganizationReviewController(workspace:workspace)};controller=workspace.review!
         }
         let e=PageEntry(id:id,title:page.title,controller:controller,minimum:page.minimum,base:page);entries[id]=e;return e
     }
@@ -218,7 +227,8 @@ final class PageHostController:NSViewController,NSWindowDelegate {
             NSLayoutConstraint.activate([scroll.leadingAnchor.constraint(equalTo:slot.leadingAnchor),scroll.trailingAnchor.constraint(equalTo:slot.trailingAnchor),scroll.topAnchor.constraint(equalTo:slot.topAnchor),scroll.bottomAnchor.constraint(equalTo:slot.bottomAnchor)])
         }
         view.layoutSubtreeIfNeeded();updateNavigation()
-        if entry.controller === workspace {if first {workspace.arrangeInitialPanes()};workspace.refreshDraft();if entry.base == .review {workspace.focusReview()}}
+        if entry.controller === workspace {if first {workspace.arrangeInitialPanes()};workspace.refreshDraft();if let id=workspace.focusedDestinationID {workspace.selectDestination(id)}}
+        if let review=entry.controller as? ReorganizationReviewController {review.refresh()}
         if let hub=entry.controller as? ToolkitController {hub.updateDraft()}
         if let explorer=entry.controller as? CatalogueExplorerController {explorer.refreshDestinations()}
         if let lens=entry.controller as? DiskLensController {
@@ -236,10 +246,36 @@ final class PageHostController:NSViewController,NSWindowDelegate {
     func updateNavigation() {
         back.isEnabled = !history.isEmpty;forward.isEnabled = !future.isEmpty;popout.isEnabled=current != nil
         pageControl.selectedSegment=current?.base?.rawValue ?? -1
-        let title=current?.title ?? "Toolkit";context.stringValue=title+(primary ? " · Main window" : " · Additional window · Shared draft")
+        let title=current?.title ?? "Toolkit"
+        let count=workspace.store.value.assignments.count,selected=workspace.explorer?.selectedRecords().count ?? 0
+        let heading:String,hint:String,action:String
+        switch current?.base {
+        case .toolkit:heading="A little clarity, one decision at a time";hint="Observe → discover → shape → review. Your private draft stays with you across every page.";action=count>0 ? "Review draft (\(count))":"Find my content"
+        case .storage:heading="Understand where your space goes";hint="Click to inspect, double-click to zoom. Continue into Content with this physical folder as your scope.";action="Browse this folder in Content"
+        case .content:
+            heading=selected>0 ? "\(selected) observations selected":"Discover the context behind your files"
+            let mode=workspace.explorer?.displayedView ?? 0
+            hint=selected>0 ? "Inspect the evidence and proposed placement on the right. Choose an explicit destination before adding these sources to your draft." : ["Double-click a folder to explore. Select real sources to inspect evidence, correct tags and preview placement.","Expand physical folders lazily; double-click to list their contents. Semantic filters apply to lists and maps.","Expand owner → project → family. Double-click a group to list real sources, then return with Back to tag tree.","Click a region to narrow the collection. Back to map restores your previous scope, query and visualization.","Click a group or connection to inspect its real sources. Back to map restores the previous intersection."][min(4,max(0,mode))]
+            action=count>0 ? "Review draft (\(count))":"Shape destinations"
+        case .structure:heading="Build a home for the things you know";hint="Choose a destination, then drop files or whole folders onto it. Every edit changes your virtual draft.";action=count>0 ? "Review exact paths (\(count))":"Discover sources"
+        case .review:heading=workspace.busy ? "Verification or copying is underway":workspace.plan==nil ? "Know exactly where everything will go":"Your exact preview is verified";hint="Inspect each assignment and its full paths. Verification reads current hashes; copying still requires your separate approval.";action="Find more content"
+        case nil:heading=title;hint="This analysis shares your private draft. Back returns to your previous page and keeps its context.";action="Return to Storage"
+        }
+        context.stringValue=heading+(primary ? "":" · Shared draft")
+        guidance.stringValue=hint;nextStep.title=action;nextStep.toolTip=hint;nextStep.setAccessibilityLabel(action)
         window?.title="KonMagic · "+title
         let running=navigation?.transferBusy==true || navigation?.observationBusy==true
         activity.title=running ? "Work continues · Show activity" : "";activity.isHidden = !running
+    }
+    @objc func continueJourney() {
+        switch current?.base {
+        case .toolkit: navigate(workspace.store.value.assignments.isEmpty ? .content:.review)
+        case .storage:workspace.lenses.first?.showCatalogue()
+        case .content:navigate(workspace.store.value.assignments.isEmpty ? .structure:.review)
+        case .structure:navigate(workspace.store.value.assignments.isEmpty ? .content:.review)
+        case .review:navigate(.content)
+        case nil:navigate(.storage)
+        }
     }
     @objc func changePage() {if let page=KonMagicPage(rawValue:pageControl.selectedSegment) {navigate(page)}}
     @objc func goBack() {guard let id=history.popLast(),let e=entries[id] else{return};if let old=current {future.append(old.id)};show(e,remember:false)}

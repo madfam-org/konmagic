@@ -26,6 +26,29 @@ page in new window**. Native file panels, confirmations and Quick Look retain
 their standard macOS presentation. Small windows can scroll page content
 rather than compressing controls into unreadable layouts.
 
+The header explains the current stage and offers a relevant next step. Content
+keeps search, scope and filters when you visit another page. Each active facet
+has its own removable chip. Drilling into a treemap, connections map or tag
+group offers **Back to map** or **Back to tag tree**, restoring that view and
+its prior query. Switching to a map clears actions for hidden source selections.
+
+**Browse this folder in Content** carries the inspected directory, or the
+current Disk Lens focus, into the recorded-disk list. It reads the retained
+ledger rather than scanning that directory again.
+
+Destination selection stays with the window. **Edit destinations** highlights
+the chosen branch; a new destination dialog lets you choose any parent or the
+top level, validates names and holds duplicate siblings. Assigning sources
+opens their exact-path Review while Back returns to the prior browsing page.
+
+Review has a searchable assignment list and full selectable source and proposed
+destination cards. Rename changes only the output name; Remove affects only
+the draft. Before verification, folder contents remain explicitly unverified.
+After verification, the page shows complete source and destination paths and
+SHA-256 hashes in pages of 200 entries. Export preserves the complete verified
+manifest. Verification stays in this page; **Review & copy** still opens a
+separate confirmation. Empty and filtered-out drafts explain how to continue.
+
 | Stage | Use it for | Next step |
 | --- | --- | --- |
 | Observe · Command-1 | Physical storage, large branches, scan changes, volume context and duplicate candidates | Open Content Explorer to review a meaningful collection |

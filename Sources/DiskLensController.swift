@@ -46,7 +46,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
             [("Export map PNG / TIFF…",#selector(exportImage)),("Export complete scan text…",#selector(exportText))]]
         for group in groups {tools.menu?.addItem(.separator());for (title,action) in group {let item=NSMenuItem(title:title,action:action,keyEquivalent:"");item.target=self;tools.menu?.addItem(item)}}
         tools.setAccessibilityLabel("Additional disk analysis tools, filters, comparisons and exports")
-        let head=row([button("← Toolkit",#selector(returnToToolkit)),label("Disk Lens",size:22,weight:.bold),NSView(),spinner,button("Stop",#selector(stop)),button("Tips",#selector(showTips(_:))),button("Content Explorer →",#selector(showCatalogue))])
+        let head=row([label("Disk Lens",size:13,weight:.semibold),NSView(),spinner,button("Stop",#selector(stop)),button("Tips",#selector(showTips(_:)))])
         let scan=row([button("Scan current folder…",#selector(chooseScan)),button("Recorded machine",#selector(recordedMachine)),recent,button("Refresh",#selector(refresh)),button("Load scan…",#selector(loadScan)),NSView(),tools])
         let settings=row([display,label("Color by"),color,palette,label("Detail"),depth,units,volume]);viewOptions=settings;settings.isHidden=true
         let controls=row([button("↑ Parent",#selector(goParent)),button("Zoom selection",#selector(zoomSelection)),label("Size measure"),measure,NSView(),button("Customize view…",#selector(toggleViewOptions))])
@@ -71,7 +71,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         sourceActionButtons=[button("Open",#selector(openSelected)),button("Quick Look",#selector(showQuickLook)),button("Reveal",#selector(reveal))]
         let actions=row(sourceActionButtons)
         assignSourceButton.title="Assign source to draft";assignSourceButton.target=self;assignSourceButton.action=#selector(assign);assignSourceButton.bezelStyle = .rounded;assignSourceButton.isEnabled=false
-        destination.target=self;destination.action=#selector(updateSourceControls)
+        destination.target=self;destination.action=#selector(destinationChanged)
         for b in sourceActionButtons {b.isEnabled=false}
         let right=column([search,list,row([pagePrevious,pageNext]),detail,actions,destination,assignSourceButton,button("Review cleanup in Finder",#selector(reviewCleanup)),button("Scan notes…",#selector(notes))]);right.widthAnchor.constraint(equalToConstant:340).isActive=true
         for v in [search,list,detail,destination] {v.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true}
@@ -83,7 +83,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         for v in [head,scan,controls,settings,summary,content,status] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
         refreshDestinations()
     }
-    func refreshDestinations() {guard isViewLoaded,let w=workspace?.store.value else{return};let previous=destination.selectedItem?.representedObject as? String;destination.removeAllItems();destination.addItem(withTitle:"Choose a draft destination…");for n in w.nodes {if let path=try? w.path(n.id) {destination.addItem(withTitle:path);destination.lastItem?.representedObject=n.id}};if let previous=previous,let item=destination.itemArray.first(where:{$0.representedObject as? String==previous}) {destination.select(item)}}
+    func refreshDestinations() {guard isViewLoaded,let w=workspace?.store.value else{return};let previous=workspace?.focusedDestinationID ?? destination.selectedItem?.representedObject as? String;destination.removeAllItems();destination.addItem(withTitle:"Choose a draft destination…");for n in w.nodes {if let path=try? w.path(n.id) {destination.addItem(withTitle:path);destination.lastItem?.representedObject=n.id}};if let previous=previous,let item=destination.itemArray.first(where:{$0.representedObject as? String==previous}) {destination.select(item)}}
     func applyViewPreferences(_ value:LensPreferences) {
         preferences=value;_ = view
         measure.selectItem(at:LensMeasure.allCases.firstIndex(of:value.measure)!);display.selectItem(at:LensDisplay.allCases.firstIndex(of:value.display)!);color.selectItem(at:LensColor.allCases.firstIndex(of:value.color)!);palette.selectItem(at:LensPalette.allCases.firstIndex(of:value.palette)!)
@@ -176,6 +176,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
             DispatchQueue.main.async {guard let self=self,self.selected?.id==node.id,self.store?.url==store.url,let item=result else{return};self.inspector.string+="\n\nATLAS CONTENT & METACONTENT\n"+item.tags.sorted {$0.key<$1.key}.map {$0.key+": "+$0.value}.joined(separator:"\n")+"\nReading: "+item.state+"\nEvidence: "+item.evidence.joined(separator:"; ")}
         }
     }
+    @objc func destinationChanged() {workspace?.focusedDestinationID=destination.selectedItem?.representedObject as? String;updateSourceControls()}
     @objc func updateSourceControls() {
         let real=selected.map {$0.kind==0 || $0.directory} ?? false
         let preview=real && selected?.cloud != true && selected.map {!SafeFS.guardedName($0.name)}==true
@@ -195,7 +196,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     @objc func showQuickLook() {do {previewURL=try currentURL();guard let url=previewURL,!SafeFS.guardedName(url.lastPathComponent) else {throw KonMagicError("Protected collections are held from preview.")};let panel=QLPreviewPanel.shared()!;panel.dataSource=self;panel.delegate=self;panel.reloadData();panel.makeKeyAndOrderFront(nil)} catch {status.stringValue=error.localizedDescription}}
     func numberOfPreviewItems(in panel:QLPreviewPanel!)->Int {previewURL==nil ? 0:1}
     func previewPanel(_ panel:QLPreviewPanel!,previewItemAt index:Int)->QLPreviewItem! {previewURL as NSURL?}
-    @objc func assign() {guard let w=workspace,!w.busy,let store=store,let info=info,let selected=selected,let id=destination.selectedItem?.representedObject as? String else{return};do {try w.store.change {try $0.assign([store.path(selected,info)],to:id)};w.plan=nil;w.refreshDraft();select(selected);w.showWorkspace();status.stringValue="Source assigned to your chosen draft destination. Exact paths are visible. No filesystem action ran."} catch {status.stringValue=error.localizedDescription}}
+    @objc func assign() {guard let w=workspace,!w.busy,let store=store,let info=info,let selected=selected,let id=destination.selectedItem?.representedObject as? String else{return};do {let path=store.path(selected,info);try w.store.change {try $0.assign([path],to:id)};w.plan=nil;w.focusedDestinationID=id;w.refreshDraft();select(selected);status.stringValue="Source assigned to your chosen draft destination. Exact paths are visible. No filesystem action ran.";w.status.stringValue=status.stringValue;w.presentAssignments([path])} catch {status.stringValue=error.localizedDescription}}
     @objc func reviewCleanup() {guard let store=store,let info=info,let selected=selected else{return};let path=store.path(selected,info);let a=NSAlert();a.messageText="Review this source in Finder";a.informativeText=path+"\n\nThis selects the real source in Finder for your review. KonMagic retains its read-only source policy. A filtered rectangle does not represent every file in a folder; hidden and newly created files may exist. No item is moved to Trash.";a.addButton(withTitle:"Reveal for review");a.addButton(withTitle:"Cancel");if a.runModal() == .alertFirstButtonReturn {reveal()}}
     @objc func returnToToolkit() {workspace?.showToolkit()}
     @objc func toggleViewOptions() {viewOptions?.isHidden.toggle()}
@@ -204,7 +205,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         if [#selector(chooseRecorded),#selector(scanFilters),#selector(filterLibrary),#selector(typeColors)].contains(item.action) {return !busy}
         return store != nil && !busy
     }
-    @objc func showCatalogue() {workspace?.showExplorer()}
+    @objc func showCatalogue() {guard let w=workspace else{return};let path: String? = {guard let store=store,let info=info else{return nil};if let node=selected,node.directory {return store.path(node,info)};if let focus=focusNode {return store.path(focus,info)};return info.root}();w.showExplorer();if let path=path {w.explorer?.showRecordedFolder(path)}}
     @objc func duplicate() {guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first else{return};other.applyViewPreferences(preferences);if let store=store {other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}}
     @objc func twin() {guard store != nil else{return};if twinGroup==nil {twinGroup=UUID().uuidString};guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first,let store=store else{return};other.twinGroup=twinGroup;other.applyViewPreferences(preferences);other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}
     @objc func editMask() {if let filter=LensFilterEditor(mask).edit() {mask=filter;remember(filter);render()}}
