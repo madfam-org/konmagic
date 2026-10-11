@@ -4,7 +4,9 @@ final class ScanComparisonController:NSViewController,NSTableViewDataSource {
     let current:LensStore,baseline:LensStore
     let table=NSTableView(),status=NSTextField(wrappingLabelWithString:""),next=NSButton(),previous=NSButton()
     let queue=DispatchQueue(label:"org.madfam.konmagic.comparison",qos:.utility)
-    var window:NSWindow?,rows:[LensDifference]=[],cursor:String?,nextCursor:String?,history:[String?]=[],busy=false
+    var window:NSWindow?,rows:[LensDifference]=[],cursor:String?,nextCursor:String?,history:[String?]=[]
+    var activityChanged:(()->Void)?
+    var busy=false {didSet {activityChanged?()}}
     var cancellation=CatalogueCancellation()
     init(current:LensStore,baseline:LensStore) {self.current=current;self.baseline=baseline;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError("Use scans")}

@@ -12,7 +12,8 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     let volume=NSButton(checkboxWithTitle:"Show volume context",target:nil,action:nil)
     let summary=NSTextField(wrappingLabelWithString:"Choose a recorded Atlas folder or scan current metadata. Original file bodies are not read."),status=NSTextField(wrappingLabelWithString:""),location=NSTextField(labelWithString:"No scan loaded"),legend=NSTextField(wrappingLabelWithString:"")
     let spinner=NSProgressIndicator()
-    var rows:[LensNode]=[],preferences=LensPreferences(),mask=LensFilter(),scanExclusion=LensFilter(),busy=false,generation=0
+    var rows:[LensNode]=[],preferences=LensPreferences(),mask=LensFilter(),scanExclusion=LensFilter(),generation=0
+    var busy=false {didSet {workspace?.navigation?.refreshActivity()}}
     var listOffset=0,listGeneration=0
     let pagePrevious=NSButton(),pageNext=NSButton()
     var operationCancellation=CatalogueCancellation(),mapCancellation=CatalogueCancellation(),debounce:DispatchWorkItem?
@@ -83,6 +84,11 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         refreshDestinations()
     }
     func refreshDestinations() {guard isViewLoaded,let w=workspace?.store.value else{return};let previous=destination.selectedItem?.representedObject as? String;destination.removeAllItems();destination.addItem(withTitle:"Choose a draft destination…");for n in w.nodes {if let path=try? w.path(n.id) {destination.addItem(withTitle:path);destination.lastItem?.representedObject=n.id}};if let previous=previous,let item=destination.itemArray.first(where:{$0.representedObject as? String==previous}) {destination.select(item)}}
+    func applyViewPreferences(_ value:LensPreferences) {
+        preferences=value;_ = view
+        measure.selectItem(at:LensMeasure.allCases.firstIndex(of:value.measure)!);display.selectItem(at:LensDisplay.allCases.firstIndex(of:value.display)!);color.selectItem(at:LensColor.allCases.firstIndex(of:value.color)!);palette.selectItem(at:LensPalette.allCases.firstIndex(of:value.palette)!)
+        depth.selectItem(withTitle:value.depth==999 ? "All (adaptive)" : String(value.depth));units.selectItem(at:value.binaryUnits ? 0:1);volume.state=value.showVolume ? .on:.off
+    }
     func show() {if window==nil {let w=NSWindow(contentRect:NSRect(x:0,y:0,width:1480,height:930),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false);w.title="KonMagic · Disk Lens";w.minSize=NSSize(width:1380,height:850);w.contentViewController=self;w.isReleasedWhenClosed=false;w.delegate=self;w.center();window=w};window?.makeKeyAndOrderFront(nil)}
     func amount(_ n:Int64)->String {ByteCountFormatter.string(fromByteCount:n,countStyle:preferences.binaryUnits ? .binary:.decimal)}
     func chooseFolder()->URL? {let p=NSOpenPanel();p.canChooseDirectories=true;p.canChooseFiles=false;p.canCreateDirectories=false;return p.runModal() == .OK ? p.url:nil}
@@ -139,7 +145,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     func windowShouldClose(_ sender:NSWindow)->Bool {if busy {status.stringValue="Stop the scan first; its partial snapshot will be retained.";return false};return true}
     func navigate(_ id:Int64,synchronize:Bool=true) {
         guard let store=store,let node=try? store.node(id),node.directory else{return};focusNode=node;selected=nil;updateSourceControls();canvas.locked=false;search.stringValue="";listOffset=0;render();loadRows()
-        if synchronize,let group=twinGroup {for other in workspace?.lenses ?? [] where other !== self && other.twinGroup==group && other.store?.url==store.url {other.navigate(id,synchronize:false)}}
+        if synchronize,let group=twinGroup {for other in workspace?.navigation?.workspaces.flatMap(\.lenses) ?? workspace?.lenses ?? [] where other !== self && other.twinGroup==group && other.store?.url==store.url {other.navigate(id,synchronize:false)}}
     }
     @objc func goParent() {if let node=focusNode,node.parent>0 {navigate(node.parent)}}
     @objc func zoomSelection() {if let selected=selected {navigate(selected.directory ? selected.id:selected.parent)}}
@@ -199,8 +205,8 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         return store != nil && !busy
     }
     @objc func showCatalogue() {workspace?.showExplorer()}
-    @objc func duplicate() {guard let workspace=workspace else{return};let other=DiskLensController(workspace:workspace);workspace.lenses.append(other);other.preferences=preferences;other.show();if let store=store {other.open(store)}}
-    @objc func twin() {guard let workspace=workspace,let store=store else{return};if twinGroup==nil {twinGroup=UUID().uuidString};let other=DiskLensController(workspace:workspace);other.twinGroup=twinGroup;other.preferences=preferences;workspace.lenses.append(other);other.show();other.open(store);if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}
+    @objc func duplicate() {guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first else{return};other.applyViewPreferences(preferences);if let store=store {other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}}
+    @objc func twin() {guard store != nil else{return};if twinGroup==nil {twinGroup=UUID().uuidString};guard let host=workspace?.navigation?.open(.storage),let other=host.workspace.lenses.first,let store=store else{return};other.twinGroup=twinGroup;other.applyViewPreferences(preferences);other.open(store);other.mask=mask;if let focus=focusNode {other.navigate(focus.id,synchronize:false)}}
     @objc func editMask() {if let filter=LensFilterEditor(mask).edit() {mask=filter;remember(filter);render()}}
     func remember(_ filter:LensFilter) {preferences.filters.removeAll {$0.name==filter.name};preferences.filters.append(filter);preferences.filters=Array(preferences.filters.suffix(32));try? preferences.save(workspace!.store.directory)}
     @objc func filterView() {guard !busy,let store=store,let filter=LensFilterEditor(mask).edit() else{return};remember(filter);perform("Creating a separately retained filtered view…") {try LensScanner.filter(store,using:filter,directory:self.directory,cancellation:self.operationCancellation)} completed:{self.open($0)}}
@@ -215,7 +221,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         guard let store=store,!busy else{return}
         let p=NSOpenPanel();p.allowedContentTypes=[UTType(exportedAs:"org.madfam.konmagic.scan",conformingTo:.database)];p.message="Choose a baseline scan of the same root"
         if p.runModal() == .OK,let url=p.url {
-            let comparison=ScanComparisonController(current:store,baseline:LensStore(url:url));comparisonControllers.append(comparison);comparison.show()
+            let comparison=ScanComparisonController(current:store,baseline:LensStore(url:url));comparisonControllers.append(comparison);if let host=workspace?.pageHost {host.showDetail(comparison,title:"Storage / Scan comparison") {_ in ScanComparisonController(current:store,baseline:LensStore(url:url))}} else {comparison.show()}
         }
     }
     var comparisonControllers:[ScanComparisonController]=[]

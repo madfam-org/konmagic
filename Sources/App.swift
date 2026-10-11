@@ -34,7 +34,8 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     var treeEntries: [String: TreeEntry] = [:]
     var items: [CatalogItem] = []
     var plan: CopyPlan?
-    var busy = false
+    var transferBusy = false
+    var busy:Bool {transferBusy || navigation?.transferBusy==true}
     var didExpandInitialTree = false
     var showHidden = false
     var scopePath: String? = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads").path
@@ -46,11 +47,12 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     var directoryAccess: [URL] = []
     var helpPopover:NSPopover?
     var toolkit:ToolkitController?
-    var workspaceWindow:NSWindow?
+    weak var pageHost:PageHostController?
+    weak var navigation:KonMagicNavigation?
     var explorer:CatalogueExplorerController?
     var lenses:[DiskLensController]=[]
 
-    init(store: WorkspaceStore, catalog: Catalog) throws { self.store=store;knowledge=try KnowledgeStore(directory:store.directory);self.catalog=Catalog(path:catalog.path,knowledge:knowledge); super.init(nibName:nil,bundle:nil) }
+    init(store: WorkspaceStore, catalog: Catalog, knowledge:KnowledgeStore?=nil) throws { self.store=store;self.knowledge=try knowledge ?? KnowledgeStore(directory:store.directory);self.catalog=Catalog(path:catalog.path,knowledge:self.knowledge); super.init(nibName:nil,bundle:nil) }
     required init?(coder:NSCoder) { fatalError("Use designated initializer") }
     deinit { directoryAccess.forEach {$0.stopAccessingSecurityScopedResource()} }
 
@@ -221,9 +223,11 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         inspector.string=paragraphs.joined(separator:"\n\n────────────────────\n\n")
         if let p=plan {inspector.string+="\n\nVERIFIED PREVIEW\n\(p.fileCount) files · \(ByteCountFormatter.string(fromByteCount:p.bytes,countStyle:.file))\nWhole folders keep every relative path. No source operation has run."}
     }
-    func refreshDraft() {
-        guard isViewLoaded else {toolkit?.updateDraft();return}
+    func refreshDraft() {if let navigation=navigation {navigation.refreshDraft()} else {refreshDraftLocally()}}
+    func refreshDraftLocally() {
         for lens in lenses {lens.refreshDestinations()}
+        explorer?.refreshDestinations();toolkit?.updateDraft()
+        guard isViewLoaded else {return}
         let selectedID=selectedNode?.id
         let expanded=store.value.nodes.filter {treeEntries[$0.id].map {outline.isItemExpanded($0)} ?? false}.map(\.id)
         for n in store.value.nodes where treeEntries[n.id]==nil {treeEntries[n.id]=TreeEntry(n.id)}
@@ -238,10 +242,9 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         draft.reloadData();draftCount.stringValue="\(store.value.assignments.count) drops / buckets · draft only"
         outputLabel.stringValue=store.value.output;outputLabel.toolTip=store.value.output
         applyButton.isEnabled=plan != nil && !busy;previewButton.isEnabled = !busy && !store.value.assignments.isEmpty;showDraftPaths()
-        explorer?.refreshDestinations();toolkit?.updateDraft()
     }
-    @objc func showExplorer() {if explorer==nil {explorer=CatalogueExplorerController(workspace:self)};explorer?.show()}
-    @objc func showDiskLens() {if lenses.isEmpty {let lens=DiskLensController(workspace:self);lenses.append(lens);lens.show();if let path=lens.preferences.recent.first,FileManager.default.fileExists(atPath:path) {lens.open(LensStore(url:URL(fileURLWithPath:path)))}} else {lenses.first?.show()}}
+    @objc func showExplorer() {pageHost?.navigate(.content)}
+    @objc func showDiskLens() {pageHost?.navigate(.storage)}
     @objc func showPreferences() {
         var p=LensPreferences.load(store.directory);let a=NSAlert();a.messageText="KonMagic preferences";a.informativeText="Display and scan filters are configured in Disk Lens. Source deletion stays unavailable; cleanup always goes through review."
         let last=NSPopUpButton();last.addItems(withTitles:["Quit after last window closes","Show welcome guide","Keep running without windows"]);last.selectItem(at:p.lastWindow=="welcome" ? 1:p.lastWindow=="stay" ? 2:0)
@@ -276,11 +279,11 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     @objc func nextPage() {if items.count==200 {offset+=200;loadSources()}}
     @objc func parentScope() {if let p=scopePath {navigate(URL(fileURLWithPath:p).deletingLastPathComponent().path)}}
     @objc func openBucket() {let r=sources.clickedRow;guard r>=0,r<items.count else{return};if items[r].kind=="directory" {navigate(items[r].path)} else {NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath:items[r].path)])}}
-    func grant(_ u:URL) {if u.startAccessingSecurityScopedResource() {directoryAccess.append(u)}}
-    func folderPanel(_ title:String, action:@escaping(URL)->Void) {let p=NSOpenPanel();p.title=title;p.canChooseDirectories=true;p.canChooseFiles=false;p.allowsMultipleSelection=false;guard let window=view.window ?? toolkit?.view.window else{return};p.beginSheetModal(for:window) {[weak self] result in if result == .OK,let u=p.url {self?.grant(u);action(u)}}}
+    func grant(_ u:URL) {if let root=navigation?.root,root !== self {root.grant(u);return};if u.startAccessingSecurityScopedResource() {directoryAccess.append(u)}}
+    func folderPanel(_ title:String, action:@escaping(URL)->Void) {let p=NSOpenPanel();p.title=title;p.canChooseDirectories=true;p.canChooseFiles=false;p.allowsMultipleSelection=false;guard let window=view.window ?? pageHost?.window else{return};p.beginSheetModal(for:window) {[weak self] result in if result == .OK,let u=p.url {self?.grant(u);action(u)}}}
     @objc func chooseScope() {folderPanel("Choose a source folder to browse") {[weak self] u in self?.navigate(u.path)}}
     @objc func chooseOutput() {guard !busy else{return};folderPanel("Choose a local organized output folder") {[weak self] u in guard let self=self else{return};do {try self.store.change {$0.output=u.path;$0.outputBookmark=try? u.bookmarkData(options:.withSecurityScope,includingResourceValuesForKeys:nil,relativeTo:nil)};self.plan=nil;self.refreshDraft()} catch {self.showError(error)}}}
-    @objc func connectCatalog() {guard !busy else{return};folderPanel("Select an existing compatible catalogue folder") {[weak self] u in guard let self=self else{return};do {let path=u.appendingPathComponent("catalog.sqlite3").path;try self.store.change {$0.cataloguePath=path;$0.catalogueBookmark=try? u.bookmarkData(options:[.withSecurityScope,.securityScopeAllowOnlyReadAccess],includingResourceValuesForKeys:nil,relativeTo:nil)};self.catalog=Catalog(path:path,knowledge:self.knowledge);self.plan=nil;self.refreshDraft();self.loadSources()} catch {self.showError(error)}}}
+    @objc func connectCatalog() {guard !busy else{return};folderPanel("Select an existing compatible catalogue folder") {[weak self] u in guard let self=self else{return};do {let path=u.appendingPathComponent("catalog.sqlite3").path;try self.store.change {$0.cataloguePath=path;$0.catalogueBookmark=try? u.bookmarkData(options:[.withSecurityScope,.securityScopeAllowOnlyReadAccess],includingResourceValuesForKeys:nil,relativeTo:nil)};self.navigation?.connectCatalogue(path);self.plan=nil;self.refreshDraft()} catch {self.showError(error)}}}
     func ask(_ title:String, initial:String, then:(String)throws->Void) {
         guard !busy else{return};let a=NSAlert();a.messageText=title;a.informativeText="Changes only the organizational draft. Original files remain untouched."
         let f=NSTextField(string:initial);f.frame=NSRect(x:0,y:0,width:360,height:26);a.accessoryView=f;a.addButton(withTitle:"Save draft");a.addButton(withTitle:"Cancel")
@@ -295,7 +298,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     @objc func assignSelection() {guard !busy,let n=selectedNode else{return};do {let paths=sources.selectedRowIndexes.map {items[$0].path};try store.change {try $0.assign(paths,to:n.id)};plan=nil;refreshDraft()} catch {showError(error)}}
     @objc func removeAssignment() {guard !busy else{return};let ids=Set(draft.selectedRowIndexes.map {store.value.assignments[$0].id});do {try store.change {$0.assignments.removeAll {ids.contains($0.id)}};plan=nil;refreshDraft()} catch {showError(error)}}
     @objc func renameOutput() {let r=draft.selectedRow;guard r>=0,r<store.value.assignments.count else{return};let a=store.value.assignments[r];ask("Rename this copied drop or bucket",initial:a.outputName) {name in try Workspace.checkName(name);try store.change {if let i=$0.assignments.firstIndex(where:{$0.id==a.id}) {$0.assignments[i].outputName=name}}}}
-    func setBusy(_ b:Bool) {busy=b;if b {spinner.startAnimation(nil)} else {spinner.stopAnimation(nil)};applyButton.isEnabled = !b && plan != nil;previewButton.isEnabled = !b && !store.value.assignments.isEmpty}
+    func setBusy(_ b:Bool) {transferBusy=b;if b {spinner.startAnimation(nil)} else {spinner.stopAnimation(nil)};refreshDraft()}
     @objc func verifyPreview() {
         guard !busy else{return};setBusy(true);plan=nil;applyButton.isEnabled=false;status.stringValue="Checking capacity, folder relationships and complete file hashes in the background…";let workspace=store.value
         transfers.async {[weak self] in
@@ -328,7 +331,9 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         guard !busy,let p=plan else{return};let a=NSAlert();a.messageText="Apply this verified copy?"
         a.informativeText="Copy \(p.fileCount) files (\(ByteCountFormatter.string(fromByteCount:p.bytes,countStyle:.file))) to:\n\(p.output)\n\nOriginals remain intact. Every hash and destination is checked again. No overwrites, moves or deletions. A failed batch retains staged bytes and a recovery receipt."
         a.addButton(withTitle:"Copy this exact batch");a.addButton(withTitle:"Cancel")
-        guard a.runModal() == .alertFirstButtonReturn else{return};let w=store.value;setBusy(true);status.stringValue="Verifying and copying. Originals remain intact; recovery is journaled."
+        guard a.runModal() == .alertFirstButtonReturn,!busy else{return}
+        guard (try? SafeFS.workspaceHash(store.value))==p.workspaceHash else {plan=nil;refreshDraft();status.stringValue="The draft changed during review. Verify a fresh exact preview.";return}
+        let w=store.value;setBusy(true);status.stringValue="Verifying and copying. Originals remain intact; recovery is journaled."
         transfers.async {[weak self] in
             guard let self=self else{return};let result:Result<URL,Error>=Result {try SafeFS.copy(p,workspace:w,journalDirectory:self.store.directory.appendingPathComponent("Journal"))}
             DispatchQueue.main.async {self.setBusy(false);self.plan=nil;self.refreshDraft();switch result {
@@ -370,6 +375,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
 final class KonMagicDelegate: NSObject, NSApplicationDelegate {
     var window:NSWindow!
     var controller:KonMagicController!
+    var navigation:KonMagicNavigation!
     var lockFD:Int32 = -1
     let qa:Bool
     init(qa:Bool=false) {self.qa=qa}
@@ -388,40 +394,48 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             window=NSWindow(contentRect:NSRect(x:0,y:0,width:1360,height:820),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
             window.title="KonMagic";window.isReleasedWhenClosed=false;window.titlebarAppearsTransparent=true;window.minSize=NSSize(width:1180,height:740)
             if qa {window.appearance=NSAppearance(named:ProcessInfo.processInfo.environment["KONMAGIC_QA_APPEARANCE"]=="dark" ? .darkAqua : .aqua);NSApp.appearance=window.appearance}
-            if !qa || CommandLine.arguments.contains("--toolkit-ui-smoke") {
-                let hub=ToolkitController(workspace:controller);controller.toolkit=hub;window.contentViewController=hub;window.setContentSize(NSSize(width:1180,height:810));window.minSize=NSSize(width:1050,height:700)
-                if !qa {window.setFrameAutosaveName("KonMagicToolkit")}
-            } else {window.contentViewController=controller;controller.arrangeInitialPanes()}
-            window.center();window.makeKeyAndOrderFront(nil)
+            navigation=KonMagicNavigation(workspace:controller);navigation.main.makeWindow(window,saveFrame:!qa)
+            let start:KonMagicPage = qa && !CommandLine.arguments.contains("--toolkit-ui-smoke") && !CommandLine.arguments.contains("--navigation-ui-smoke") ? .structure : .toolkit
+            navigation.main.navigate(start)
+            window.makeKeyAndOrderFront(nil)
             let menu=NSMenu(),appMenu=NSMenu(),fileMenu=NSMenu()
             let appItem=NSMenuItem();appItem.submenu=appMenu;menu.addItem(appItem)
-            appMenu.addItem(withTitle:"Welcome guide",action:#selector(KonMagicController.showGuide),keyEquivalent:"?").target=controller
-            appMenu.addItem(withTitle:"Preferences…",action:#selector(KonMagicController.showPreferences),keyEquivalent:",").target=controller
+            appMenu.addItem(withTitle:"Welcome guide",action:#selector(KonMagicNavigation.showGuide),keyEquivalent:"?").target=self.navigation
+            appMenu.addItem(withTitle:"Preferences…",action:#selector(KonMagicNavigation.showPreferences),keyEquivalent:",").target=self.navigation
             appMenu.addItem(NSMenuItem.separator());appMenu.addItem(withTitle:"Quit KonMagic",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q")
             let fileItem=NSMenuItem(title:"File",action:nil,keyEquivalent:"");fileItem.submenu=fileMenu;menu.addItem(fileItem)
-            let navigation:[(String,Selector,String)]=[("Toolkit",#selector(KonMagicController.showToolkit),"0"),("Understand storage",#selector(KonMagicController.showDiskLens),"1"),("Find & refine content",#selector(KonMagicController.showExplorer),"2"),("Design organization",#selector(KonMagicController.showWorkspace),"3"),("Review draft",#selector(KonMagicController.showReview),"4")]
-            for (title,action,key) in navigation {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=controller}
+            let routes:[(String,Selector,String)]=[("Toolkit",#selector(KonMagicNavigation.showToolkit),"0"),("Understand storage",#selector(KonMagicNavigation.showStorage),"1"),("Find & refine content",#selector(KonMagicNavigation.showContent),"2"),("Design organization",#selector(KonMagicNavigation.showStructure),"3"),("Review draft",#selector(KonMagicNavigation.showReview),"4")]
+            for (title,action,key) in routes {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=self.navigation}
             fileMenu.addItem(NSMenuItem.separator())
-            let commands:[(String,Selector,String)]=[("Choose source folder…",#selector(KonMagicController.chooseScope),"o"),("Connect catalogue…",#selector(KonMagicController.connectCatalog),""),("Choose output…",#selector(KonMagicController.chooseOutput),""),("Verify exact preview",#selector(KonMagicController.verifyPreview),"p"),("Undo draft edit",#selector(KonMagicController.undoDraft),"z")]
-            for (title,action,key) in commands {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=controller}
-            fileMenu.addItem(withTitle:"Content Explorer",action:#selector(KonMagicController.showExplorer),keyEquivalent:"e").target=controller
-            fileMenu.addItem(withTitle:"Disk Lens",action:#selector(KonMagicController.showDiskLens),keyEquivalent:"d").target=controller
-            fileMenu.addItem(withTitle:"Show hidden files in current folder",action:#selector(KonMagicController.toggleHidden(_:)),keyEquivalent:"").target=controller
+            let commands:[(String,Selector,String)]=[("Choose source folder…",#selector(KonMagicNavigation.chooseScope),"o"),("Connect catalogue…",#selector(KonMagicNavigation.connectCatalog),""),("Choose output…",#selector(KonMagicNavigation.chooseOutput),""),("Verify exact preview",#selector(KonMagicNavigation.verifyPreview),"p"),("Undo draft edit",#selector(KonMagicNavigation.undoDraft),"z")]
+            for (title,action,key) in commands {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=self.navigation}
+            fileMenu.addItem(withTitle:"Content Explorer",action:#selector(KonMagicNavigation.showContent),keyEquivalent:"e").target=self.navigation
+            fileMenu.addItem(withTitle:"Disk Lens",action:#selector(KonMagicNavigation.showStorage),keyEquivalent:"d").target=self.navigation
+            fileMenu.addItem(withTitle:"Show hidden files in current folder",action:#selector(KonMagicNavigation.toggleHidden(_:)),keyEquivalent:"").target=self.navigation
             let editItem=NSMenuItem(title:"Edit",action:nil,keyEquivalent:""),editMenu=NSMenu();editItem.submenu=editMenu;menu.addItem(editItem)
             for (title,selector,key) in [("Cut","cut:","x"),("Copy","copy:","c"),("Paste","paste:","v"),("Select All","selectAll:","a")] {editMenu.addItem(withTitle:title,action:Selector(selector),keyEquivalent:key)}
+            let windowItem=NSMenuItem(title:"Window",action:nil,keyEquivalent:""),windowMenu=NSMenu(title:"Window");windowItem.submenu=windowMenu;menu.addItem(windowItem)
+            windowMenu.addItem(withTitle:"Back",action:#selector(KonMagicNavigation.back),keyEquivalent:"[").target=self.navigation
+            windowMenu.addItem(withTitle:"Forward",action:#selector(KonMagicNavigation.forward),keyEquivalent:"]").target=self.navigation
+            let popout=windowMenu.addItem(withTitle:"Open page in new window",action:#selector(KonMagicNavigation.openCurrent),keyEquivalent:"n");popout.keyEquivalentModifierMask=[.command,.shift];popout.target=self.navigation
+            let pages=NSMenuItem(title:"Open another page window",action:nil,keyEquivalent:""),pageMenu=NSMenu();pages.submenu=pageMenu;windowMenu.addItem(pages)
+            for page in KonMagicPage.allCases {let item=pageMenu.addItem(withTitle:page.title,action:#selector(KonMagicNavigation.openPage(_:)),keyEquivalent:"");item.tag=page.rawValue;item.target=self.navigation}
+            windowMenu.addItem(.separator());windowMenu.addItem(withTitle:"Minimize",action:#selector(NSWindow.performMiniaturize(_:)),keyEquivalent:"m")
+            windowMenu.addItem(withTitle:"Bring All to Front",action:#selector(NSApplication.arrangeInFront(_:)),keyEquivalent:"")
+            NSApp.windowsMenu=windowMenu
             NSApp.mainMenu=menu;NSApp.activate(ignoringOtherApps:true)
-            if qa {if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
+            if qa {if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
 
         } catch {let a=NSAlert();a.messageText="KonMagic could not open safely";a.informativeText=error.localizedDescription;a.runModal();NSApp.terminate(nil)}
     }
-    func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool {controller?.showToolkit();return true}
+    func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool {navigation?.main.window?.makeKeyAndOrderFront(nil);return true}
     func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication) -> Bool {
         guard let controller=controller else{return true};let action=LensPreferences.load(controller.store.directory).lastWindow
         if action=="welcome" {DispatchQueue.main.async {self.window.makeKeyAndOrderFront(nil);controller.showGuide()};return false};return action != "stay"
     }
     func applicationShouldTerminate(_ sender:NSApplication) -> NSApplication.TerminateReply {
-        if controller?.lenses.contains(where:{$0.busy || $0.comparisonControllers.contains(where:{$0.busy}) || $0.duplicateControllers.contains(where:{$0.busy})})==true {let a=NSAlert();a.messageText="A metadata scan or export is running";a.informativeText="Use Stop scan in Disk Lens, allow its partial observation to finish saving, then quit.";a.addButton(withTitle:"Keep KonMagic open");a.runModal();return .terminateCancel}
-        if controller?.busy==true {let a=NSAlert();a.messageText="A verification or copy is running";a.informativeText="Wait for it to finish. Quitting now could leave a retained stage that needs receipt review.";a.addButton(withTitle:"Keep KonMagic open");a.addButton(withTitle:"Quit and inspect receipts later");return a.runModal() == .alertSecondButtonReturn ? .terminateNow : .terminateCancel};return .terminateNow
+        if navigation?.observationBusy==true {let a=NSAlert();a.messageText="A metadata scan or export is running";a.informativeText="Use Stop scan in Disk Lens, allow its partial observation to finish saving, then quit.";a.addButton(withTitle:"Keep KonMagic open");a.runModal();return .terminateCancel}
+        if navigation?.transferBusy==true {let a=NSAlert();a.messageText="A verification or copy is running";a.informativeText="Wait for it to finish. Quitting now could leave a retained stage that needs receipt review.";a.addButton(withTitle:"Keep KonMagic open");a.addButton(withTitle:"Quit and inspect receipts later");return a.runModal() == .alertSecondButtonReturn ? .terminateNow : .terminateCancel};return .terminateNow
     }
     func runUIQA() {
         DispatchQueue.main.asyncAfter(deadline:.now()+2) {
@@ -454,7 +468,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
         if requested=="disk" {explorer.dataset.selectItem(at:1);explorer.changeDataset();explorer.folder=FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads").path;explorer.loadPage()}
         else {explorer.mode.selectedSegment=modes[requested] ?? 0;explorer.changeVisualization()}
         DispatchQueue.main.asyncAfter(deadline:.now()+4) {
-            guard let v=explorer.window?.contentView else {exit(1)};v.layoutSubtreeIfNeeded()
+            guard let v=explorer.view.window?.contentView else {exit(1)};v.layoutSubtreeIfNeeded()
             if let bitmap=v.bitmapImageRepForCachingDisplay(in:v.bounds) {
                 v.effectiveAppearance.performAsCurrentDrawingAppearance {v.cacheDisplay(in:v.bounds,to:bitmap)}
                 if let data=bitmap.representation(using:.png,properties:[:]),let path=ProcessInfo.processInfo.environment["KONMAGIC_QA_IMAGE"] {try? data.write(to:URL(fileURLWithPath:path));try? FileManager.default.setAttributes([.posixPermissions:0o600],ofItemAtPath:path)}
@@ -488,7 +502,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
         controller.showDiskLens();guard let lens=controller.lenses.first,let path=ProcessInfo.processInfo.environment["KONMAGIC_QA_SCAN"] else {fputs("An isolated saved scan is required for lens UI QA.\n",stderr);exit(1)}
         lens.window?.appearance=window.appearance;lens.open(LensStore(url:URL(fileURLWithPath:path)))
         DispatchQueue.main.asyncAfter(deadline:.now()+3) {
-            guard let v=lens.window?.contentView,let info=lens.info else {exit(1)};v.layoutSubtreeIfNeeded()
+            guard let v=lens.view.window?.contentView,let info=lens.info else {exit(1)};v.layoutSubtreeIfNeeded()
             if let bitmap=v.bitmapImageRepForCachingDisplay(in:v.bounds) {v.effectiveAppearance.performAsCurrentDrawingAppearance {v.cacheDisplay(in:v.bounds,to:bitmap)};if let data=bitmap.representation(using:.png,properties:[:]),let image=ProcessInfo.processInfo.environment["KONMAGIC_QA_IMAGE"] {try? data.write(to:URL(fileURLWithPath:image));try? FileManager.default.setAttributes([.posixPermissions:0o600],ofItemAtPath:image)}}
             let weight=lens.canvas.result.tiles.filter {!$0.virtual}.reduce(Int64(0)) {$0+$1.node.total.weight(lens.preferences.measure)},expected=info.totals.weight(lens.preferences.measure)
             let passed=weight==expected && !lens.canvas.result.tiles.isEmpty && !lens.rows.isEmpty && !self.controller.applyButton.isEnabled

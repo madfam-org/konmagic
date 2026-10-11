@@ -74,7 +74,9 @@ final class DuplicateReviewController:NSViewController,NSTableViewDataSource,NST
     let store:LensStore
     let queue=DispatchQueue(label:"org.madfam.konmagic.duplicate-review",qos:.utility)
     let table=NSTableView(),detail=KonMagicInspector(),status=NSTextField(wrappingLabelWithString:""),next=NSButton(),previous=NSButton(),verify=NSButton(),stop=NSButton()
-    var groups:[DuplicateSizeGroup]=[],members:[LensNode]=[],window:NSWindow?,cursor:Int64?,nextCursor:Int64?,history:[Int64?]=[],busy=false,ticket=0,cancellation=CatalogueCancellation()
+    var groups:[DuplicateSizeGroup]=[],members:[LensNode]=[],window:NSWindow?,cursor:Int64?,nextCursor:Int64?,history:[Int64?]=[],ticket=0,cancellation=CatalogueCancellation()
+    var activityChanged:(()->Void)?
+    var busy=false {didSet {activityChanged?()}}
     init(store:LensStore) {self.store=store;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError("Use scan")}
     override func loadView() {
@@ -126,5 +128,5 @@ final class DuplicateReviewController:NSViewController,NSTableViewDataSource,NST
     }
 }
 extension DiskLensController {
-    @objc func duplicateReview() {guard let store=store else{return};let c=DuplicateReviewController(store:store);duplicateControllers.append(c);c.show()}
+    @objc func duplicateReview() {guard let store=store else{return};let c=DuplicateReviewController(store:store);duplicateControllers.append(c);if let host=workspace?.pageHost {host.showDetail(c,title:"Storage / Duplicate evidence") {_ in DuplicateReviewController(store:store)}} else {c.show()}}
 }

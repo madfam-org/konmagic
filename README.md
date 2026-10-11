@@ -13,6 +13,15 @@ Requires macOS 13 or later and Apple Command Line Tools with Swift 5.8 or later.
 Uses AppKit, Foundation, CryptoKit, CoreServices, Quartz, Darwin and system SQLite/zlib; no
 package downloads, browser, Python service, Electron or network listener.
 
+Toolkit, Storage, Content, Structure and Review share one window by default.
+Use the page bar or Command-0 through Command-4; Back and Forward retain each
+page's browsing state. Scan comparisons and duplicate evidence stay in that
+window too. **Open page in new window** (Shift-Command-N) creates an independent
+view. The Window menu can open any page in a secondary or further window.
+All windows share one private draft and tag decisions; changing a destination
+updates every view and invalidates stale verified previews. Extra windows do
+not apply any filesystem operation.
+
 ```sh
 /bin/zsh -f scripts/build.command
 "$HOME/Library/Caches/KonMagic Build/KonMagic" --self-test
@@ -186,7 +195,7 @@ Derived scans live privately under application support. Work streams through
 SQLite and background queues, with a 3 GiB per-scan limit, 25 million-entry bound,
 256-level depth limit and 10 GiB free-space reserve. Stop retains explicit partial
 coverage. The visible list uses 200-row pages; complete data remains in the
-scan and export. Comparison windows page through every metadata change in stable 500-row pages
+scan and export. Comparison pages browse every metadata change in stable 500-row pages
 and can export the full comparison. Filters, exclusions and gaps can affect
 added/removed observations. Global tagged facets and full-text search remain in Atlas Explorer.
 

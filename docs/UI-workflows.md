@@ -1,8 +1,30 @@
 # Finding your way through KonMagic
 
-The toolkit is the starting point. Choose a stage for the task at hand, then
-return with **Toolkit** or Command-0. The stages share one private draft;
-opening a view does not copy or reorganize files.
+The toolkit is the starting point. The persistent page bar keeps Toolkit,
+Storage, Content, Structure and Review in one window. Choose a stage for the
+task at hand, then return with **Toolkit** or Command-0. Back and Forward
+(Command-[ and Command-]) preserve your filters, search and selections.
+Opening a view does not copy or reorganize files.
+
+**Open page in new window** (Shift-Command-N) opens the current page as an
+independent view. **Window → Open another page window** opens any stage without
+leaving the current page. You can keep secondary and further windows side by
+side; their page bars work independently. **Main window** brings the primary
+window forward. Closing an idle additional window releases its views.
+
+Browsing state is independent between windows. Destinations, assignments,
+undo and personal tag decisions share one private owner. Draft edits refresh
+all windows and invalidate stale verification. A verification or copy blocks
+draft assignment across all windows. Navigation can continue during a scan;
+**Work continues → Show activity** returns to its page. A window with a running
+scan, hash check, export, verification or copy must stay open until the work
+finishes or its page's Stop control retains the partial result.
+
+Scan comparisons and duplicate evidence open inside the current window, with
+Back returning to the previous page. These detail pages also support **Open
+page in new window**. Native file panels, confirmations and Quick Look retain
+their standard macOS presentation. Small windows can scroll page content
+rather than compressing controls into unreadable layouts.
 
 | Stage | Use it for | Next step |
 | --- | --- | --- |

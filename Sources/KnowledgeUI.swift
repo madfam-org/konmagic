@@ -13,10 +13,10 @@ extension CatalogueExplorerController {
     func field(_ value:String="",placeholder:String="")->NSTextField {
         let f=NSTextField(string:value);f.placeholderString=placeholder;f.widthAnchor.constraint(equalToConstant:410).isActive=true;return f
     }
-    func knowledgeChanged() {
+    func knowledgeChanged() {if let navigation=workspace?.navigation {navigation.knowledgeChanged()} else {reloadKnowledge();workspace?.plan=nil;workspace?.refreshDraft()}}
+    func reloadKnowledge() {
         allSummary=nil;summary=nil;resetPaging();loadPage();loadSummary()
         if displayedView==1 {loadRoots()} else if displayedView==2 {roots=[];tree.reloadData()}
-        workspace?.plan=nil;workspace?.refreshDraft();if workspace?.isViewLoaded==true {workspace?.loadSources()}
     }
     @objc func correctTags() {
         guard let knowledge=workspace?.knowledge else{return}

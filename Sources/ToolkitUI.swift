@@ -59,6 +59,7 @@ final class ToolkitController:NSViewController {
         let footer=NSStackView(views:[label("YOUR NEXT STEP",size:10,weight:.semibold),nextStep,draftStatus]);footer.orientation = .vertical;footer.alignment = .leading;footer.spacing=8
         let help=label("⌘0 Toolkit     ⌘1 Storage     ⌘2 Content     ⌘3 Structure     ⌘4 Review",size:11);help.textColor = .secondaryLabelColor
         let outer=NSStackView(views:[heading,subtitle,privacy,coverage,row1,row2,footer,help]);outer.orientation = .vertical;outer.alignment = .leading;outer.spacing=16;outer.translatesAutoresizingMaskIntoConstraints=false;document.addSubview(outer)
+        row1.heightAnchor.constraint(equalTo:row2.heightAnchor).isActive=true
         NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:document.leadingAnchor,constant:30),outer.trailingAnchor.constraint(equalTo:document.trailingAnchor,constant:-30),outer.topAnchor.constraint(equalTo:document.topAnchor,constant:26),outer.bottomAnchor.constraint(equalTo:document.bottomAnchor,constant:-26)])
         for v in [heading,coverage,row1,row2,footer,nextStep] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
         loaded=true;refresh()
@@ -97,11 +98,8 @@ final class ToolkitController:NSViewController {
 }
 
 extension KonMagicController {
-    @objc func showToolkit() {toolkit?.updateDraft();toolkit?.view.window?.makeKeyAndOrderFront(nil)}
-    @objc func showWorkspace() {
-        if let existing=view.window {existing.makeKeyAndOrderFront(nil);return}
-        let w=NSWindow(contentRect:NSRect(x:0,y:0,width:1360,height:820),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
-        w.title="KonMagic · Organization workspace";w.minSize=NSSize(width:1180,height:740);w.contentViewController=self;w.isReleasedWhenClosed=false;w.setFrameAutosaveName("KonMagicWorkspace");w.center();workspaceWindow=w;w.makeKeyAndOrderFront(nil);arrangeInitialPanes()
-    }
-    @objc func showReview() {showWorkspace();draft.window?.makeFirstResponder(draft);showDraftPaths();status.stringValue=store.value.assignments.isEmpty ? "Your draft is empty. Choose sources and destinations before reviewing paths." : "Review the exact source → destination pairs. Verify separately before approving any copy."}
+    @objc func showToolkit() {pageHost?.navigate(.toolkit)}
+    @objc func showWorkspace() {pageHost?.navigate(.structure)}
+    @objc func showReview() {pageHost?.navigate(.review)}
+    func focusReview() {draft.window?.makeFirstResponder(draft);showDraftPaths();status.stringValue=store.value.assignments.isEmpty ? "Your draft is empty. Choose sources and destinations before reviewing paths." : "Review the exact source → destination pairs. Verify separately before approving any copy."}
 }
