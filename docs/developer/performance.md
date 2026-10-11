@@ -13,6 +13,7 @@ The app is designed to observe large catalogues while holding bounded UI pages. 
 | Treemap layout | User-initiated background drawing queue |
 | Preview/copy | Dedicated utility transfer queue |
 | AppKit state | Main-thread updates only |
+| Content gallery thumbnails | Explicit request, up to 24 files and three concurrent providers; update existing cards, cancel on context change |
 
 A newer request cancels or supersedes old page/summary work. Results must match their generation before touching views. A background source completion must not overwrite the active transfer’s status. Keep cancellation checks inside long enumeration/streaming loops, not only at operation boundaries.
 

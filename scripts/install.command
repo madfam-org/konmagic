@@ -14,6 +14,8 @@ fi
 mkdir -p "$konmagic_stage/Contents/MacOS" "$konmagic_stage/Contents/Resources"
 cp "$konmagic_build/KonMagic" "$konmagic_stage/Contents/MacOS/KonMagic"
 cp "$konmagic_source/scripts/Info.plist" "$konmagic_stage/Contents/Info.plist"
+mkdir -p "$konmagic_stage/Contents/Resources/Artwork"
+cp "$konmagic_build/Resources/Artwork/"*.png "$konmagic_stage/Contents/Resources/Artwork/"
 if [[ -f "$konmagic_build/KonMagic.icns" ]]; then
   cp "$konmagic_build/KonMagic.icns" "$konmagic_stage/Contents/Resources/KonMagic.icns"
 fi

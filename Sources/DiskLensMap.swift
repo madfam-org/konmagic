@@ -2,7 +2,7 @@ import AppKit
 import SQLite3
 
 struct LensTile {var node:LensNode,frame:NSRect,label:String,masked=false,virtual=false,path=""}
-struct LensMapResult {var tiles:[LensTile]=[],omittedZero:Int64=0,collapsed=0;var totals=LensTotals()}
+struct LensMapResult {var tiles:[LensTile]=[],branches:[LensTile]=[],omittedZero:Int64=0,collapsed=0;var totals=LensTotals()}
 final class LensMapBuilder {
     let store:LensStore,info:LensSnapshot,reader:AtlasDatabase,preferences:LensPreferences,mask:LensFilter,cancellation:CatalogueCancellation
     var result=LensMapResult()
@@ -43,6 +43,7 @@ final class LensMapBuilder {
     private func visit(_ parent:LensNode,rect:NSRect,level:Int) throws {
         guard !cancellation.cancelled else {throw KonMagicError("Superseded map cancelled.")}
         if !parent.directory {add(parent,rect:rect);return}
+        if level>0,level<=2,rect.width>160,rect.height>100 {result.branches.append(LensTile(node:parent,frame:rect,label:parent.name,path:store.path(parent,info)))}
         if level>=preferences.depth || (preferences.display != .files && parent.package) || rect.width*rect.height<24 || result.tiles.count>=4096 {
             result.collapsed+=1;add(parent,rect:rect,label:parent.name+" · zoom for contents");return
         }
@@ -104,31 +105,49 @@ final class LensCanvas:NSView {
         let hue:CGFloat
         switch preferences.palette {case .ocean:hue=0.48+CGFloat(hash%100)/500;case .forest:hue=0.23+CGFloat(hash%100)/600;case .ember:hue=CGFloat(hash%80)/600;case .monochrome:hue=0.58;case .accessible:
             let colors:[NSColor]=[.systemBlue,.systemOrange,.systemTeal,.systemPurple,.systemPink,.systemYellow];return colors[Int(hash%UInt64(colors.count))].withAlphaComponent(dark ? 0.6:0.35)
+        case .pastel:
+            let colors=[FriendlyUI.ink(0xC9EAE6,0x294C4C),FriendlyUI.ink(0xE2D9F4,0x453A5E),FriendlyUI.ink(0xF7DDC4,0x574331),FriendlyUI.ink(0xDCEACF,0x3C4C36),FriendlyUI.ink(0xD5E8F2,0x324754),FriendlyUI.ink(0xF3DCE7,0x553A4B)]
+            return colors[Int(hash%UInt64(colors.count))]
         case .rainbow:hue=CGFloat(hash%360)/360}
         return NSColor(calibratedHue:hue,saturation:preferences.palette == .monochrome ? 0.1:0.5,brightness:dark ? 0.43+CGFloat(hash%10)/100:0.8+CGFloat(hash%15)/100,alpha:1)
     }
     override func draw(_ rect:NSRect) {
-        NSColor.controlBackgroundColor.setFill();rect.fill()
+        FriendlyUI.surface.setFill();rect.fill()
+        if result.tiles.isEmpty {let paragraph=NSMutableParagraphStyle();paragraph.alignment = .center
+            ("A little perspective starts here.\nScan a folder or import your recorded machine." as NSString).draw(in:NSRect(x:20,y:bounds.midY-25,width:max(0,bounds.width-40),height:65),withAttributes:[.font:NSFont.systemFont(ofSize:15,weight:.medium),.foregroundColor:FriendlyUI.muted,.paragraphStyle:paragraph]);return}
         for tile in result.tiles {
             guard tile.frame.intersects(rect) else {continue}
-            let r=tile.frame.insetBy(dx:0.5,dy:0.5)
+            let r=tile.frame.insetBy(dx:1.5,dy:1.5);guard r.width>0,r.height>0 else {continue}
+            let shape=NSBezierPath(roundedRect:r,xRadius:min(9,r.width/8),yRadius:min(9,r.height/8))
             if tile.masked {NSColor.quaternaryLabelColor.setFill();r.fill();continue}
-            (tile.virtual ? NSColor.separatorColor : color(value(tile))).setFill();r.fill()
-            if tile.node.id==selected {NSColor.controlAccentColor.setStroke();let shape=NSBezierPath(rect:r.insetBy(dx:1,dy:1));shape.lineWidth=3;shape.stroke()}
+            (tile.virtual ? NSColor.separatorColor : color(value(tile))).setFill();shape.fill();FriendlyUI.surface.withAlphaComponent(0.8).setStroke();shape.lineWidth=1;shape.stroke()
+            if tile.node.id==selected {FriendlyUI.teal.setStroke();shape.lineWidth=3;shape.stroke()}
             if r.width>85 && r.height>34 {
                 let paragraph=NSMutableParagraphStyle();paragraph.lineBreakMode = .byTruncatingTail
                 let amount=preferences.measure == .tally ? String(tile.node.total.count)+" files" : ByteCountFormatter.string(fromByteCount:tile.node.total.weight(preferences.measure),countStyle:preferences.binaryUnits ? .binary:.decimal)
-                (tile.label+"\n"+amount as NSString).draw(in:r.insetBy(dx:6,dy:5),withAttributes:[.font:NSFont.systemFont(ofSize:11),.foregroundColor:NSColor.labelColor,.paragraphStyle:paragraph])
+                let labelRect=r.insetBy(dx:9,dy:9)
+                (tile.label+"\n"+amount as NSString).draw(in:labelRect,withAttributes:[.font:NSFont.systemFont(ofSize:11,weight:.medium),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
             }
+        }
+        for branch in result.branches {
+            let r=branch.frame.insetBy(dx:1,dy:1),outline=NSBezierPath(roundedRect:r,xRadius:10,yRadius:10)
+            FriendlyUI.muted.withAlphaComponent(0.3).setStroke();outline.lineWidth=1.5;outline.stroke()
+            let header=NSRect(x:r.minX+5,y:r.maxY-26,width:r.width-10,height:22)
+            let label=NSBezierPath(roundedRect:header,xRadius:6,yRadius:6);FriendlyUI.surface.setFill();label.fill()
+            let paragraph=NSMutableParagraphStyle();paragraph.lineBreakMode = .byTruncatingTail
+            ("▸ "+branch.label as NSString).draw(in:header.insetBy(dx:6,dy:3),withAttributes:[.font:NSFont.systemFont(ofSize:11,weight:.semibold),.foregroundColor:FriendlyUI.text,.paragraphStyle:paragraph])
         }
         if selectedDirectory,let relative=selectedRelative {
             let frames=result.tiles.filter {!$0.virtual && ($0.node.relative==relative || $0.node.relative.hasPrefix(relative.isEmpty ? "":relative+"/"))}.map(\.frame)
-            if let first=frames.first {let box=frames.dropFirst().reduce(first) {$0.union($1)};let outline=NSBezierPath(rect:box.insetBy(dx:1,dy:1));outline.lineWidth=3;NSColor.controlAccentColor.setStroke();outline.stroke()}
+            if let first=frames.first {let box=frames.dropFirst().reduce(first) {$0.union($1)};let outline=NSBezierPath(roundedRect:box.insetBy(dx:1,dy:1),xRadius:10,yRadius:10);outline.lineWidth=3;FriendlyUI.teal.setStroke();outline.stroke()}
         }
     }
-    func at(_ event:NSEvent)->LensTile? {let point=convert(event.locationInWindow,from:nil);return result.tiles.first {$0.frame.contains(point) && !$0.masked}}
+    func at(_ event:NSEvent)->LensTile? {let point=convert(event.locationInWindow,from:nil)
+        if let branch=result.branches.reversed().first(where:{NSRect(x:$0.frame.minX+6,y:$0.frame.maxY-27,width:$0.frame.width-12,height:22).contains(point)}) {return branch}
+        return result.tiles.first {$0.frame.contains(point) && !$0.masked}
+    }
     override func mouseMoved(with event:NSEvent) {if !locked,let tile=at(event) {selected=tile.node.id;needsDisplay=true;selection?(tile)}}
-    override func mouseDown(with event:NSEvent) {window?.makeFirstResponder(self);guard let tile=at(event) else{return};selected=tile.node.id;locked = !locked;needsDisplay=true;selection?(tile);if event.clickCount==2 {locked=true;zoom?(tile)}}
+    override func mouseDown(with event:NSEvent) {window?.makeFirstResponder(self);guard let tile=at(event) else{return};selected=tile.node.id;locked=true;needsDisplay=true;selection?(tile);if event.clickCount==2 {zoom?(tile)}}
     override func scrollWheel(with event:NSEvent) {if abs(event.scrollingDeltaY)>1 {focus?(event.scrollingDeltaY>0 ? 1:-1)}}
     override func keyDown(with event:NSEvent) {
         if event.keyCode==49 {preview?();return}

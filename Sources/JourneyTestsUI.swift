@@ -15,6 +15,8 @@ extension KonMagicDelegate {
                 go(.review)
                 guard let review=self.controller.review else {exit(1)}
                 check(host.current?.controller === review && review !== self.controller,"dedicated review page")
+                self.controller.status.stringValue="6 entries · current folder metadata";review.refreshStatus()
+                check(!review.message.stringValue.contains("current folder metadata"),"review status excludes unrelated browsing feedback")
                 check(!review.copy.isEnabled && !review.verify.isEnabled && review.inspector.string.contains("START WITH"),"empty review explains next step")
                 let node=FolderNode(parent:nil,name:"Synthetic thoughtful collection")
                 try self.controller.store.change {$0.nodes.append(node)};self.controller.refreshDraft()
@@ -22,6 +24,11 @@ extension KonMagicDelegate {
                 explorer.pageCancellation.cancel();explorer.generation+=1
                 let item=CatalogItem(id:0,path:"/synthetic/family/celebration.mov",name:"celebration.mov",kind:"file",bytes:42,context:"Synthetic family collection")
                 explorer.mode.selectedSegment=0;explorer.updateMode();explorer.records=[item];explorer.table.reloadData();explorer.table.selectRowIndexes(IndexSet(integer:0),byExtendingSelection:false)
+                explorer.mode.selectedSegment=5;explorer.updateMode()
+                check(explorer.selectedRecords().first?.path==item.path && explorer.gallery.cards.count==1,"gallery shares exact list selection authority")
+                check(explorer.gallery.images.isEmpty && explorer.gallery.requests.isEmpty,"gallery presentation does not request source bodies")
+                explorer.mode.selectedSegment=3;explorer.updateMode();check(explorer.selectedRecords().isEmpty && !explorer.assignButton.isEnabled,"gallery authority held on semantic maps")
+                explorer.mode.selectedSegment=0;explorer.updateMode()
                 explorer.destination.select(explorer.destination.itemArray.first {$0.representedObject as? String==node.id});explorer.destinationChanged()
                 let proposed=try self.controller.store.value.destination(Assignment(source:item.path,node:node.id,outputName:item.name))
                 check(explorer.proposedPath.toolTip==item.path+"\n→ "+proposed && explorer.assignButton.isEnabled,"placement visible before assignment")
@@ -59,6 +66,10 @@ extension KonMagicDelegate {
                 self.controller.plan=CopyPlan(id:UUID().uuidString,prepared:Date(),workspaceHash:try SafeFS.workspaceHash(self.controller.store.value),output:self.controller.store.value.output,outputAnchor:OutputAnchor(path:self.controller.store.value.output,device:0,inode:0),buckets:[bucket],bytes:401)
                 self.controller.refreshDraft()
                 check(review.inspector.string.contains("1–200") && review.next.isEnabled && !review.previous.isEnabled,"verified inventory bounded at 200")
+                check(review.manifestTable.numberOfRows==200 && review.manifestRecords.first?.hash==String(repeating:"a",count:64),"visible manifest preserves full verification proof")
+                let selectedAssignment=review.selected?.id
+                review.manifestTable.selectRowIndexes(IndexSet(integer:1),byExtendingSelection:false)
+                check(review.selected?.id==selectedAssignment,"manifest row selection cannot change assignment authority")
                 review.nextRecords();review.nextRecords()
                 check(review.inspector.string.contains("401–401") && !review.next.isEnabled && review.previous.isEnabled,"last inventory page exact")
                 check(review.inspector.string.contains(bucket.destination+"/synthetic-400.txt") && review.inspector.string.contains("SHA-256"),"verified child targets and hashes shown")

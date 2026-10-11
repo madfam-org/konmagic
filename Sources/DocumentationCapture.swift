@@ -23,7 +23,7 @@ extension KonMagicDelegate {
         var count=0,viewerChecks=0
         func checkViewer(_ condition:Bool,_ message:String) {guard condition else {fputs("Source viewer check failed: \(message)\n",stderr);exit(1)};viewerChecks+=1}
         func capture(_ name:String,_ v:NSView?=nil) {
-            guard let view=v ?? self.window.contentView,let ownedWindow=view.window else {exit(1)};view.layoutSubtreeIfNeeded()
+            guard let view=v ?? self.window.contentView,let ownedWindow=view.window else {exit(1)};view.layoutSubtreeIfNeeded();view.displayIfNeeded();ownedWindow.display();ownedWindow.flush()
             // Composite exactly this process's synthetic window. View caching omits
             // Quick Look's remote layer and some native alert text/materials.
             let data:Data
@@ -53,6 +53,8 @@ extension KonMagicDelegate {
         tasks.append(("content-treemap",{let e=self.controller.explorer!;e.mode.selectedSegment=3;e.changeVisualization()}))
         tasks.append(("content-connections",{let e=self.controller.explorer!;e.mode.selectedSegment=4;e.changeVisualization()}))
         tasks.append(("content-filters",{let e=self.controller.explorer!;e.mode.selectedSegment=0;e.filters=[.owner:"Personal",.family:"Video"];e.changeVisualization();e.refresh()}))
+        tasks.append(("content-gallery",{let e=self.controller.explorer!;e.folder=root.appendingPathComponent("Sources/Projects/Orbit").path;e.filters=[:];e.refresh();e.mode.selectedSegment=5;e.changeVisualization()}))
+        tasks.append(("content-gallery-thumbnails",{let e=self.controller.explorer!;e.loadGalleryThumbnails();if let i=e.records.firstIndex(where:{$0.name=="Prototype.png"}) {e.table.selectRowIndexes(IndexSet(integer:i),byExtendingSelection:false);e.showMetadata()}}))
         tasks.append(("recorded-disk",{let e=self.controller.explorer!;e.dataset.selectItem(at:1);e.folder=root.appendingPathComponent("Sources").path;e.changeDataset()}))
         tasks.append(("structure",{host.navigate(.structure);self.controller.outline.expandItem(nil,expandChildren:true);if let node=self.controller.store.value.nodes.first(where:{$0.name=="Orbit"}) {self.controller.selectDestination(node.id)};self.controller.navigate(root.appendingPathComponent("Sources/Projects/Orbit").path)}))
         tasks.append(("review-unverified",{
@@ -66,7 +68,7 @@ extension KonMagicDelegate {
             do {let scanner=try LensScanner(directory:self.controller.store.directory.appendingPathComponent("Documentation Scans"),cancellation:CatalogueCancellation());let scan=try scanner.run(root:root.appendingPathComponent("Sources").path);let lens=self.controller.lenses.first!;lens.preferences.measure = .logical;lens.measure.selectItem(at:0);lens.open(scan)} catch {exit(1)}
         }))
         tasks.append(("storage-options",{let lens=self.controller.lenses.first!;lens.toggleViewOptions();if let node=lens.rows.first {lens.select(node)}}))
-        tasks.append(("storage-focused",{let lens=self.controller.lenses.first!;if let node=lens.rows.first(where:{$0.name=="Personal"}) {lens.navigate(node.id)}}))
+        tasks.append(("storage-focused",{let lens=self.controller.lenses.first!;if let node=lens.rows.first(where:{$0.name=="Personal"}) {lens.navigate(node.id);checkViewer(lens.selected==nil && lens.canvas.selected==0 && lens.selectionTitle.stringValue=="Choose a source" && lens.selectionPath.stringValue.isEmpty,"folder navigation clears stale source presentation")}}))
         tasks.append(("content-restored",{host.navigate(.content);let e=self.controller.explorer!;e.dataset.selectItem(at:0);e.folder=nil;e.filters=[:];e.mode.selectedSegment=0;e.changeDataset();e.updateMode()}))
         tasks.append(("folder-viewer",{self.controller.showSourcePreview(root.appendingPathComponent("Sources/Projects/Orbit").path,allowFixture:true)}))
         tasks.append(("folder-gallery",{if let c=host.current?.controller as? SourcePreviewController {c.mode.selectedSegment=1;c.changePresentation()}}))
@@ -76,6 +78,7 @@ extension KonMagicDelegate {
         var index=0
         func advance() {
             if index>=tasks.count {
+                do {checkViewer(try Data(contentsOf:images.appendingPathComponent("structure.png")) != Data(contentsOf:images.appendingPathComponent("recorded-disk.png")),"distinct pages must not publish the same stale compositor frame")} catch {exit(1)}
                 host.navigate(.review)
                 do {self.controller.plan=try SafeFS.preview(self.controller.store.value,allowFixture:true);self.controller.refreshDraft()} catch {exit(1)}
                 dialog("copy-confirmation",{self.controller.applyCopy()})
@@ -92,7 +95,7 @@ extension KonMagicDelegate {
                 print("DOCUMENTATION_CAPTURE passed=true; screenshots=\(count); personalCatalogueReads=0; userSourceOperations=0; copiedFiles=0; publicHelpRoutes=5")
                 NSApp.terminate(nil);return
             }
-            let task=tasks[index];index+=1;task.1()
+            let task=tasks[index];index+=1;task.1();self.window.makeKeyAndOrderFront(nil);NSApp.activate(ignoringOtherApps:true)
             DispatchQueue.main.asyncAfter(deadline:.now()+1.2) {
                 let isTree=task.0=="content-folder-tree" || task.0=="content-tag-tree"
                 if isTree,let e=self.controller.explorer {for node in e.roots {e.tree.expandItem(node,expandChildren:true)}}
@@ -102,8 +105,10 @@ extension KonMagicDelegate {
                     if task.0=="folder-thumbnails" {checkViewer(c.thumbnailCandidates.count<=24 && c.thumbnailInFlight<=3 && c.thumbnailImages.count<=24,"bounded native thumbnail requests")}
                     if task.0=="image-viewer",let observed=c.observed {checkViewer(c.preview.previewItem != nil,"explicit image preview");c.clearContents();checkViewer(c.preview.previewItem==nil && c.thumbnailRequests.isEmpty,"content clear releases representations");c.requestContent(observed)}
                 }
-                DispatchQueue.main.asyncAfter(deadline:.now()+(isTree ? 0.8:task.0=="image-viewer" || task.0=="folder-thumbnails" ? 2.0:0.0)) {
+                if task.0=="content-gallery",let e=self.controller.explorer {checkViewer(e.gallery.images.isEmpty && e.gallery.requests.isEmpty && e.gallery.cards.count==6,"gallery browsing requests no original bodies")}
+                DispatchQueue.main.asyncAfter(deadline:.now()+(isTree ? 0.8:task.0=="image-viewer" || task.0=="folder-thumbnails" || task.0=="content-gallery-thumbnails" ? 2.0:0.0)) {
                     if task.0=="image-viewer",let c=host.current?.controller as? SourcePreviewController {checkViewer(c.preview.previewItem != nil && c.preview.frame.height>=330,"preview reopens after clear")}
+                    if task.0=="content-gallery-thumbnails",let e=self.controller.explorer {checkViewer(e.gallery.candidates.count<=24 && e.gallery.inFlight<=3 && e.gallery.images.count<=24 && e.selectedRecords().first?.name=="Prototype.png","bounded content thumbnails and exact gallery selection")}
                     capture(task.0);advance()
                 }
             }

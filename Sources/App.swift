@@ -86,21 +86,23 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         table.setAccessibilityLabel(table===sources ? "Source files and buckets" : "Draft assignments. No files changed.")
     }
     override func loadView() {
-        view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1320,height:800))
+        view=FriendlyCanvas(frame:NSRect(x:0,y:0,width:1320,height:800))
         spinner.style = .spinning;spinner.isDisplayedWhenStopped=false;spinner.controlSize = .small
         status.changed={[weak self] in self?.review?.refreshStatus()}
-        let head=row([label("Shape destinations, then assign the sources you know.",size:13,weight:.medium),NSView(),spinner,button("Tips",#selector(showWorkspaceTips(_:))),button("Guide",#selector(showGuide),symbol:"questionmark.circle")])
+        let mascot=FriendlyMascot(kind:1);mascot.widthAnchor.constraint(equalToConstant:68).isActive=true;mascot.heightAnchor.constraint(equalToConstant:78).isActive=true
+        let title=FriendlyUI.column([FriendlyUI.label("KONMAGIC  /  WORKSHOP",size:10,weight:.semibold),FriendlyUI.label("Structure",size:32,weight:.bold),FriendlyUI.label("How do I want my information arranged?",size:12)],spacing:6)
+        let head=row([mascot,title,NSView(),spinner,button("Tips",#selector(showWorkspaceTips(_:))),button("Guide",#selector(showGuide),symbol:"book"),FriendlyUI.button("Preview in Review",symbol:"arrow.right",tint:FriendlyUI.violet,target:self,action:#selector(showReview))])
         split.isVertical=true;split.dividerStyle = .thin;split.translatesAutoresizingMaskIntoConstraints=false
 
         outline.dataSource=self;outline.delegate=self;outline.headerView=nil;outline.rowHeight=29
-        outline.style = .sourceList;outline.setAccessibilityLabel("Editable destination structure. Drop files or whole folders here to assign them.")
+        outline.style = .sourceList;outline.backgroundColor=FriendlyUI.surface;outline.rowHeight=32;outline.setAccessibilityLabel("Editable destination structure. Drop files or whole folders here to assign them.")
         let column=NSTableColumn(identifier:NSUserInterfaceItemIdentifier("structure"));column.width=265;outline.addTableColumn(column);outline.outlineTableColumn=column
         outline.registerForDraggedTypes([.fileURL,draftType,nodeType]);outline.setDraggingSourceOperationMask([.copy,.move],forLocal:true)
         let treeScroll=scroll(outline)
         renameFolderButton.title="Rename";renameFolderButton.target=self;renameFolderButton.action=#selector(renameFolder);renameFolderButton.bezelStyle = .rounded
         removeFolderButton.title="Remove";removeFolderButton.target=self;removeFolderButton.action=#selector(removeFolder);removeFolderButton.bezelStyle = .rounded
-        let structure=vertical([label("DESTINATION STRUCTURE",size:11,weight:.semibold),label("Virtual until you approve a copy",size:11),treeScroll,
-            row([button("New",#selector(newFolder),symbol:"folder.badge.plus"),renameFolderButton,removeFolderButton]),
+        let structure=vertical([FriendlyUI.row([FriendlyUI.image("folder",tint:FriendlyUI.violet),FriendlyUI.label("Destination tree",size:16,weight:.semibold)]),FriendlyUI.label("Virtual until you approve a copy",size:11),
+            row([button("New",#selector(newFolder),symbol:"plus"),renameFolderButton,removeFolderButton]),treeScroll,
             button("Undo draft edit",#selector(undoDraft),symbol:"arrow.uturn.backward")])
         structure.widthAnchor.constraint(greaterThanOrEqualToConstant:290).isActive=true
         treeScroll.widthAnchor.constraint(equalTo:structure.widthAnchor,constant:-32).isActive=true
@@ -114,12 +116,15 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         let sourceScroll=scroll(sources)
         sourceLocation.font=NSFont.systemFont(ofSize:10);sourceLocation.textColor = .secondaryLabelColor;sourceLocation.lineBreakMode = .byTruncatingMiddle
         assignSourceButton.title="Assign selected →";assignSourceButton.target=self;assignSourceButton.action=#selector(assignSelection);assignSourceButton.bezelStyle = .rounded
-        let browse=vertical([label("SOURCE LIBRARY",size:11,weight:.semibold),row([scope,button("Choose folder…",#selector(chooseScope))]),sourceLocation,search,
-            label("Drag a file or folder onto your destination tree.",size:11),sourceScroll,
+        let concepts=FriendlyUI.panel(FriendlyUI.column([FriendlyUI.label("Drop = individual file",size:11,weight:.semibold),FriendlyUI.label("Bucket = folder with its hierarchy",size:11,weight:.semibold),FriendlyUI.label("Choose a destination, then assign or drag your sources.",size:10,wrapping:true)],spacing:5),tint:FriendlyUI.teal,padding:12)
+        let browse=vertical([FriendlyUI.row([FriendlyUI.image("folder.badge.plus",tint:FriendlyUI.teal),FriendlyUI.label("Sources",size:16,weight:.semibold)]),row([scope,button("Choose folder…",#selector(chooseScope))]),sourceLocation,search,
+            concepts,sourceScroll,
             row([button("↑ Parent",#selector(parentScope)),button("Previous",#selector(previousPage)),button("Next 200",#selector(nextPage))]),
             assignSourceButton])
         sourceScroll.widthAnchor.constraint(equalTo:browse.widthAnchor,constant:-32).isActive=true
         browse.widthAnchor.constraint(greaterThanOrEqualToConstant:340).isActive=true
+        concepts.widthAnchor.constraint(equalTo:browse.widthAnchor,constant:-32).isActive=true
+        assignSourceButton.bezelColor=FriendlyUI.violet;assignSourceButton.controlSize = .large
 
         configure(draft,columns:[("name","Assigned source",150),("destination","Chosen destination",210)])
         draft.rowHeight=42
@@ -128,19 +133,21 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         inspector.isVerticallyResizable=true;inspector.isHorizontallyResizable=false;inspector.autoresizingMask = [.width]
         inspector.textContainer?.widthTracksTextView=true
         inspector.textContainerInset=NSSize(width:12,height:12);inspector.setAccessibilityLabel("Exact source and destination preview")
+        inspector.backgroundColor=FriendlyUI.surface;inspector.textColor=FriendlyUI.text
         let inspectScroll=scroll(inspector);inspectScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:170).isActive=true
         previewButton.title="Verify exact copy preview";previewButton.target=self;previewButton.action=#selector(verifyPreview);previewButton.bezelStyle = .rounded
         applyButton.title="Review & copy…";applyButton.target=self;applyButton.action=#selector(applyCopy);applyButton.bezelStyle = .rounded;applyButton.isEnabled=false
-        selection.font=NSFont.systemFont(ofSize:11,weight:.medium);selection.maximumNumberOfLines=2
+        selection.font=NSFont.systemFont(ofSize:14,weight:.semibold);selection.maximumNumberOfLines=3;selection.isSelectable=true
         outputLabel.font=NSFont.systemFont(ofSize:10);outputLabel.lineBreakMode = .byTruncatingMiddle
         reviewDraftButton.title="Open exact-path review →";reviewDraftButton.target=self;reviewDraftButton.action=#selector(showReview);reviewDraftButton.bezelStyle = .rounded
-        let planning=vertical([label("YOUR REORGANIZATION DRAFT",size:11,weight:.semibold),selection,draftCount,draftScroll,
+        let planning=vertical([FriendlyUI.row([FriendlyUI.image("folder.badge.gearshape",tint:FriendlyUI.violet),FriendlyUI.label("Draft context",size:16,weight:.semibold)]),selection,draftCount,draftScroll,
             row([button("Remove assignment",#selector(removeAssignment)),button("Rename output",#selector(renameOutput))]),inspectScroll,
             label("OUTPUT ROOT",size:10,weight:.semibold),outputLabel,button("Choose output…",#selector(chooseOutput)),
             reviewDraftButton,button("Receipts & recovery",#selector(openJournal),symbol:"clock.arrow.circlepath")])
         for s in [draftScroll,inspectScroll] {s.widthAnchor.constraint(equalTo:planning.widthAnchor,constant:-32).isActive=true}
         planning.widthAnchor.constraint(greaterThanOrEqualToConstant:410).isActive=true
-        for v in [structure,browse,planning] {split.addArrangedSubview(v)}
+        reviewDraftButton.bezelColor=FriendlyUI.violet;reviewDraftButton.controlSize = .large
+        for v in [structure,browse,planning] {split.addArrangedSubview(FriendlyUI.panel(v,padding:0))}
         let foot=row([status]);status.font=NSFont.systemFont(ofSize:11);status.textColor = .secondaryLabelColor
         let outer=vertical([head,split,foot],padding:16);outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
         NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor),outer.topAnchor.constraint(equalTo:view.topAnchor),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor),head.widthAnchor.constraint(equalTo:outer.widthAnchor,constant:-32),split.widthAnchor.constraint(equalTo:outer.widthAnchor,constant:-32),foot.widthAnchor.constraint(equalTo:outer.widthAnchor,constant:-32)])
@@ -164,8 +171,9 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     func outlineView(_ o:NSOutlineView,viewFor tableColumn:NSTableColumn?,item:Any) -> NSView? {
         guard let n=node(item) else{return nil}
         let cell=NSTableCellView();let l=label(n.name,size:12,weight:n.parent==nil ? .semibold : .regular)
+        let icon=FriendlyUI.image("folder.fill",tint:FriendlyUI.violet,size:18);icon.translatesAutoresizingMaskIntoConstraints=false;cell.addSubview(icon)
         l.translatesAutoresizingMaskIntoConstraints=false;cell.addSubview(l);cell.textField=l
-        NSLayoutConstraint.activate([l.leadingAnchor.constraint(equalTo:cell.leadingAnchor,constant:4),l.trailingAnchor.constraint(equalTo:cell.trailingAnchor,constant:-4),l.centerYAnchor.constraint(equalTo:cell.centerYAnchor)])
+        NSLayoutConstraint.activate([icon.leadingAnchor.constraint(equalTo:cell.leadingAnchor,constant:4),icon.centerYAnchor.constraint(equalTo:cell.centerYAnchor),l.leadingAnchor.constraint(equalTo:icon.trailingAnchor,constant:7),l.trailingAnchor.constraint(equalTo:cell.trailingAnchor,constant:-4),l.centerYAnchor.constraint(equalTo:cell.centerYAnchor)])
         cell.toolTip=try? store.value.path(n.id);return cell
     }
     func outlineViewSelectionDidChange(_ n:Notification) {

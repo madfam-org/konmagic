@@ -37,3 +37,9 @@ Open **Receipts & recovery** and inspect the recorded exact paths. Keep original
 Copying increases storage usage while originals remain. It is not a space reclamation operation. Moving, deletion and deduplication need a separate preservation/removal design and are currently unavailable.
 
 [Engineering copy lifecycle](../developer/copy-lifecycle.md) · [Safety invariants](../developer/safety.md).
+
+## Trust-center layout
+
+The assignment list, exact source/destination comparison and verified manifest stay together. A separate scrollable sidebar distinguishes verification status, the preview preparation time/ID, receipt access and copy approval. Preview history is not represented as a completed copy receipt. Capacity is reported as checked at verification; fresh checks run again before copying.
+
+The verified manifest has a bounded native table for filenames, relative paths, sizes and hash summaries. **Exact paths & hashes** switches to the complete selectable evidence, including full SHA-256 values and full child source/destination paths. Export always includes the complete plan. Table summaries never replace full-hash verification.

@@ -7,9 +7,9 @@ enum KonMagicPage:Int,CaseIterable {
         switch self {
         case .toolkit:return NSSize(width:1050,height:0) // Toolkit already owns its vertical scroll surface.
         case .storage:return NSSize(width:1380,height:880)
-        case .content:return NSSize(width:1230,height:800)
+        case .content:return NSSize(width:1380,height:800)
         case .structure:return NSSize(width:1180,height:800)
-        case .review:return NSSize(width:1100,height:740)
+        case .review:return NSSize(width:1440,height:820)
         }
     }
 }
@@ -170,7 +170,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         w.makeKeyAndOrderFront(nil)
     }
     override func loadView() {
-        view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1480,height:960))
+        view=FriendlyCanvas(frame:NSRect(x:0,y:0,width:1480,height:960))
         func setup(_ b:NSButton,_ title:String,_ symbol:String?,_ action:Selector) {
             b.title=title;b.target=self;b.action=action;b.bezelStyle = .rounded
             if let symbol=symbol {b.image=NSImage(systemSymbolName:symbol,accessibilityDescription:title);b.imagePosition=title.isEmpty ? .imageOnly:.imageLeading}
@@ -179,6 +179,8 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         setup(forward,"","chevron.right",#selector(goForward));forward.toolTip="Forward (⌘])";forward.setAccessibilityLabel("Next page")
         setup(popout,"Open page in new window","rectangle.on.rectangle",#selector(openCurrent));popout.toolTip="Open an independent view of this page (⇧⌘N). Private decisions stay shared."
         pageControl.target=self;pageControl.action=#selector(changePage);pageControl.setAccessibilityLabel("Pages in this window. Command 0 through 4.")
+        pageControl.segmentStyle = .rounded;pageControl.controlSize = .large;pageControl.font=NSFont.systemFont(ofSize:13,weight:.medium)
+        for (i,symbol) in ["house","internaldrive","doc.text","folder","checkmark.circle"].enumerated() {pageControl.setImage(NSImage(systemSymbolName:symbol,accessibilityDescription:nil),forSegment:i);pageControl.setWidth(108,forSegment:i)}
         for page in KonMagicPage.allCases {pageControl.setToolTip(["Choose a workflow · ⌘0","Observe disk size and physical structure · ⌘1","Browse, filter and correct retained content · ⌘2","Edit virtual destinations and assign sources · ⌘3","Inspect exact paths before separate verification and approval · ⌘4"][page.rawValue],forSegment:page.rawValue)}
         let top=NSStackView(views:[back,forward,pageControl,NSView(),popout]);top.spacing=10;top.orientation = .horizontal
         if !primary {let b=NSButton(title:"Main window",target:self,action:#selector(showMain));b.bezelStyle = .rounded;top.addArrangedSubview(b)}
@@ -215,6 +217,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         _ = view
         if remember,let old=current,old.id != entry.id {history.append(old.id);history=Array(history.suffix(32));future=[]}
         if let old=current,old.id != entry.id,let viewer=old.controller as? SourcePreviewController {viewer.clearContents()}
+        if let old=current,old.id != entry.id,let explorer=old.controller as? CatalogueExplorerController {explorer.gallery.clear()}
         let first=presentations[ObjectIdentifier(entry.controller)]==nil
         current=entry
         let scroll:NSScrollView
@@ -256,9 +259,9 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         case .toolkit:heading="A little clarity, one decision at a time";hint="Observe → discover → shape → review. Your private draft stays with you across every page.";action=count>0 ? "Review draft (\(count))":"Find my content"
         case .storage:heading="Understand where your space goes";hint="Click to inspect, double-click to zoom. Continue into Content with this physical folder as your scope.";action="Browse this folder in Content"
         case .content:
-            heading=selected>0 ? "\(selected) observations selected":"Discover the context behind your files"
+            heading=selected>0 ? "\(selected) \(selected==1 ? "observation":"observations") selected":"Discover the context behind your files"
             let mode=workspace.explorer?.displayedView ?? 0
-            hint=selected>0 ? "Inspect the evidence and proposed placement on the right. Choose an explicit destination before adding these sources to your draft." : ["Double-click a folder to explore. Select real sources to inspect evidence, correct tags and preview placement.","Expand physical folders lazily; double-click to list their contents. Semantic filters apply to lists and maps.","Expand owner → project → family. Double-click a group to list real sources, then return with Back to tag tree.","Click a region to narrow the collection. Back to map restores your previous scope, query and visualization.","Click a group or connection to inspect its real sources. Back to map restores the previous intersection."][min(4,max(0,mode))]
+            hint=selected>0 ? "Inspect the evidence and proposed placement on the right. Choose an explicit destination before adding these sources to your draft." : ["Double-click a folder to explore. Select real sources to inspect evidence, correct tags and preview placement.","Expand physical folders lazily; double-click to list their contents. Semantic filters apply to lists and maps.","Expand owner → project → family. Double-click a group to list real sources, then return with Back to tag tree.","Click a region to narrow the collection. Back to map restores your previous scope, query and visualization.","Click a group or connection to inspect its real sources. Back to map restores the previous intersection.","Select cards to inspect their evidence. Load thumbnails explicitly; sources stay in place."][min(5,max(0,mode))]
             action=count>0 ? "Review draft (\(count))":"Shape destinations"
         case .structure:heading="Build a home for the things you know";hint="Choose a destination, then drop files or whole folders onto it. Every edit changes your virtual draft.";action=count>0 ? "Review exact paths (\(count))":"Discover sources"
         case .review:heading=workspace.busy ? "Verification or copying is underway":workspace.plan==nil ? "Know exactly where everything will go":"Your exact preview is verified";hint="Inspect each assignment and its full paths. Verification reads current hashes; copying still requires your separate approval.";action="Find more content"

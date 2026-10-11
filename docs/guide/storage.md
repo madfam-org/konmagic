@@ -29,7 +29,7 @@ Directories, links and zero-weight entries may have no visible area but remain i
 
 Hover inspects a tile; click locks selection; double-click zooms into a folder. Parent/focus controls and arrow navigation help return to context. Space requests Quick Look after a current-identity check. Protected or cloud-only sources remain held.
 
-**Customize view…** exposes files/packages/folders, twelve color schemes, six palettes, depth, binary/decimal units and volume context. A package remains a known collection boundary rather than an ordinary reorganization bucket.
+**Customize view…** exposes files/packages/folders, twelve color schemes, seven palettes, depth, binary/decimal units and volume context. A package remains a known collection boundary rather than an ordinary reorganization bucket.
 
 <figure markdown>
 ![Disk Lens expanded view options and retained metadata inspector](../assets/screenshots/light-storage-options.png)
@@ -48,3 +48,9 @@ A **mask** suppresses selected drawing while retaining its area. A **filtered vi
 Save/load complete scans, add notes to a separate snapshot, export the current map as PNG/TIFF, export complete selected TSV properties, compare scans, and inspect duplicate evidence. **Volume & snapshots…** observes bounded `diskutil` metadata, shared APFS space and reported snapshot names. It does not purge, mount or delete snapshots.
 
 See [comparison and duplicate evidence](evidence.md), the [GrandPerspective contract](../GrandPerspective-capabilities.md), and the [scan engine](../developer/scanning.md).
+
+## A calmer observation workspace
+
+The snapshot strip separates recorded entries, logical/allocated bytes, access exceptions, cloud entries and repeated hard links. The selection card presents the exact physical source, sizes and file count; complete technical metadata stays under **Metadata & Atlas evidence**.
+
+New private preferences default to the Pastel palette colored by Top folder. Existing saved choices are retained. Rounded tiles, branch outlines and clickable branch headings are presentation overlays; the hierarchy-preserving weight calculation is unchanged. A click locks selection; Escape resumes hover. Map selection and adjacent list remain equivalent ways to reach a source. Decorative spacing and headers do not represent additional disk weight.

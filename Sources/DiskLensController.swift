@@ -23,6 +23,12 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     var helpPopover:NSPopover?
     var viewOptions:NSStackView?
     var previewURL:URL?
+    let snapshotContext=FriendlyUI.label("No scan loaded",size:10,wrapping:true)
+    let snapshotMetrics=[FriendlyMetric(title:"Recorded entries",symbol:"folder",tint:FriendlyUI.teal),FriendlyMetric(title:"Logical bytes",symbol:"doc",tint:FriendlyUI.violet),FriendlyMetric(title:"Allocated bytes",symbol:"internaldrive",tint:FriendlyUI.teal),FriendlyMetric(title:"Access exceptions",symbol:"exclamationmark.triangle",tint:FriendlyUI.pink),FriendlyMetric(title:"Cloud entries",symbol:"cloud",tint:FriendlyUI.violet),FriendlyMetric(title:"Repeated hard links",symbol:"link",tint:FriendlyUI.orange)]
+    let selectionTitle=FriendlyUI.label("Choose a source",size:18,weight:.semibold,wrapping:true),selectionKind=FriendlyUI.label("Hover to inspect · Click to lock selection",size:10,wrapping:true),selectionPath=FriendlyUI.label("",size:10,wrapping:true)
+    let selectionMetrics=[FriendlyMetric(title:"Logical",symbol:"doc",tint:FriendlyUI.teal,compact:true),FriendlyMetric(title:"Allocated",symbol:"internaldrive",tint:FriendlyUI.violet,compact:true),FriendlyMetric(title:"Counted files",symbol:"number",tint:FriendlyUI.green,compact:true)]
+    let selectionState=FriendlyUI.label("Retained metadata; current identity is checked before preview.",size:10,wrapping:true)
+    var technicalDetail:NSScrollView?
     var directory:URL {workspace!.store.directory.appendingPathComponent("Disk Lens Scans")}
     init(workspace:KonMagicController) {self.workspace=workspace;preferences=LensPreferences.load(workspace.store.directory);scanExclusion=preferences.scanExclusion;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError("Use a workspace")}
@@ -31,7 +37,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     func row(_ views:[NSView])->NSStackView {let s=NSStackView(views:views);s.orientation = .horizontal;s.spacing=8;s.alignment = .centerY;return s}
     func column(_ views:[NSView])->NSStackView {let s=NSStackView(views:views);s.orientation = .vertical;s.spacing=10;s.alignment = .leading;return s}
     override func loadView() {
-        view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1480,height:930))
+        view=FriendlyCanvas(frame:NSRect(x:0,y:0,width:1480,height:930))
         measure.addItems(withTitles:LensMeasure.allCases.map(\.title));display.addItems(withTitles:LensDisplay.allCases.map(\.title));color.addItems(withTitles:LensColor.allCases.map(\.title));palette.addItems(withTitles:LensPalette.allCases.map {$0.rawValue.capitalized});depth.addItems(withTitles:["1","2","3","4","6","8","12","All (adaptive)"]);units.addItems(withTitles:["Binary units","Decimal units"])
         measure.selectItem(at:LensMeasure.allCases.firstIndex(of:preferences.measure)!);display.selectItem(at:LensDisplay.allCases.firstIndex(of:preferences.display)!);color.selectItem(at:LensColor.allCases.firstIndex(of:preferences.color)!);palette.selectItem(at:LensPalette.allCases.firstIndex(of:preferences.palette)!);depth.selectItem(withTitle:String(preferences.depth));units.selectItem(at:preferences.binaryUnits ? 0:1);volume.state=preferences.showVolume ? .on:.off
         for p in [measure,display,color,palette,depth,units] {p.target=self;p.action=#selector(settingsChanged)};volume.target=self;volume.action=#selector(settingsChanged)
@@ -46,41 +52,67 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
             [("Export map PNG / TIFF…",#selector(exportImage)),("Export complete scan text…",#selector(exportText))]]
         for group in groups {tools.menu?.addItem(.separator());for (title,action) in group {let item=NSMenuItem(title:title,action:action,keyEquivalent:"");item.target=self;tools.menu?.addItem(item)}}
         tools.setAccessibilityLabel("Additional disk analysis tools, filters, comparisons and exports")
-        let head=row([label("Disk Lens",size:13,weight:.semibold),NSView(),spinner,button("Stop",#selector(stop)),button("Tips",#selector(showTips(_:)))])
-        let scan=row([button("Scan current folder…",#selector(chooseScan)),button("Recorded machine",#selector(recordedMachine)),recent,button("Refresh",#selector(refresh)),button("Load scan…",#selector(loadScan)),NSView(),tools])
+        let mascot=NSImageView();mascot.image=FriendlyUI.artwork("storage-companion");mascot.imageScaling = .scaleProportionallyUpOrDown
+        mascot.widthAnchor.constraint(equalToConstant:72).isActive=true;mascot.heightAnchor.constraint(equalToConstant:78).isActive=true
+        let eyebrow=FriendlyUI.label("KONMAGIC  /  OBSERVE",size:10,weight:.semibold);eyebrow.textColor=FriendlyUI.muted
+        let headingWords=column([eyebrow,row([FriendlyUI.label("Storage",size:32,weight:.bold),FriendlyUI.label("DISK LENS",size:10,weight:.semibold)]),FriendlyUI.label("Explore your disk. Your originals stay right where they are.",size:12)])
+        let guidance=FriendlyUI.label("Curiosity first. Decisions are yours.",size:11);guidance.textColor=FriendlyUI.teal
+        let head=row([mascot,headingWords,NSView(),guidance,FriendlyUI.button("Storage guide",symbol:"book",target:self,action:#selector(storageGuide)),FriendlyUI.button("Explore content",symbol:"arrow.right",tint:FriendlyUI.teal,target:self,action:#selector(showCatalogue))])
+        let scan=row([FriendlyUI.button("Scan current folder…",symbol:"viewfinder",tint:FriendlyUI.teal,target:self,action:#selector(chooseScan)),FriendlyUI.button("Import recorded machine",symbol:"desktopcomputer",target:self,action:#selector(recordedMachine)),recent,FriendlyUI.button("Refresh",symbol:"arrow.clockwise",target:self,action:#selector(refresh)),FriendlyUI.button("Load saved scan…",symbol:"square.and.arrow.down",target:self,action:#selector(loadScan)),NSView(),spinner,button("Stop",#selector(stop)),tools])
         let settings=row([display,label("Color by"),color,palette,label("Detail"),depth,units,volume]);viewOptions=settings;settings.isHidden=true
-        let controls=row([button("↑ Parent",#selector(goParent)),button("Zoom selection",#selector(zoomSelection)),label("Size measure"),measure,NSView(),button("Customize view…",#selector(toggleViewOptions))])
+        let controls=row([button("↑ Parent",#selector(goParent)),location,NSView(),button("Zoom selection",#selector(zoomSelection))])
+        let mapHeader=row([FriendlyUI.image("rectangle.split.2x2",tint:FriendlyUI.teal),FriendlyUI.label("Your disk, in perspective",size:16,weight:.semibold),NSView(),measure,button("Customize view…",#selector(toggleViewOptions))])
         measure.toolTip="Logical file data, allocated blocks or unique counted files. None is a prediction of reclaimable APFS space."
         summary.toolTip="This scan is a point-in-time observation; gaps and retained source limits remain explicit."
-        summary.font=NSFont.systemFont(ofSize:11);summary.textColor = .secondaryLabelColor;legend.font=NSFont.systemFont(ofSize:11);legend.textColor = .secondaryLabelColor;location.font=NSFont.systemFont(ofSize:11);location.lineBreakMode = .byTruncatingMiddle
-        canvas.translatesAutoresizingMaskIntoConstraints=false;canvas.heightAnchor.constraint(greaterThanOrEqualToConstant:450).isActive=true
+        summary.font=NSFont.systemFont(ofSize:11);summary.textColor=FriendlyUI.muted;legend.font=NSFont.systemFont(ofSize:10);legend.textColor=FriendlyUI.muted;location.font=NSFont.systemFont(ofSize:11);location.lineBreakMode = .byTruncatingMiddle
+        location.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
+        snapshotContext.textColor=FriendlyUI.muted
+        let snapshotName=column([FriendlyUI.label("Retained snapshot · Not live",size:12,weight:.semibold),snapshotContext]);snapshotName.widthAnchor.constraint(equalToConstant:205).isActive=true
+        let metricRow=row(snapshotMetrics);metricRow.distribution = .fillEqually
+        let snapshotBar=FriendlyUI.panel(row([snapshotName,metricRow]),tint:FriendlyUI.teal,padding:16)
+        canvas.translatesAutoresizingMaskIntoConstraints=false;canvas.heightAnchor.constraint(greaterThanOrEqualToConstant:350).isActive=true
         canvas.selection={[weak self] tile in guard !tile.virtual else {self?.status.stringValue=tile.label+" · aggregate only";return};self?.select(tile.node)}
         canvas.zoom={[weak self] tile in if !tile.virtual {self?.navigate(tile.node.directory ? tile.node.id:tile.node.parent)}}
         canvas.focus={[weak self] direction in if direction>0 {self?.focusUp()} else {self?.focusDown()}}
-        canvas.preview={[weak self] in self?.showQuickLook()}
-        canvas.zoomOut={[weak self] in self?.goParent()}
-        search.placeholderString="Search file names across this scan";search.delegate=self
-        table.delegate=self;table.dataSource=self;table.rowHeight=29;table.usesAlternatingRowBackgroundColors=true;table.target=self;table.doubleAction=#selector(openRow)
-        for (id,title,width) in [("name","Observed sources",195.0),("size","Size",105.0)] {let c=NSTableColumn(identifier:NSUserInterfaceItemIdentifier(id));c.title=title;c.width=width;table.addTableColumn(c)}
-        let list=NSScrollView();list.documentView=table;list.hasVerticalScroller=true;list.heightAnchor.constraint(equalToConstant:185).isActive=true
+        canvas.preview={[weak self] in self?.showQuickLook()};canvas.zoomOut={[weak self] in self?.goParent()}
+        search.placeholderString="Search names across this scan";search.delegate=self
+        table.delegate=self;table.dataSource=self;table.rowHeight=32;table.usesAlternatingRowBackgroundColors=false;table.backgroundColor=FriendlyUI.surface;table.target=self;table.doubleAction=#selector(openRow)
+        for (id,title,width) in [("name","Sources in this scan",200.0),("size","Size",84.0)] {let c=NSTableColumn(identifier:NSUserInterfaceItemIdentifier(id));c.title=title;c.width=width;table.addTableColumn(c)}
+        let list=NSScrollView();list.documentView=table;list.hasVerticalScroller=true;list.heightAnchor.constraint(equalToConstant:150).isActive=true;list.drawsBackground=false
         pagePrevious.title="Previous 200";pagePrevious.target=self;pagePrevious.action=#selector(previousRows);pagePrevious.bezelStyle = .rounded
         pageNext.title="Next 200";pageNext.target=self;pageNext.action=#selector(nextRows);pageNext.bezelStyle = .rounded
-        inspector.isEditable=false;inspector.isSelectable=true;inspector.font=NSFont.monospacedSystemFont(ofSize:11,weight:.regular);inspector.textContainerInset=NSSize(width:10,height:10);inspector.textContainer?.widthTracksTextView=true;inspector.autoresizingMask = [.width]
-        inspector.string="Hover to inspect. Click locks selection; double-click zooms. Arrow keys navigate; Space opens Quick Look after checking current metadata.\n\nMasks retain area. Filtered views and scans are separate private snapshots. Missing dates are labelled Unknown.\n\nAllocated totals do not predict reclaimable APFS space. Cloud placeholders are counted from metadata without downloading."
-        let detail=NSScrollView();detail.documentView=inspector;detail.hasVerticalScroller=true;detail.heightAnchor.constraint(greaterThanOrEqualToConstant:210).isActive=true
-        sourceActionButtons=[button("Open",#selector(openSelected)),button("Quick Look",#selector(showQuickLook)),button("Reveal",#selector(reveal))]
-        let actions=row(sourceActionButtons)
-        assignSourceButton.title="Assign source to draft";assignSourceButton.target=self;assignSourceButton.action=#selector(assign);assignSourceButton.bezelStyle = .rounded;assignSourceButton.isEnabled=false
+        inspector.isEditable=false;inspector.isSelectable=true;inspector.font=NSFont.monospacedSystemFont(ofSize:10,weight:.regular);inspector.textColor=FriendlyUI.text;inspector.backgroundColor=FriendlyUI.surface;inspector.textContainerInset=NSSize(width:8,height:8);inspector.textContainer?.widthTracksTextView=true;inspector.autoresizingMask = [.width]
+        inspector.string="Select a source to inspect its complete retained metadata and Atlas evidence."
+        let detail=NSScrollView();detail.documentView=inspector;detail.hasVerticalScroller=true;detail.heightAnchor.constraint(equalToConstant:180).isActive=true;detail.isHidden=true;technicalDetail=detail
+        sourceActionButtons=[FriendlyUI.button("Open",symbol:"folder",target:self,action:#selector(openSelected)),FriendlyUI.button("Quick Look",symbol:"eye",target:self,action:#selector(showQuickLook)),FriendlyUI.button("Reveal",symbol:"arrow.right",target:self,action:#selector(reveal))]
+        let actions=row(sourceActionButtons);actions.distribution = .fillEqually
+        assignSourceButton.title="Assign source to draft";assignSourceButton.target=self;assignSourceButton.action=#selector(assign);assignSourceButton.bezelStyle = .rounded;assignSourceButton.bezelColor=FriendlyUI.teal;assignSourceButton.controlSize = .large;assignSourceButton.isEnabled=false
         destination.target=self;destination.action=#selector(destinationChanged)
         for b in sourceActionButtons {b.isEnabled=false}
-        let right=column([search,list,row([pagePrevious,pageNext]),detail,actions,destination,assignSourceButton,button("Review cleanup in Finder",#selector(reviewCleanup)),button("Scan notes…",#selector(notes)),button("File & folder viewer…",#selector(richPreview))]);right.widthAnchor.constraint(equalToConstant:340).isActive=true
-        for v in [search,list,detail,destination] {v.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true}
-        let center=column([location,canvas,legend]);let content=row([center,right]);content.alignment = .top
-        canvas.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true;center.widthAnchor.constraint(equalTo:content.widthAnchor,constant:-348).isActive=true
-        center.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true;right.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true
-        let outer=column([head,scan,controls,settings,summary,content,status]);outer.detachesHiddenViews=true;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
-        NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:18),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-18),outer.topAnchor.constraint(equalTo:view.topAnchor,constant:18),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor,constant:-18)])
-        for v in [head,scan,controls,settings,summary,content,status] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
+        selectionPath.font=NSFont.monospacedSystemFont(ofSize:10,weight:.regular);selectionPath.isSelectable=true;selectionPath.maximumNumberOfLines=4;selectionKind.textColor=FriendlyUI.muted;selectionState.textColor=FriendlyUI.muted
+        for m in selectionMetrics {m.value.font=NSFont.systemFont(ofSize:13,weight:.semibold)}
+        let selectedNumbers=row(selectionMetrics);selectedNumbers.distribution = .fillEqually
+        let selectedHeader=row([FriendlyUI.image("folder",tint:FriendlyUI.teal,size:28),column([selectionTitle,selectionKind])])
+        let selectionPanel=FriendlyUI.panel(column([selectedHeader,selectionPath,selectedNumbers,selectionState]),tint:FriendlyUI.teal,padding:12)
+        let selectionContent=selectionPanel.subviews[0] as! NSStackView
+        for v in [selectedHeader,selectionPath,selectedNumbers,selectionState] {v.widthAnchor.constraint(equalTo:selectionContent.widthAnchor).isActive=true}
+        let destinationHelp=FriendlyUI.label("Keeps the folder hierarchy. Adds a draft decision; no copy happens here.",size:10,wrapping:true);destinationHelp.textColor=FriendlyUI.muted
+        let right=column([search,list,row([pagePrevious,NSView(),pageNext]),selectionPanel,actions,FriendlyUI.label("Chosen destination · Virtual draft",size:11,weight:.semibold),destination,assignSourceButton,destinationHelp,button("Inspect source in viewer…",#selector(richPreview)),button("Metadata & Atlas evidence",#selector(toggleMetadata)),detail,button("Scan notes…",#selector(notes)),button("Cleanup handoff to Finder",#selector(reviewCleanup))]);right.detachesHiddenViews=true
+        for v in right.arrangedSubviews {v.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true}
+        let rightScroll=NSScrollView();rightScroll.hasVerticalScroller=true;rightScroll.autohidesScrollers=true;rightScroll.drawsBackground=false
+        let rightDocument=FriendlyDocument();rightScroll.documentView=rightDocument;rightDocument.translatesAutoresizingMaskIntoConstraints=false;right.translatesAutoresizingMaskIntoConstraints=false;rightDocument.addSubview(right)
+        NSLayoutConstraint.activate([rightDocument.widthAnchor.constraint(equalTo:rightScroll.contentView.widthAnchor),right.leadingAnchor.constraint(equalTo:rightDocument.leadingAnchor),right.trailingAnchor.constraint(equalTo:rightDocument.trailingAnchor),right.topAnchor.constraint(equalTo:rightDocument.topAnchor),right.bottomAnchor.constraint(equalTo:rightDocument.bottomAnchor)])
+        let rightPanel=FriendlyUI.panel(rightScroll,padding:14);rightPanel.widthAnchor.constraint(equalToConstant:350).isActive=true
+        let hint=FriendlyUI.panel(column([FriendlyUI.label("Big blocks are clues — not cleanup advice.",size:11,weight:.semibold),FriendlyUI.label("Hover to inspect · Click to lock · Double-click a folder to explore · Space to preview",size:10)]),tint:FriendlyUI.teal,padding:12)
+        let center=column([mapHeader,controls,settings,canvas,legend,hint]);center.detachesHiddenViews=true
+        for v in center.arrangedSubviews {v.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true}
+        let mapPanel=FriendlyUI.panel(center,padding:16)
+        let content=row([mapPanel,rightPanel]);content.alignment = .top;content.spacing=18
+        mapPanel.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true;rightPanel.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true
+        status.font=NSFont.systemFont(ofSize:10);status.textColor=FriendlyUI.muted;status.maximumNumberOfLines=2
+        let outer=column([head,scan,snapshotBar,content,status]);outer.spacing=16;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
+        NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:24),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-24),outer.topAnchor.constraint(equalTo:view.topAnchor,constant:20),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor,constant:-16)])
+        for v in [head,scan,snapshotBar,content,status] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
         refreshDestinations()
     }
     func refreshDestinations() {guard isViewLoaded,let w=workspace?.store.value else{return};let previous=workspace?.focusedDestinationID ?? destination.selectedItem?.representedObject as? String;destination.removeAllItems();destination.addItem(withTitle:"Choose a draft destination…");for n in w.nodes {if let path=try? w.path(n.id) {destination.addItem(withTitle:path);destination.lastItem?.representedObject=n.id}};if let previous=previous,let item=destination.itemArray.first(where:{$0.representedObject as? String==previous}) {destination.select(item)}}
@@ -115,6 +147,9 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
             preferences.recent.removeAll {$0==store.url.path};preferences.recent.insert(store.url.path,at:0);preferences.recent=Array(preferences.recent.prefix(12));try preferences.save(workspace!.store.directory)
             recent.removeAllItems();recent.addItem(withTitle:"Recent scans…");recent.addItems(withTitles:preferences.recent)
             summary.stringValue="\(info.source) · \(info.status) · \(info.entries) records · \(info.totals.count) unique counted files · \(amount(info.totals.bytes)) logical / \(amount(info.totals.allocated)) allocated · \(info.issues) coverage exceptions · \(info.cloud) cloud entries · \(info.duplicates) repeated hard-link entries. Counts describe this snapshot; allocated bytes are not guaranteed reclaimable space."
+            updateSnapshotPresentation()
+            selectionTitle.stringValue="Choose a source";selectionPath.stringValue="";selectionKind.stringValue="Hover to inspect · Click to lock selection"
+            for metric in selectionMetrics {metric.value.stringValue="—"}
             render();loadRows();status.stringValue="Retained scan loaded. No original file moved, deleted or opened."
         } catch {status.stringValue=error.localizedDescription}
     }
@@ -125,6 +160,26 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     @objc func settingsChanged() {
         preferences.measure=LensMeasure.allCases[measure.indexOfSelectedItem];preferences.display=LensDisplay.allCases[display.indexOfSelectedItem];preferences.color=LensColor.allCases[color.indexOfSelectedItem];preferences.palette=LensPalette.allCases[palette.indexOfSelectedItem];preferences.depth=[1,2,3,4,6,8,12,999][max(0,depth.indexOfSelectedItem)];preferences.binaryUnits=units.indexOfSelectedItem==0;preferences.showVolume=volume.state == .on
         try? preferences.save(workspace!.store.directory);render();table.reloadData()
+        updateSnapshotPresentation();if let selected=selected {updateSelectionPresentation(selected)}
+    }
+    func updateSnapshotPresentation() {
+        guard let info=info else{return}
+        let n:(Int64)->String={NumberFormatter.localizedString(from:NSNumber(value:$0),number:.decimal)}
+        let values=[n(info.entries),amount(info.totals.bytes),amount(info.totals.allocated),n(info.issues),n(info.cloud),n(info.duplicates)]
+        for (metric,value) in zip(snapshotMetrics,values) {metric.value.stringValue=value}
+        let date=DateFormatter();date.dateStyle = .medium;date.timeStyle = .short
+        snapshotContext.stringValue=info.source+" · "+info.status+"\n"+date.string(from:info.finished ?? info.started)
+        snapshotContext.toolTip=summary.stringValue
+    }
+    func updateSelectionPresentation(_ node:LensNode) {
+        guard let store=store,let info=info else{return}
+        selectionTitle.stringValue=node.name.isEmpty ? info.root:node.name
+        selectionKind.stringValue=node.directory ? "Physical folder"+(node.package ? " · Package":""):node.kindName.capitalized
+        selectionPath.stringValue=store.path(node,info)
+        let values=[amount(node.directory ? node.total.bytes:node.bytes),amount(node.directory ? node.total.allocated:node.allocated),NumberFormatter.localizedString(from:NSNumber(value:node.total.count),number:.decimal)]
+        for (metric,value) in zip(selectionMetrics,values) {metric.value.stringValue=value}
+        selectionState.stringValue=node.cloud ? "Cloud placeholder · Content requests held":!node.error.isEmpty ? "Coverage exception · "+node.error:"Retained metadata · Current identity checked before preview"
+        assignSourceButton.title=node.directory ? "Assign folder as bucket":"Assign file as drop"
     }
     func render() {
         guard let store=store,let info=info,let focus=focusNode else{return};generation+=1;let ticket=generation;mapCancellation.cancel();mapCancellation=CatalogueCancellation();let cancel=mapCancellation,p=preferences,mask=self.mask
@@ -167,6 +222,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     @objc func openRow() {let i=table.clickedRow;guard i>=0,i<rows.count else{return};if rows[i].directory {navigate(rows[i].id)} else {select(rows[i])}}
     func select(_ node:LensNode) {
         guard let store=store,let info=info else{return};selected=node;updateSourceControls();canvas.selectedRelative=node.relative;canvas.selectedDirectory=node.directory;canvas.needsDisplay=true;let path=store.path(node,info)
+        canvas.selected=node.id;updateSelectionPresentation(node)
         func date(_ value:Int64)->String {value>0 ? ISO8601DateFormatter().string(from:Date(timeIntervalSince1970:Double(value))) : "Unknown in this observation"}
         inspector.string="RETAINED METADATA\n\(path)\n\n\(node.kindName) · package: \(node.package)\nLogical: \(amount(node.bytes))\nAllocated: \(amount(node.allocated))\nSubtree: \(node.total.count) counted files\nCreated: \(date(node.created))\nModified: \(date(node.modified))\nAccessed: \(date(node.accessed))\nLinks: \(node.links==0 ? "Unknown":String(node.links)) · repeated: \(node.duplicate)\nCloud placeholder: \(node.cloud)\nColor category: \(canvas.value(LensTile(node:node,frame:.zero,label:node.name,path:path)))\n\n\(node.error)\n\nSnapshot: \(info.status). Current identity is checked before opening/previewing. A scan does not verify byte contents."
         if let w=workspace?.store.value,let a=w.assignments.first(where:{$0.source==path}) {inspector.string+="\n\nDRAFT PREVIEW\n"+path+"\n→ "+((try? w.destination(a)) ?? "Invalid destination")}
@@ -178,6 +234,14 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     }
     @objc func destinationChanged() {workspace?.focusedDestinationID=destination.selectedItem?.representedObject as? String;updateSourceControls()}
     @objc func updateSourceControls() {
+        if selected==nil {
+            canvas.selected=0;canvas.selectedRelative=nil;canvas.selectedDirectory=false;canvas.needsDisplay=true
+            selectionTitle.stringValue="Choose a source";selectionKind.stringValue="Hover to inspect · Click to lock selection";selectionPath.stringValue=""
+            selectionState.stringValue="Retained metadata; current identity is checked before preview."
+            for metric in selectionMetrics {metric.value.stringValue="—"}
+            assignSourceButton.title="Assign source to draft"
+            inspector.string="Select a source in this folder to inspect its retained metadata and exact path."
+        }
         let real=selected.map {$0.kind==0 || $0.directory} ?? false
         let preview=real && selected?.cloud != true && selected.map {!SafeFS.guardedName($0.name)}==true
         for (i,b) in sourceActionButtons.enumerated() {b.isEnabled=i==2 ? selected != nil : preview}
@@ -199,6 +263,8 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
     @objc func assign() {guard let w=workspace,!w.busy,let store=store,let info=info,let selected=selected,let id=destination.selectedItem?.representedObject as? String else{return};do {let path=store.path(selected,info);try w.store.change {try $0.assign([path],to:id)};w.plan=nil;w.focusedDestinationID=id;w.refreshDraft();select(selected);status.stringValue="Source assigned to your chosen draft destination. Exact paths are visible. No filesystem action ran.";w.status.stringValue=status.stringValue;w.presentAssignments([path])} catch {status.stringValue=error.localizedDescription}}
     @objc func reviewCleanup() {guard let store=store,let info=info,let selected=selected else{return};let path=store.path(selected,info);let a=NSAlert();a.messageText="Review this source in Finder";a.informativeText=path+"\n\nThis selects the real source in Finder for your review. KonMagic retains its read-only source policy. A filtered rectangle does not represent every file in a folder; hidden and newly created files may exist. No item is moved to Trash.";a.addButton(withTitle:"Reveal for review");a.addButton(withTitle:"Cancel");if a.runModal() == .alertFirstButtonReturn {reveal()}}
     @objc func returnToToolkit() {workspace?.showToolkit()}
+    @objc func storageGuide() {KonMagicDocumentation.open("guide/storage/")}
+    @objc func toggleMetadata() {technicalDetail?.isHidden.toggle()}
     @objc func toggleViewOptions() {viewOptions?.isHidden.toggle()}
     func validateUserInterfaceItem(_ item:NSValidatedUserInterfaceItem)->Bool {
         if item.action==#selector(showVolumeContext) {return !busy}

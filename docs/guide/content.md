@@ -46,3 +46,16 @@ Recorded disk reads compressed directory blocks and aliases from the ledger. Bro
 </figure>
 
 To place a real source, choose an explicit destination, inspect its full proposed path, and assign. The app carries the exact choice into Review. Edit destinations returns to Structure with the selected destination highlighted, while Back retains the discovery context.
+
+## Gallery and focused inspector
+
+<figure markdown>
+![Native Content gallery with explicitly requested synthetic thumbnails and exact source selection](../assets/screenshots/light-content-gallery-thumbnails.png)
+<figcaption>Thumbnails appear only after a request. Selection retains the exact source, tags and proposed destination.</figcaption>
+</figure>
+
+**Gallery** shows up to 200 exact observations as selectable cards with system icons, retained sizes, and owner/family context. Checkboxes support multiple selections; selecting a card updates the same source authority as List. Physical folders stay buckets. Semantic maps keep hidden source selections disabled.
+
+**Load 24 thumbnails** explicitly requests eligible current source contents through macOS providers. It handles at most three requests concurrently, holds protected/cloud/linked sources and files over 128 MiB, and times out each request after 15 seconds. Images stay in memory. Changing the page/scope, leaving Content, or **Clear images** cancels requests and releases representations. Unsupported files keep icons.
+
+The right inspector summarizes the exact retained source and supported thumbnail. **Details & retained evidence** expands the technical observation; **View file / folder…** opens the full native viewer. Camera, GPS, similarity and duplicate proof are not inferred from a filename or illustrative mock.

@@ -16,3 +16,4 @@ __pycache__/
 # Reviewed synthetic documentation assets only; private QA remains ignored.
 !docs/assets/screenshots/*.png
 !docs/assets/screenshots/manifest.json
+!Resources/Artwork/*.png

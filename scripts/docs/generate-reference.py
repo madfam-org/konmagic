@@ -11,7 +11,9 @@ modules = {
 'Filesystem': 'Descriptor identity, eligibility, no-follow traversal, full hashing, copy plans and durable publication.',
 'Navigation': 'Five-page cached hosts, viewport/history, shared decisions, active routing and additional windows.',
 'ToolkitUI': 'Four-stage overview, private coverage summary and public documentation entry.',
-'ReorganizationReviewUI': 'Exact path review, assignment search, verified child paging and complete manifest export.',
+'FriendlyUI': 'Appearance-aware native surfaces, primary-action buttons, illustrated headers and vector task icons.',
+'ContentGallery': 'Exact-source selection cards and explicit bounded, cancellable in-memory thumbnails.',
+'ReorganizationReviewUI': 'Exact path review, assignment search, paged manifest/evidence, verification/history and separate copy approval.',
 'Catalog': 'Live bounded source metadata and compatible tagged observation adapter.',
 'CatalogueDatabase': 'Read-only SQLite, compression, query slices, partitions, FTS and tag overlay queries.',
 'DiskCatalogue': 'Compressed whole-disk ledger, aliases, exceptions and stamped aggregate caches.',
@@ -65,7 +67,7 @@ if manifest.exists():
  data=json.loads(manifest.read_text());images=data['images']
  gallery=['# Screenshot atlas','', f"**{len(images)} native screenshots · KonMagic {data['app_version']} · entirely invented fixture data.**", '', 'All images depict real AppKit views. Example sources, tags and readings are synthetic. No ordinary local QA image or personal catalogue is included. Enlarge images with the image button; Escape closes the viewer. See [testing/capture workflow](../developer/testing.md) and [documentation maintenance](../developer/documentation.md).', '']
  for item in images:
-  gallery += [f"## {item['title']} · {item['appearance']}", '', f'<figure markdown>\n![{item["alt"]}](../assets/screenshots/{item["file"]}){{ loading=lazy decoding=async width="{item["width"]}" height="{item["height"]}" }}\n<figcaption>{item["caption"]}</figcaption>\n</figure>', '', f"Capture: `{item['scenario']}` · Origin: `{item['fixture']}` · SHA-256: `{item['sha256']}`", '']
+  gallery += [f"## {item['title']} · {item['appearance']}", '', f'<figure markdown>\n![{item["alt"]}](../assets/screenshots/{item["file"]}){{ loading=lazy decoding=async width="{item["width"]}" height="{item["height"]}" }}\n<figcaption>{item["caption"]}</figcaption>\n</figure>', '', f"Capture: `{item['scenario']}` · Version: `{item.get('app_version',data['app_version'])}` · Origin: `{item['fixture']}` · SHA-256: `{item['sha256']}`", '']
  (DOCS/'reference/screenshots.md').write_text('\n'.join(gallery).rstrip()+'\n')
 welcome=['# The eight-page native welcome guide','', 'The local Welcome guide introduces the Toolkit, manual ownership, drops/buckets, semantic decisions, retained Content/Storage evidence, preview and separately approved copying. These captures show its actual native pages against the invented fixture.', '']
 for i in range(1,9):

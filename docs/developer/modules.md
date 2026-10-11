@@ -10,6 +10,7 @@ This inventory follows the current source tree. Links point to public generic im
 | [CatalogueExplorer.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift) | Dataset/query/facet/list/tree/map controls, evidence and exact destination handoff. |
 | [CatalogueTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [CatalogueVisuals.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueVisuals.swift) | Content treemap and bounded semantic relationship drawing. |
+| [ContentGallery.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift) | Exact-source selection cards and explicit bounded, cancellable in-memory thumbnails. |
 | [ContextHelp.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift) | Native contextual explanations and popover guidance. |
 | [DiskCatalogue.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskCatalogue.swift) | Compressed whole-disk ledger, aliases, exceptions and stamped aggregate caches. |
 | [DiskLensController.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskLensController.swift) | Storage controls, selection/current checks, observation work and destination handoff. |
@@ -25,6 +26,7 @@ This inventory follows the current source tree. Links point to public generic im
 | [DocumentationCapture.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DocumentationCapture.swift) | Restricted generated fixture validation and owned synthetic window screenshot workflow. |
 | [DuplicateReview.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DuplicateReview.swift) | Size candidates, bounded explicit complete-hash proof and no-delete evidence UI. |
 | [Filesystem.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Filesystem.swift) | Descriptor identity, eligibility, no-follow traversal, full hashing, copy plans and durable publication. |
+| [FriendlyUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift) | Appearance-aware native surfaces, primary-action buttons, illustrated headers and vector task icons. |
 | [InspectorTypography.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/InspectorTypography.swift) | Native path/evidence text and dialog layout helpers. |
 | [JourneyTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneyTestsUI.swift) | Synthetic verification and native UI acceptance checks. |
 | [Knowledge.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Knowledge.swift) | Exact-path human corrections, saved collections/rules, naming and draft proposal semantics. |
@@ -34,7 +36,7 @@ This inventory follows the current source tree. Links point to public generic im
 | [Model.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Model.swift) | Validated virtual nodes, exact assignments, workspace persistence and session draft undo. |
 | [Navigation.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Navigation.swift) | Five-page cached hosts, viewport/history, shared decisions, active routing and additional windows. |
 | [NavigationTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/NavigationTestsUI.swift) | Synthetic verification and native UI acceptance checks. |
-| [ReorganizationReviewUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ReorganizationReviewUI.swift) | Exact path review, assignment search, verified child paging and complete manifest export. |
+| [ReorganizationReviewUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ReorganizationReviewUI.swift) | Exact path review, assignment search, paged manifest/evidence, verification/history and separate copy approval. |
 | [ReviewTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift) | Synthetic verification and native UI acceptance checks. |
 | [ScanComparisonUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ScanComparisonUI.swift) | Paged complete metadata comparison and full text export. |
 | [SourcePreview.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/SourcePreview.swift) | Embedded native file Quick Look, paged folder list/gallery, explicit bounded thumbnails and metadata-only tree/map handoff. |

@@ -49,3 +49,7 @@ Edges count matching retained observations, not causal relationships or verified
 | What exactly will be copied? | Review inventory |
 
 See [native UI design](../developer/ui.md) and [query conservation](../developer/performance.md).
+
+## Gallery
+
+The sixth Content visualization presents exact observations as cards. System icons require no thumbnail request; **Load 24 thumbnails** is an explicit bounded content action. Selection shares the same authority as List. Full current-source inspection remains available in the [native viewer](previews.md).

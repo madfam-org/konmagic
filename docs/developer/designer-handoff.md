@@ -1,6 +1,6 @@
 # Designer handoff: a friendly, expressive KonMagic
 
-This brief describes KonMagic 0.4.2's implemented native macOS interface and the design work we want next. Proposed styling is identified as a recommendation. The [screenshot atlas](../reference/screenshots.md) shows actual AppKit screens in light and dark appearances, entirely with invented data.
+This brief describes KonMagic 0.5.0's implemented native macOS interface and the design work we want next. Proposed styling is identified as a recommendation. The [screenshot atlas](../reference/screenshots.md) shows actual AppKit screens in light and dark appearances, entirely with invented data.
 
 ## Product personality and journey
 
@@ -26,7 +26,7 @@ Secondary windows own separate browsing controllers while sharing one draft and 
 
 **Design direction:** give the shell an unmistakable home identity and current location. Consider compact stage icons, a gently colored active destination and breadcrumbs for detail pages. Keep Back distinct from ascending a physical folder. Main navigation should allow exploration in any order rather than looking like a mandatory checkout sequence.
 
-Current designed page widths range from roughly 1,050 to 1,380 points, with scrolling at smaller window sizes. Propose explicit compact and wide arrangements rather than scaling everything down. Specify hover, focus, selected, disabled, loading and reduced-motion states. Playful transitions should explain location without delaying access to files.
+Current designed page widths range from roughly 1,050 to 1,440 points, with scrolling at smaller window sizes. Propose explicit compact and wide arrangements rather than scaling everything down. Specify hover, focus, selected, disabled, loading and reduced-motion states. Playful transitions should explain location without delaying access to files.
 
 ## 1. Toolkit: the welcoming task hub
 
@@ -36,7 +36,7 @@ Current designed page widths range from roughly 1,050 to 1,380 points, with scro
 
 Toolkit answers “What can I do here?” before presenting dense controls. It combines a grounded coverage summary with task cards and a suggestion based on the draft. It should feel like a thoughtful workbench, not a technical dashboard requiring interpretation.
 
-The header contains KonMagic, its emotional promise, **Documentation**, **Welcome guide** and **Refresh overview**. A small privacy/original-retention statement follows. Coverage reports tagged observations, retained full/partial readings, recorded disk entries, exceptions and observation date. These evidence sets overlap; adding them into a fabricated “total files understood” would be misleading.
+The header contains KonMagic, its emotional promise, **Documentation**, **Welcome guide** and **Refresh overview**. A small privacy/original-retention statement follows. A left-hand glance card reports tagged observations, separate full/partial readings, recorded disk entries, exceptions and observation date. The illustrated hero keeps all headings and controls native. These evidence sets overlap; adding them into a fabricated “total files understood” would be misleading.
 
 Four cards form a two-by-two grid:
 
@@ -45,7 +45,7 @@ Four cards form a two-by-two grid:
 - **Design your organization / Shape:** virtual destinations and manually assigned drops/buckets; opens Structure.
 - **Preview every destination / Review:** exact paths, collisions and verification before copy approval; opens Review.
 
-Each card has a numbered stage, SF Symbol, title, short explanation and one action. Current accents are teal, indigo, orange and green; rounded corners are 16 points, internal padding about 22 points, and minimum height about 215 points. The footer shows **Your next step**, counts of destinations/assignments/corrections/collections and shortcut reminders.
+Each card has a numbered stage, SF Symbol, title, short explanation and one action. Current accents are teal, violet, orange and green; cards use rounded pastel surfaces, code-native smiling illustrations, and a minimum height of 200 points. A pink recommendation banner shows **Your next step**, counts of destinations/assignments/corrections/collections and shortcut reminders.
 
 ### States and redesign opportunities
 
@@ -65,7 +65,7 @@ Top rows contain current-folder scan, recorded-machine import, recent scans, ref
 
 A coverage summary describes the snapshot source, status, entries, logical/allocated totals, exceptions, cloud entries and repeated hard links. The map legend explains area, color, zero-area entries and compact groups. Small branches can be grouped for legibility while complete scan search/export remains available.
 
-The right column, currently about 340 points, contains scan-wide name search, a paged source list, selectable metadata, Open/Quick Look/Reveal, destination choice, assignment, cleanup handoff to Finder, notes and the rich viewer. Keep the map visually dominant while preserving readable details.
+The independently scrollable right column contains scan-wide name search, a paged source list, selectable metadata, Open/Quick Look/Reveal, destination choice, assignment, cleanup handoff to Finder, notes and the rich viewer. Keep the map visually dominant while preserving readable details.
 
 ### Interactions and evidence
 
@@ -89,7 +89,7 @@ Use calm palettes, precise hover cards, strong selection outlines and beginner-f
 
 Content connects files with meaning: owner, project, family/type, role and lifecycle. It helps users recognize collections, inspect retained evidence, correct classification, save a view and propose placement.
 
-The header chooses **Content & tags**, **Recorded disk** or **Access exceptions** and explains coverage. The query row has familiar places, search, search mode, Clear filters, Refresh, Collections and Rules. Search matches names/paths/tags or already indexed content; it does not ingest original bodies on demand.
+The illustrated header chooses **Content & tags**, **Recorded disk** or **Access exceptions** and explains coverage. The left sidebar includes familiar places, content-family shortcuts with retained counts, and complete facet groups. The query row has familiar places, search, search mode, Clear filters, Refresh, Collections and Rules. Search matches names/paths/tags or already indexed content; it does not ingest original bodies on demand.
 
 Three columns divide the work:
 
@@ -97,10 +97,11 @@ Three columns divide the work:
 - **Center, flexible:** visualization switch, measure, filter context/chips, path/Parent, results, paging and status.
 - **Right, about 340 points:** evidence inspector, retained excerpt, current source viewer, tag correction, Finder reveal, chosen draft destination, proposed placement and assignment.
 
-### Five visualizations
+### Six visualizations
 
 | Mode | Meaning | Required design distinction |
 |---|---|---|
+| Gallery | Exact observations as selectable cards; thumbnails only on explicit request | Selecting shares source authority with List |
 | List | Exact observations, tags, reading status and size | Scannable rows with full paths accessible |
 | Folder tree | Recorded physical parent-child relationships | Physical folders are real sources |
 | Tag tree | Semantic facet intersections | Group nodes filter; they are not physical source folders |
@@ -159,7 +160,7 @@ This is the strongest setting for an organizing-workshop aesthetic: friendly fol
 
 Review is the trust center. It turns decisions into exact source-to-destination pairs and separates an unverified draft from a checked copy proposal. Warmth is welcome, but data/action hierarchy must be precise.
 
-The overview reports assignments, output context and verification state. The searchable left list shows output names and virtual destinations. Main details show **source retained** and **proposed destination** as separate selectable full-path cards. The manifest inspector explains unverified folder contents or displays checked records in pages of 200, including full paths and SHA-256 values.
+The central summary reports assignments and verification state, while a separate right-hand column explains verification, preview history, output context and deliberate copy approval. The searchable left list shows output names and virtual destinations. Main details show **source retained** and **proposed destination** as side-by-side selectable full-path cards. The manifest inspector explains unverified folder contents or displays checked records in pages of 200, including full paths and SHA-256 values.
 
 Actions edit structure, rename output, remove an assignment, view the source, choose output, verify, export the complete manifest, open receipts and **Review & copy**. Removing a draft row does not delete a source.
 
@@ -207,9 +208,9 @@ Design a generous preview surface and useful held/unsupported placeholders. Dist
 | Welcome guide | Eight pages explaining authority/evidence/drops/buckets/copying | Short illustrated concepts and visible navigation |
 | Copy confirmation | Exact approved plan and retained-source explanation | Deliberate approval and accessible Cancel |
 
-## Proposed visual system and deliverables
+## Visual system and further design deliverables
 
-These are recommendations rather than shipped behavior:
+Version 0.5.0 ships shared pastel surfaces, rounded panels, system typography, local kitten illustrations and clearer five-page layouts. Build on those native components. The following recommendations extend the system across more states and interactions; they are not a claim that every detail already ships:
 
 - Quiet neutrals with soft teal/lavender/apricot accents; status needs text and contrast in both appearances.
 - Consistent radius/spacing tokens; preserve recognizable native fields, menus and file panels.

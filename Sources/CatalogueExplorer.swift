@@ -26,7 +26,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     var window:NSWindow?
     let dataset=NSPopUpButton(),dimension=NSPopUpButton(),destination=NSPopUpButton(),search=NSSearchField()
     let searchMode=NSPopUpButton(),metric=NSPopUpButton(),places=NSPopUpButton()
-    let mode=NSSegmentedControl(labels:["List","Folder tree","Tag tree","Treemap","Connections"],trackingMode:.selectOne,target:nil,action:nil)
+    let mode=NSSegmentedControl(labels:["List","Folder tree","Tag tree","Treemap","Connections","Gallery"],trackingMode:.selectOne,target:nil,action:nil)
     let overview=NSTextField(wrappingLabelWithString:"Connecting retained Atlas observations…")
     let filterLabel=NSTextField(wrappingLabelWithString:"No filters"),status=NSTextField(labelWithString:""),location=NSTextField(labelWithString:"")
     let facetTable=NSTableView(),table=NSTableView(),tree=NSOutlineView(),inspector=KonMagicInspector(),map=CatalogueMapView()
@@ -47,6 +47,11 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     var displayedView=0
     var metadataTicket=0
     var helpPopover:NSPopover?
+    lazy var gallery=ContentGallery(owner:self)
+    var galleryScroll:NSScrollView!
+    let selectionImage=NSImageView(),selectionName=FriendlyUI.label("Choose a file or folder",size:15,weight:.semibold,wrapping:true),selectionSummary=FriendlyUI.label("",size:11,wrapping:true),selectionSource=FriendlyUI.label("",size:10,wrapping:true)
+    let familyButtons=NSStackView()
+    var detailScroll:NSScrollView?
     var tagged:Bool {dataset.indexOfSelectedItem==0}
     var disk:DiskCatalogue {DiskCatalogue(path:URL(fileURLWithPath:workspace?.catalog.path ?? "").deletingLastPathComponent().appendingPathComponent("disk-coverage.sqlite3").path,knowledge:workspace?.knowledge)}
     var activeDimension:CatalogueDimension {CatalogueDimension.allCases[max(0,dimension.indexOfSelectedItem)]}
@@ -64,7 +69,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         for (id,title,width) in columns {let c=NSTableColumn(identifier:NSUserInterfaceItemIdentifier(id));c.title=title;c.width=width;c.minWidth=60;table.addTableColumn(c)}
     }
     override func loadView() {
-        view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1480,height:900))
+        view=FriendlyCanvas(frame:NSRect(x:0,y:0,width:1480,height:900))
         dataset.addItems(withTitles:["Content & tags","Recorded disk","Access exceptions"]);dataset.target=self;dataset.action=#selector(changeDataset)
         dimension.addItems(withTitles:CatalogueDimension.allCases.map(\.title));dimension.target=self;dimension.action=#selector(changeDimension)
         searchMode.addItems(withTitles:["Names, paths & tags","Indexed content"]);searchMode.target=self;searchMode.action=#selector(searchChanged)
@@ -72,50 +77,55 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         metric.addItems(withTitles:["Entries","Logical file bytes"]);metric.target=self;metric.action=#selector(changeMetric)
         mode.selectedSegment=0;mode.target=self;mode.action=#selector(changeVisualization)
         overview.font=NSFont.systemFont(ofSize:11);overview.textColor = .secondaryLabelColor
-        let header=row([text("Browse",size:12,weight:.medium),dataset,NSView(),button("Tips",#selector(showTips(_:))),button("Edit destinations",#selector(editDestinations))])
+        let mascot=FriendlyMascot(kind:0);mascot.widthAnchor.constraint(equalToConstant:68).isActive=true;mascot.heightAnchor.constraint(equalToConstant:76).isActive=true
+        let heading=column([FriendlyUI.label("KONMAGIC  /  DISCOVER",size:10,weight:.semibold),FriendlyUI.label("Content",size:32,weight:.bold),FriendlyUI.label("What is this material, and what belongs together?",size:12)])
+        let header=row([mascot,heading,NSView(),dataset,button("Tips",#selector(showTips(_:))),button("Collections…",#selector(collectionsMenu)),button("Rules…",#selector(rulesMenu))])
         places.addItem(withTitle:"All retained content")
         for name in ["Downloads","Documents","Desktop","Pictures","Movies","Music"] {places.addItem(withTitle:name);places.lastItem?.representedObject=FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(name).path}
         places.selectItem(at:1);places.target=self;places.action=#selector(changePlace)
         places.widthAnchor.constraint(lessThanOrEqualToConstant:170).isActive=true
         places.toolTip="Browse a familiar folder, or choose All retained content for the whole tagged catalogue. Searches within a folder include its descendants."
-        let query=row([places,search,searchMode,button("Clear filters",#selector(clearFilters)),button("Refresh",#selector(refresh)),button("Collections…",#selector(collectionsMenu)),button("Rules…",#selector(rulesMenu))])
+        let query=row([search,searchMode,button("Clear filters",#selector(clearFilters)),button("Refresh",#selector(refresh))])
         search.widthAnchor.constraint(greaterThanOrEqualToConstant:260).isActive=true
 
         setupTable(facetTable,columns:[("group","Facet",155),("count","Entries",72)]);facetTable.rowHeight=32;facetTable.target=self;facetTable.action=#selector(selectFacet)
         facetTable.setAccessibilityLabel("Complete catalogue facet groups. Selecting a group filters observations.")
-        let facetScroll=scroll(facetTable),left=column([text("NARROW YOUR VIEW",size:11,weight:.semibold),dimension,facetScroll])
-        left.widthAnchor.constraint(equalToConstant:245).isActive=true
+        familyButtons.orientation = .vertical;familyButtons.alignment = .leading;familyButtons.spacing=6
+        let facetScroll=scroll(facetTable),left=column([FriendlyUI.label("SOURCES & COLLECTIONS",size:11,weight:.semibold),places,button("All retained files",#selector(clearFilters)),familyButtons,FriendlyUI.label("REFINE THIS SLICE",size:10,weight:.semibold),dimension,facetScroll,button("Edit destinations",#selector(editDestinations))])
+        left.widthAnchor.constraint(equalToConstant:210).isActive=true
         facetScroll.widthAnchor.constraint(equalTo:left.widthAnchor).isActive=true
 
         setupTable(table,columns:[("name","Files & folders",285),("tags","Tags & reading",230),("size","Size",95)])
         table.allowsMultipleSelection=true;table.target=self;table.doubleAction=#selector(openObservation)
         table.setAccessibilityLabel("Retained observations, including protected and metadata-only records")
         table.setDraggingSourceOperationMask(.copy,forLocal:true)
-        listScroll=scroll(table);treeScroll=scroll(tree)
+        listScroll=scroll(table);treeScroll=scroll(tree);galleryScroll=scroll(gallery);gallery.autoresizingMask = [.width];galleryScroll.drawsBackground=false
         tree.delegate=self;tree.dataSource=self;tree.headerView=nil;tree.rowHeight=30;tree.allowsMultipleSelection=true
         let treeColumn=NSTableColumn(identifier:NSUserInterfaceItemIdentifier("tree"));treeColumn.width=500;tree.addTableColumn(treeColumn);tree.outlineTableColumn=treeColumn
         tree.target=self;tree.doubleAction=#selector(openTreeSelection);tree.setDraggingSourceOperationMask(.copy,forLocal:true)
         tree.setAccessibilityLabel("Observed folder tree or tag hierarchy. Expand lazily; double-click to list contents. Virtual tag groups cannot be assigned as source folders.")
-        for child in [listScroll!,treeScroll!,map] {
+        for child in [listScroll!,treeScroll!,map,galleryScroll!] {
             child.translatesAutoresizingMaskIntoConstraints=false;contentHost.addSubview(child)
             NSLayoutConstraint.activate([child.leadingAnchor.constraint(equalTo:contentHost.leadingAnchor),child.trailingAnchor.constraint(equalTo:contentHost.trailingAnchor),child.topAnchor.constraint(equalTo:contentHost.topAnchor),child.bottomAnchor.constraint(equalTo:contentHost.bottomAnchor)])
         }
-        treeScroll.isHidden=true;map.isHidden=true
+        treeScroll.isHidden=true;map.isHidden=true;galleryScroll.isHidden=true
         map.activated={[weak self] choices in self?.drillInto(choices)}
         nextButton.title="Next 200";nextButton.target=self;nextButton.action=#selector(nextPage);nextButton.bezelStyle = .rounded
         previousButton.title="Previous";previousButton.target=self;previousButton.action=#selector(previousPage);previousButton.bezelStyle = .rounded
         location.font=NSFont.systemFont(ofSize:10);location.textColor = .secondaryLabelColor
         backToMap.title="Back to map";backToMap.target=self;backToMap.action=#selector(restoreDrillContext);backToMap.bezelStyle = .rounded;backToMap.isHidden=true
         filterChips.orientation = .horizontal;filterChips.spacing=6;chipScroll.documentView=filterChips;chipScroll.hasHorizontalScroller=true;chipScroll.autohidesScrollers=true;chipScroll.drawsBackground=false;chipScroll.heightAnchor.constraint(equalToConstant:30).isActive=true;chipScroll.isHidden=true
-        let center=column([row([mode,metric]),row([backToMap,filterLabel]),chipScroll,row([button("↑ Parent",#selector(parentFolder)),location]),contentHost,row([previousButton,nextButton]),status])
-        contentHost.heightAnchor.constraint(greaterThanOrEqualToConstant:410).isActive=true
+        let center=column([query,mode,row([backToMap,filterLabel,NSView(),metric]),chipScroll,row([button("↑ Parent",#selector(parentFolder)),location]),contentHost,row([previousButton,nextButton,NSView(),button("Load 24 thumbnails",#selector(loadGalleryThumbnails)),button("Clear images",#selector(clearGalleryImages))]),status])
+        contentHost.heightAnchor.constraint(greaterThanOrEqualToConstant:330).isActive=true
+        query.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true
         for v in [contentHost,chipScroll,status] {v.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true}
         center.widthAnchor.constraint(greaterThanOrEqualToConstant:570).isActive=true
 
         inspector.isEditable=false;inspector.isSelectable=true;inspector.font=NSFont.monospacedSystemFont(ofSize:11,weight:.regular);inspector.textContainerInset=NSSize(width:12,height:12)
         inspector.isVerticallyResizable=true;inspector.autoresizingMask = [.width];inspector.textContainer?.widthTracksTextView=true
         inspector.string="Select a file or whole folder to inspect its tags, evidence, reading status and current metadata.\n\nMaps and virtual tag groups filter observations. Assign only real sources to a destination you choose.\n\nYour exact source → destination preview appears in the workspace before any filesystem action."
-        let detailScroll=scroll(inspector)
+        let detailScroll=scroll(inspector);self.detailScroll=detailScroll;detailScroll.isHidden=true
+        inspector.backgroundColor=FriendlyUI.surface;inspector.textColor=FriendlyUI.text
         correctButton.title="Correct selected tags…";correctButton.target=self;correctButton.action=#selector(correctTags)
         assignButton.title="Assign selected to draft";assignButton.target=self;assignButton.action=#selector(assignSelected)
         revealButton.title="Reveal source in Finder";revealButton.target=self;revealButton.action=#selector(revealSource)
@@ -125,17 +135,23 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         filterLabel.maximumNumberOfLines=2
         bodyButton.title="Show retained content excerpt";bodyButton.target=self;bodyButton.action=#selector(showReading);bodyButton.bezelStyle = .rounded;bodyButton.isEnabled=false
         proposedPath.font=NSFont.systemFont(ofSize:11);proposedPath.textColor = .secondaryLabelColor;proposedPath.maximumNumberOfLines=3;proposedPath.lineBreakMode = .byTruncatingMiddle
-        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,previewSourceButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,proposedPath,assignButton])
-        right.widthAnchor.constraint(equalToConstant:340).isActive=true
-        detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:330).isActive=true
+        selectionImage.image=NSImage(systemSymbolName:"doc.text.magnifyingglass",accessibilityDescription:nil);selectionImage.imageScaling = .scaleProportionallyDown;selectionImage.contentTintColor=FriendlyUI.violet;selectionImage.heightAnchor.constraint(equalToConstant:170).isActive=true
+        selectionSource.font=NSFont.monospacedSystemFont(ofSize:10,weight:.regular);selectionSource.isSelectable=true;selectionSource.maximumNumberOfLines=3;selectionSource.textColor=FriendlyUI.muted;selectionSummary.textColor=FriendlyUI.muted
+        let right=column([selectionImage,selectionName,selectionSummary,selectionSource,previewSourceButton,revealButton,button("Details & retained evidence",#selector(toggleContentDetails)),detailScroll,bodyButton,correctButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,proposedPath,assignButton]);right.detachesHiddenViews=true
+        right.widthAnchor.constraint(equalToConstant:310).isActive=true
+        detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(equalToConstant:180).isActive=true
         destination.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
         proposedPath.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
-        let content=row([left,center,right]);content.alignment = .top
-        let outer=column([header,overview,query,content]);outer.spacing=14;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
+        for v in [places,familyButtons,dimension] {v.widthAnchor.constraint(equalTo:left.widthAnchor).isActive=true}
+        for v in [selectionImage,selectionName,selectionSummary,selectionSource,assignButton] {v.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true}
+        assignButton.bezelColor=FriendlyUI.violet;assignButton.controlSize = .large
+        let leftPanel=FriendlyUI.panel(left,tint:FriendlyUI.violet,padding:14),centerPanel=FriendlyUI.panel(center,padding:14),rightPanel=FriendlyUI.scrollingPanel(right,width:338,padding:14)
+        let content=row([leftPanel,centerPanel,rightPanel]);content.spacing=16;content.alignment = .top
+        centerPanel.widthAnchor.constraint(equalTo:content.widthAnchor,constant:-608).isActive=true
+        let outer=column([header,overview,content]);outer.spacing=14;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
         NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:18),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-18),outer.topAnchor.constraint(equalTo:view.topAnchor,constant:16),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor,constant:-16)])
-        for v in [header,overview,query,content] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
-        for v in [left,center,right] {v.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true}
-        center.widthAnchor.constraint(equalTo:content.widthAnchor,constant:-601).isActive=true
+        for v in [header,overview,content] {v.widthAnchor.constraint(equalTo:outer.widthAnchor).isActive=true}
+        for v in [leftPanel,centerPanel,rightPanel] {v.heightAnchor.constraint(equalTo:content.heightAnchor).isActive=true}
         refreshDestinations();loadPage();loadSummary()
     }
     func refreshDestinations() {
@@ -180,7 +196,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         if !tagged {metric.selectItem(at:0)}
         for i in [2,4] {mode.setEnabled(tagged,forSegment:i)}
         mode.setEnabled(dataset.indexOfSelectedItem != 2,forSegment:3)
-        mode.setEnabled(dataset.indexOfSelectedItem != 2,forSegment:1)
+        mode.setEnabled(dataset.indexOfSelectedItem != 2,forSegment:1);mode.setEnabled(dataset.indexOfSelectedItem != 2,forSegment:5)
         loadPage();loadSummary()
     }
     @objc func changePlace() {folder=places.selectedItem?.representedObject as? String;filters=[:];search.stringValue="";resetPaging();loadPage();loadSummary();if mode.selectedSegment==1 {loadRoots()}}
@@ -188,7 +204,8 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func changeMetric() {renderSummary()}
     @objc func changeVisualization() {updateMode();if mode.selectedSegment==1 {loadRoots()} else if mode.selectedSegment==2 {loadTagTree()} else if mode.selectedSegment>=3 {loadSummary()}}
     func updateMode() {
-        displayedView=mode.selectedSegment;listScroll.isHidden=displayedView != 0;treeScroll.isHidden=displayedView != 1 && displayedView != 2;map.isHidden=displayedView<3
+        displayedView=mode.selectedSegment;listScroll.isHidden=displayedView != 0;treeScroll.isHidden=displayedView != 1 && displayedView != 2;map.isHidden=displayedView != 3 && displayedView != 4;galleryScroll.isHidden=displayedView != 5
+        if displayedView==5 {gallery.rebuild()}
         bodyButton.isEnabled=false
         metadataTicket+=1;updateSelectionControls();showMetadata();workspace?.pageHost?.updateNavigation()
         if displayedView==1 {status.stringValue="Physical hierarchy · retained observations · facets apply to lists and maps."}
@@ -198,6 +215,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func selectFacet() {let row=facetTable.selectedRow;guard row>=0,row<facets.count else{return};guard tagged else {status.stringValue="These are whole-disk boundary totals. Browse their physical folders in Folder tree; semantic intersections are available in Tagged catalogue.";return};filters[activeDimension]=facets[row].value;mode.selectedSegment=0;updateMode();resetPaging();loadPage();loadSummary()}
     func loadPage() {
         guard let reader=workspace?.catalog else{return}
+        gallery.clear()
         if let item=places.itemArray.first(where:{($0.representedObject as? String)==self.folder}) {places.select(item)}
         else {if places.numberOfItems>7 {places.removeItem(at:7)};if let folder=self.folder {places.addItem(withTitle:URL(fileURLWithPath:folder).lastPathComponent);places.lastItem?.representedObject=folder;places.selectItem(at:7)} else {places.selectItem(at:0)}}
         pageCancellation.cancel();pageCancellation=CatalogueCancellation();let cancellation=pageCancellation
@@ -221,7 +239,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
                 case .success(let page):self.table.deselectAll(nil);self.records=page.0;self.nextCursor=page.1;self.nextDiskOffset=page.2;self.table.reloadData();self.status.stringValue="\(page.0.count) entries on this page · "+(source==0 && s.directChildren ? "direct folder children · " : "")+page.3
                 case .failure(let error):self.records=[];self.nextCursor=nil;self.nextDiskOffset=nil;self.table.reloadData();self.status.stringValue=error.localizedDescription
                 }
-                self.nextButton.isEnabled=self.nextCursor != nil || self.nextDiskOffset != nil;self.previousButton.isEnabled = !self.cursorHistory.isEmpty || self.diskOffset>0
+                self.gallery.rebuild();self.showMetadata();self.nextButton.isEnabled=self.nextCursor != nil || self.nextDiskOffset != nil;self.previousButton.isEnabled = !self.cursorHistory.isEmpty || self.diskOffset>0
             }
         }
     }
@@ -249,6 +267,8 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     func number(_ n:Int64)->String {NumberFormatter.localizedString(from:NSNumber(value:n),number:.decimal)}
     func renderSummary() {
         guard let summary=summary else{return}
+        familyButtons.arrangedSubviews.forEach {familyButtons.removeArrangedSubview($0);$0.removeFromSuperview()}
+        if tagged {for facet in summary.groups(.family).prefix(6) {let b=button(facet.value+"   "+number(facet.count),#selector(selectContentFamily(_:)));b.identifier=NSUserInterfaceItemIdentifier(facet.value);b.font=NSFont.systemFont(ofSize:11);familyButtons.addArrangedSubview(b)}}
         if tagged {
             facets=summary.groups(activeDimension);facetTable.reloadData()
             var text=number(summary.count)+" matching tagged observations · "+number(summary.readings)+" full/partial readings · "+ByteCountFormatter.string(fromByteCount:summary.bytes,countStyle:.file)+" logical file bytes"
@@ -320,7 +340,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     func outlineViewSelectionDidChange(_ note:Notification) {showMetadata()}
     func outlineView(_ outline:NSOutlineView,pasteboardWriterForItem item:Any)->NSPasteboardWriting? {guard let record=(item as? ExplorerNode)?.item else{return nil};return URL(fileURLWithPath:record.path) as NSURL}
     func selectedRecords()->[CatalogItem] {
-        if displayedView==0 {return table.selectedRowIndexes.compactMap {$0<records.count ? records[$0] : nil}}
+        if displayedView==0 || displayedView==5 {return table.selectedRowIndexes.compactMap {$0<records.count ? records[$0] : nil}}
         if displayedView==1 {return tree.selectedRowIndexes.compactMap {(tree.item(atRow:$0) as? ExplorerNode)?.item}}
         return []
     }
@@ -361,11 +381,15 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
             var proposed=w.assignments.first {$0.source==item.path} ?? Assignment(source:item.path,node:id,outputName:item.name);proposed.node=id
             let to=(try? w.destination(proposed)) ?? "Invalid draft destination"
             proposedPath.stringValue="Proposed copy → "+to+(selected.count>1 ? "\nPlus \(selected.count-1) other selected sources.":"");proposedPath.toolTip=item.path+"\n→ "+to
-        } else {proposedPath.stringValue=selected.isEmpty ? "Select real sources in List or Folder tree to preview placement.":"Choose a destination to preview placement.";proposedPath.toolTip=nil}
+        } else {proposedPath.stringValue=selected.isEmpty ? "Select real sources in List, Gallery or Folder tree to preview placement.":"Choose a destination to preview placement.";proposedPath.toolTip=nil}
         workspace?.pageHost?.updateNavigation()
     }
     func showMetadata() {
         updateSelectionControls()
+        let current=selectedRecords().first
+        selectionName.stringValue=current?.name ?? "Choose a file or folder";selectionSource.stringValue=current?.path ?? ""
+        selectionSummary.stringValue=current.map {($0.kind=="directory" ? "Folder":ByteCountFormatter.string(fromByteCount:$0.bytes,countStyle:.file))+" · "+$0.state+"\n"+$0.tags.sorted {$0.key<$1.key}.filter {["owner","project","family"].contains($0.key)}.map {$0.value}.joined(separator:" · ")} ?? "Select to inspect evidence. Thumbnails are an explicit content request."
+        gallery.syncSelection()
         let selected=selectedRecords();guard let item=selected.first else {bodyButton.isEnabled=false;metadataTicket+=1;inspector.string="Select a real file or folder to inspect its tags, provenance, reading limits and current metadata.\n\nDouble-click a tag group or click a map region to list its real sources. Virtual groups are filters.\n\nChoose a destination explicitly, then assign sources to the draft. Exact previews and full verification happen in the workspace; originals remain in place.";return}
         var lines:[String]=["RETAINED OBSERVATION",item.name,item.path,"","Origin: "+item.origin,"Kind: "+item.kind,"Reading: "+item.state,"Boundary: "+(item.barrier.isEmpty ? "user_data" : item.barrier),"Recorded logical bytes: "+String(item.bytes)]
         if item.manual {lines.append("Classification: human reviewed")}
@@ -398,11 +422,17 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         }
     }
     @objc func showReading() {
+        detailScroll?.isHidden=false
         guard let item=selectedRecords().first,let reader=workspace?.catalog else{return};metadataTicket+=1;bodyButton.isEnabled=false;status.stringValue="Reading a bounded retained excerpt; original file unopened…"
         browsing.async {[weak self] in let result:Result<String,Error>=Result {try reader.storedReading(item)}
             DispatchQueue.main.async {guard let self=self,self.selectedRecords().first?.path==item.path else{return};switch result {case .success(let text):self.inspector.string="RETAINED CONTENT · "+item.state+"\n"+item.path+"\n\n"+text;self.status.stringValue="Stored excerpt only; partial reading and inference limits remain applicable.";case .failure(let error):self.status.stringValue=error.localizedDescription}}
         }
     }
+    @objc func toggleContentDetails() {detailScroll?.isHidden.toggle()}
+    @objc func selectContentFamily(_ sender:NSButton) {guard let name=sender.identifier?.rawValue else{return};filters[.family]=name;resetPaging();loadPage();loadSummary()}
+    @objc func loadGalleryThumbnails() {mode.selectedSegment=5;updateMode();gallery.loadThumbnails()}
+    @objc func clearGalleryImages() {gallery.clear();status.stringValue="Content images released. Your catalogue and draft are unchanged."}
+    override func viewDidLayout() {super.viewDidLayout();if galleryScroll != nil {gallery.arrange()}}
     @objc func revealSource() {if let item=selectedRecords().first {NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath:item.path)])}}
     @objc func returnToToolkit() {workspace?.showToolkit()}
     @objc func editDestinations() {if let id=destination.selectedItem?.representedObject as? String {workspace?.focusedDestinationID=id};workspace?.showWorkspace()}

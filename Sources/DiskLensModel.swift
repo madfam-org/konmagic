@@ -12,7 +12,7 @@ enum LensDisplay:String,CaseIterable,Codable {case files,packages,folders
 enum LensColor:String,CaseIterable,Codable {case name,extensionName,type,parent,top,depth,size,creation,modified,access,protection,none
     var title:String {switch self {case .extensionName:return "Extension";case .type:return "File type";case .parent:return "Parent folder";case .top:return "Top folder";case .depth:return "Hierarchy depth";case .creation:return "Creation time";case .modified:return "Modification time";case .access:return "Last access time";case .protection:return "Protection";default:return rawValue.capitalized}}
 }
-enum LensPalette:String,CaseIterable,Codable {case rainbow,ocean,forest,ember,accessible,monochrome}
+enum LensPalette:String,CaseIterable,Codable {case rainbow,ocean,forest,ember,accessible,monochrome,pastel}
 enum LensField:String,CaseIterable,Codable {case name,path,extensionName,type,logical,allocated,modified,creation,access,hardLink,package,cloud,kind
     var title:String {switch self {case .extensionName:return "Extension";case .hardLink:return "Hard link";default:return rawValue.capitalized}}
 }
@@ -123,7 +123,7 @@ struct LensSnapshot:Codable {
     var exclusions:LensFilter?
 }
 struct LensPreferences:Codable {
-    var measure=LensMeasure.allocated,display=LensDisplay.packages,color=LensColor.extensionName,palette=LensPalette.ocean,depth=4,binaryUnits=true,showVolume=false
+    var measure=LensMeasure.allocated,display=LensDisplay.packages,color=LensColor.top,palette=LensPalette.pastel,depth=4,binaryUnits=true,showVolume=false
     var filters:[LensFilter]=[],defaultFilter=LensFilter(),recent:[String]=[]
     var scanExclusion=LensFilter(),typeMappings:[String:String]=[:]
     var lastWindow="quit",retainPreviousWindow=false

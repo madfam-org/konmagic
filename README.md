@@ -6,6 +6,12 @@ Native file/folder viewing includes embedded Quick Look, paged list/gallery, exp
 
 The native Toolkit and Help menu link to the manual, current-page help and engineering handbook. Public screenshots use entirely synthetic fixtures.
 
+Version **0.5.0** refreshes all five pages with appearance-aware pastel panels,
+original kitten illustrations, clearer task cards, a selectable Content gallery,
+and a Review trust center. Thumbnail requests are explicit and bounded; verified
+manifest pages keep full path/hash evidence available. The artwork ships inside
+the app and needs no network access.
+
 A native macOS utility for organizing files with a structure you control.
 Create destinations, drag individual **drops** or whole **buckets** onto them,
 inspect exact paths, and apply a verified copy while keeping originals intact.
