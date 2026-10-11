@@ -116,13 +116,17 @@ enum CatalogueDimension: String, CaseIterable, Codable {
     }
 }
 
-struct CatalogueSlice {
+struct CatalogueSlice:Codable,Equatable {
     var folder:String? = nil
     var directChildren=false
     var search=""
     var contentSearch=false
     var facets:[CatalogueDimension:String]=[:]
     var cursor:String? = nil
+    func validate() throws {
+        if let folder=folder {_ = try SafeFS.components(folder)}
+        guard search.utf8.count<=1200,search.count<=300,facets.values.allSatisfy({$0.utf8.count<=500}),cursor==nil else {throw KonMagicError("Save bounded queries without a page cursor.")}
+    }
     func predicate(paging:Bool=false)->(String,[String]) {
         var clauses:[String]=[],values:[String]=[]
         if let folder=folder {
@@ -169,19 +173,34 @@ struct CatalogueSummary:Codable {
 }
 
 extension Catalog {
+    static let recordFields="i.id,i.path,i.name,i.kind,i.size,i.tags,i.state,i.barrier,i.confidence,i.evidence,i.reason,i.mtime_ns,i.seen,i.manual"
+    func effectiveSource(_ reader:AtlasDatabase) throws -> String {
+        let snapshot=knowledge?.snapshot()
+        guard let snapshot=snapshot,!snapshot.corrections.isEmpty else {return "items i"}
+        // TEMP storage belongs to this connection, in memory. The durable Atlas
+        // database remains SQLITE_OPEN_READONLY, including its evidence columns.
+        try reader.rows("PRAGMA temp_store=MEMORY") {_ in}
+        try reader.rows("CREATE TEMP TABLE human_tags(path TEXT PRIMARY KEY,tags TEXT)") {_ in}
+        for (path,c) in snapshot.corrections {
+            let data=try JSONSerialization.data(withJSONObject:c.tags,options:.sortedKeys)
+            try reader.rows("INSERT INTO temp.human_tags VALUES(?,?)",[path,String(data:data,encoding:.utf8)!]) {_ in}
+        }
+        return "(SELECT o.id,o.path,o.name,o.kind,o.size,json_patch(CASE WHEN json_valid(o.tags) THEN o.tags ELSE '{}' END,COALESCE(h.tags,'{}')) AS tags,o.state,o.barrier,o.confidence,o.evidence,o.reason,o.mtime_ns,o.seen,CASE WHEN h.path IS NULL THEN o.manual ELSE 1 END AS manual,o.extension,o.parent_path,o.shared_text_id FROM items o LEFT JOIN temp.human_tags h ON h.path=o.path) i"
+    }
+
     func observation(at path:String) throws -> CatalogItem? {
         let reader=try AtlasDatabase(self.path);var item:CatalogItem?
-        try reader.rows("SELECT i.id,i.path,i.name,i.kind,i.size,i.tags,i.state,i.barrier,i.confidence,i.evidence,i.reason,i.mtime_ns,i.seen,i.manual FROM items i WHERE i.path=?",[path]) {s in item=Self.record(s)}
-        return item
+        try reader.rows("SELECT "+Self.recordFields+" FROM "+effectiveSource(reader)+" WHERE i.path=?",[path]) {s in item=Self.record(s)}
+        return item.map {knowledge?.snapshot().applying(to:$0) ?? $0}
     }
     func cataloguePage(_ slice:CatalogueSlice,cancellation:CatalogueCancellation?=nil) throws -> CataloguePage {
         guard slice.search.count<=300 else {throw KonMagicError("Keep search text below 300 characters.")}
         let reader=try AtlasDatabase(path,seconds:15,cancellation:cancellation),whereClause=slice.predicate(paging:true)
-        let fields="i.id,i.path,i.name,i.kind,i.size,i.tags,i.state,i.barrier,i.confidence,i.evidence,i.reason,i.mtime_ns,i.seen,i.manual"
+        let fields=Self.recordFields,source=try effectiveSource(reader)
         var items:[CatalogItem]=[]
-        try reader.rows("SELECT "+fields+" FROM items i WHERE "+whereClause.0+" ORDER BY i.path LIMIT 201",whereClause.1) {s in items.append(Self.record(s))}
+        try reader.rows("SELECT "+fields+" FROM "+source+" WHERE "+whereClause.0+" ORDER BY i.path LIMIT 201",whereClause.1) {s in items.append(Self.record(s))}
         let more=items.count>200;if more {items.removeLast()}
-        return CataloguePage(items:items,next:more ? items.last?.path : nil)
+        return CataloguePage(items:items.map {knowledge?.snapshot().applying(to:$0) ?? $0},next:more ? items.last?.path : nil)
     }
     static func record(_ s:OpaquePointer)->CatalogItem {
         let string=AtlasDatabase.string
@@ -202,14 +221,14 @@ extension Catalog {
         let reader=try AtlasDatabase(path);var roots:[CatalogItem]=[]
         try reader.rows("SELECT path,label FROM roots WHERE purpose='source' ORDER BY path") {s in
             var item=CatalogItem(id:0,path:AtlasDatabase.string(s,0),name:AtlasDatabase.string(s,1),kind:"directory",bytes:0,context:"Recorded source root")
-            item.origin="Atlas tagged catalogue";roots.append(item)
+            item.origin="Atlas tagged catalogue";roots.append(knowledge?.snapshot().applying(to:item) ?? item)
         };return roots
     }
     func summary(_ slice:CatalogueSlice=CatalogueSlice(),cancellation:CatalogueCancellation?=nil) throws -> CatalogueSummary {
         let reader=try AtlasDatabase(path,seconds:90,cancellation:cancellation),whereClause=slice.predicate()
         let dimensions=CatalogueDimension.allCases,keys=dimensions.map(\.sql)
-        let groupNumbers=(1...dimensions.count).map(String.init).joined(separator:",")
-        let sql="SELECT "+keys.joined(separator:",")+",count(*),sum(CASE WHEN i.kind='file' THEN i.size ELSE 0 END),sum(i.state IN ('extracted','partial')) FROM items i WHERE "+whereClause.0+" GROUP BY "+groupNumbers
+        let groupNumbers=(1...dimensions.count).map(String.init).joined(separator:","),source=try effectiveSource(reader)
+        let sql="SELECT "+keys.joined(separator:",")+",count(*),sum(CASE WHEN i.kind='file' THEN i.size ELSE 0 END),sum(i.state IN ('extracted','partial')) FROM "+source+" WHERE "+whereClause.0+" GROUP BY "+groupNumbers
         var partitions:[CataloguePartition]=[]
         try reader.rows(sql,whereClause.1) {s in
             guard partitions.count<100_000 else {throw KonMagicError("Too many aggregate partitions; narrow the catalogue scope.")}

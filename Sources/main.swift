@@ -28,6 +28,9 @@ if CommandLine.arguments.contains("--explorer-smoke") {
         exit(0)
     } catch {fputs("Explorer check failed: \(error.localizedDescription)\n",stderr);exit(1)}
 }
+if CommandLine.arguments.contains("--volume-context-smoke") {
+    do {let start=Date(),context=try VolumeContext.observe("/");print("VOLUME_CONTEXT_QA completed=true; sharedAPFSContext=\(context.details.contains("Shared container free")); snapshotCoverage=\(context.details.contains("Snapshots reported")); milliseconds=\(Int(Date().timeIntervalSince(start)*1000)); sourceBodiesRead=0; sourceOperations=0");exit(0)} catch {fputs("Volume context held: \(error.localizedDescription)\n",stderr);exit(1)}
+}
 if CommandLine.arguments.contains("--self-test") {
     do {try runNativeTests();exit(0)} catch {fputs("Native safety test failed: \(error.localizedDescription)\n",stderr);exit(1)}
 }
@@ -45,7 +48,7 @@ if CommandLine.arguments.contains("--catalog-smoke") {
     } catch {fputs("Catalogue check: \(error.localizedDescription)\n",stderr);exit(1)}
 }
 let application=NSApplication.shared
-let delegate=KonMagicDelegate(qa:CommandLine.arguments.contains("--ui-smoke") || CommandLine.arguments.contains("--explorer-ui-smoke") || CommandLine.arguments.contains("--lens-ui-smoke"))
+let delegate=KonMagicDelegate(qa:CommandLine.arguments.contains("--review-ui-smoke") || CommandLine.arguments.contains("--knowledge-ui-smoke") || CommandLine.arguments.contains("--toolkit-ui-smoke") || CommandLine.arguments.contains("--ui-smoke") || CommandLine.arguments.contains("--explorer-ui-smoke") || CommandLine.arguments.contains("--lens-ui-smoke"))
 application.delegate=delegate
 application.setActivationPolicy(.regular)
 application.run()

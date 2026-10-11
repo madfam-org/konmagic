@@ -87,6 +87,7 @@ func runCatalogueTests(at directory:URL) throws -> Int {
     try check(try disk.folder("/synthetic",search:"FILE-207").items.count==1,"Disk folder searches filter retained names")
     try refuses("unscanned disk directory") {_ = try disk.folder("/unscanned")}
     try check(try Data(contentsOf:diskFile)==diskBefore,"Disk browsing leaves the original metadata database byte-identical")
+    checks += try runKnowledgeTests(at:directory,catalogueURL:file)
     print("CATALOGUE_TESTS passed=\(checks); synthetic records only; actual source operations=0")
     return checks
 }

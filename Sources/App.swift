@@ -21,13 +21,14 @@ final class TreeEntry: NSObject {
 final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOutlineViewDelegate,
     NSTableViewDataSource, NSTableViewDelegate, NSSearchFieldDelegate {
     let store: WorkspaceStore
+    let knowledge:KnowledgeStore
     var catalog: Catalog
     let outline = NSOutlineView(), sources = NSTableView(), draft = NSTableView()
     let search = NSSearchField(), scope = NSPopUpButton(), status = NSTextField(labelWithString:""),
         sourceLocation = NSTextField(labelWithString:""),
         selection = NSTextField(labelWithString:"Choose a destination in the structure"),
         outputLabel = NSTextField(labelWithString:""), draftCount = NSTextField(labelWithString:"No assignments yet")
-    let inspector = NSTextView(), spinner = NSProgressIndicator()
+    let inspector = KonMagicInspector(), spinner = NSProgressIndicator()
     let previewButton = NSButton(), applyButton = NSButton()
     let split = NSSplitView()
     var treeEntries: [String: TreeEntry] = [:]
@@ -43,10 +44,13 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     let work = DispatchQueue(label:"org.madfam.konmagic.catalogue",qos:.userInitiated)
     let transfers = DispatchQueue(label:"org.madfam.konmagic.verified-copy",qos:.utility)
     var directoryAccess: [URL] = []
+    var helpPopover:NSPopover?
+    var toolkit:ToolkitController?
+    var workspaceWindow:NSWindow?
     var explorer:CatalogueExplorerController?
     var lenses:[DiskLensController]=[]
 
-    init(store: WorkspaceStore, catalog: Catalog) { self.store=store; self.catalog=catalog; super.init(nibName:nil,bundle:nil) }
+    init(store: WorkspaceStore, catalog: Catalog) throws { self.store=store;knowledge=try KnowledgeStore(directory:store.directory);self.catalog=Catalog(path:catalog.path,knowledge:knowledge); super.init(nibName:nil,bundle:nil) }
     required init?(coder:NSCoder) { fatalError("Use designated initializer") }
     deinit { directoryAccess.forEach {$0.stopAccessingSecurityScopedResource()} }
 
@@ -80,7 +84,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         let title=label("KonMagic",size:22,weight:.bold)
         let subtitle=label("Your structure. Your decisions. Exact previews before copies.",size:12);subtitle.textColor = .secondaryLabelColor
         spinner.style = .spinning;spinner.isDisplayedWhenStopped=false;spinner.controlSize = .small
-        let head=row([vertical([title,subtitle],padding:0),NSView(),spinner,button("Disk Lens",#selector(showDiskLens),symbol:"chart.pie"),button("Atlas Explorer",#selector(showExplorer),symbol:"square.grid.2x2"),button("Guide",#selector(showGuide),symbol:"questionmark.circle")])
+        let head=row([button("← Toolkit",#selector(showToolkit)),vertical([title,subtitle],padding:0),NSView(),spinner,button("Disk Lens",#selector(showDiskLens),symbol:"chart.pie"),button("Content Explorer",#selector(showExplorer),symbol:"square.grid.2x2"),button("Tips",#selector(showWorkspaceTips(_:))),button("Guide",#selector(showGuide),symbol:"questionmark.circle")])
         split.isVertical=true;split.dividerStyle = .thin;split.translatesAutoresizingMaskIntoConstraints=false
 
         outline.dataSource=self;outline.delegate=self;outline.headerView=nil;outline.rowHeight=29
@@ -218,6 +222,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         if let p=plan {inspector.string+="\n\nVERIFIED PREVIEW\n\(p.fileCount) files · \(ByteCountFormatter.string(fromByteCount:p.bytes,countStyle:.file))\nWhole folders keep every relative path. No source operation has run."}
     }
     func refreshDraft() {
+        guard isViewLoaded else {toolkit?.updateDraft();return}
         for lens in lenses {lens.refreshDestinations()}
         let selectedID=selectedNode?.id
         let expanded=store.value.nodes.filter {treeEntries[$0.id].map {outline.isItemExpanded($0)} ?? false}.map(\.id)
@@ -233,7 +238,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         draft.reloadData();draftCount.stringValue="\(store.value.assignments.count) drops / buckets · draft only"
         outputLabel.stringValue=store.value.output;outputLabel.toolTip=store.value.output
         applyButton.isEnabled=plan != nil && !busy;previewButton.isEnabled = !busy && !store.value.assignments.isEmpty;showDraftPaths()
-        explorer?.refreshDestinations()
+        explorer?.refreshDestinations();toolkit?.updateDraft()
     }
     @objc func showExplorer() {if explorer==nil {explorer=CatalogueExplorerController(workspace:self)};explorer?.show()}
     @objc func showDiskLens() {if lenses.isEmpty {let lens=DiskLensController(workspace:self);lenses.append(lens);lens.show();if let path=lens.preferences.recent.first,FileManager.default.fileExists(atPath:path) {lens.open(LensStore(url:URL(fileURLWithPath:path)))}} else {lenses.first?.show()}}
@@ -241,7 +246,8 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
         var p=LensPreferences.load(store.directory);let a=NSAlert();a.messageText="KonMagic preferences";a.informativeText="Display and scan filters are configured in Disk Lens. Source deletion stays unavailable; cleanup always goes through review."
         let last=NSPopUpButton();last.addItems(withTitles:["Quit after last window closes","Show welcome guide","Keep running without windows"]);last.selectItem(at:p.lastWindow=="welcome" ? 1:p.lastWindow=="stay" ? 2:0)
         let retain=NSButton(checkboxWithTitle:"Keep a separate prior-view window when rescanning",target:nil,action:nil);retain.state=p.retainPreviousWindow ? .on:.off
-        let stack=NSStackView(views:[last,retain]);stack.orientation = .vertical;stack.alignment = .leading;a.accessoryView=stack;a.addButton(withTitle:"Save preferences");a.addButton(withTitle:"Cancel")
+        last.widthAnchor.constraint(equalToConstant:420).isActive=true
+        a.accessoryView=dialogAccessory([last,retain]);a.addButton(withTitle:"Save preferences");a.addButton(withTitle:"Cancel")
         if a.runModal() == .alertFirstButtonReturn {p.lastWindow=["quit","welcome","stay"][last.indexOfSelectedItem];p.retainPreviousWindow=retain.state == .on;do {try p.save(store.directory);for lens in lenses {lens.preferences.lastWindow=p.lastWindow;lens.preferences.retainPreviousWindow=p.retainPreviousWindow}} catch {showError(error)}}
     }
     func loadSources() {
@@ -271,10 +277,10 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     @objc func parentScope() {if let p=scopePath {navigate(URL(fileURLWithPath:p).deletingLastPathComponent().path)}}
     @objc func openBucket() {let r=sources.clickedRow;guard r>=0,r<items.count else{return};if items[r].kind=="directory" {navigate(items[r].path)} else {NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath:items[r].path)])}}
     func grant(_ u:URL) {if u.startAccessingSecurityScopedResource() {directoryAccess.append(u)}}
-    func folderPanel(_ title:String, action:@escaping(URL)->Void) {let p=NSOpenPanel();p.title=title;p.canChooseDirectories=true;p.canChooseFiles=false;p.allowsMultipleSelection=false;guard let window=view.window else{return};p.beginSheetModal(for:window) {[weak self] result in if result == .OK,let u=p.url {self?.grant(u);action(u)}}}
+    func folderPanel(_ title:String, action:@escaping(URL)->Void) {let p=NSOpenPanel();p.title=title;p.canChooseDirectories=true;p.canChooseFiles=false;p.allowsMultipleSelection=false;guard let window=view.window ?? toolkit?.view.window else{return};p.beginSheetModal(for:window) {[weak self] result in if result == .OK,let u=p.url {self?.grant(u);action(u)}}}
     @objc func chooseScope() {folderPanel("Choose a source folder to browse") {[weak self] u in self?.navigate(u.path)}}
     @objc func chooseOutput() {guard !busy else{return};folderPanel("Choose a local organized output folder") {[weak self] u in guard let self=self else{return};do {try self.store.change {$0.output=u.path;$0.outputBookmark=try? u.bookmarkData(options:.withSecurityScope,includingResourceValuesForKeys:nil,relativeTo:nil)};self.plan=nil;self.refreshDraft()} catch {self.showError(error)}}}
-    @objc func connectCatalog() {guard !busy else{return};folderPanel("Select an existing compatible catalogue folder") {[weak self] u in guard let self=self else{return};do {let path=u.appendingPathComponent("catalog.sqlite3").path;try self.store.change {$0.cataloguePath=path;$0.catalogueBookmark=try? u.bookmarkData(options:[.withSecurityScope,.securityScopeAllowOnlyReadAccess],includingResourceValuesForKeys:nil,relativeTo:nil)};self.catalog=Catalog(path:path);self.plan=nil;self.refreshDraft();self.loadSources()} catch {self.showError(error)}}}
+    @objc func connectCatalog() {guard !busy else{return};folderPanel("Select an existing compatible catalogue folder") {[weak self] u in guard let self=self else{return};do {let path=u.appendingPathComponent("catalog.sqlite3").path;try self.store.change {$0.cataloguePath=path;$0.catalogueBookmark=try? u.bookmarkData(options:[.withSecurityScope,.securityScopeAllowOnlyReadAccess],includingResourceValuesForKeys:nil,relativeTo:nil)};self.catalog=Catalog(path:path,knowledge:self.knowledge);self.plan=nil;self.refreshDraft();self.loadSources()} catch {self.showError(error)}}}
     func ask(_ title:String, initial:String, then:(String)throws->Void) {
         guard !busy else{return};let a=NSAlert();a.messageText=title;a.informativeText="Changes only the organizational draft. Original files remain untouched."
         let f=NSTextField(string:initial);f.frame=NSRect(x:0,y:0,width:360,height:26);a.accessoryView=f;a.addButton(withTitle:"Save draft");a.addButton(withTitle:"Cancel")
@@ -335,12 +341,12 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     @objc func showGuide() {
         guard !busy else{return}
         let pages:[(String,String)]=[
-            ("Welcome to KonMagic", "A native Mac workspace for organizing with intention. You choose the structure and decide where things belong. Suggestions cannot override your assignments.\n\nThe left pane is your destination tree, the middle pane browses sources, and the right pane shows a draft of exact source → destination paths. Nothing moves when you browse or drag.\n\nKonMagic is independent and has no affiliation with Marie Kondo or KonMari."),
+            ("Welcome to KonMagic", "A native Mac workspace for organizing with intention. You choose the structure and decide where things belong. Suggestions cannot override your assignments.\n\nStart at the Toolkit: understand storage, find and refine content, design your organization, then review exact destinations. Command-0 returns to the overview; Command-1 through Command-4 open the stages. Tips explains the current view.\n\nIn the organization workspace, the left pane is your virtual destination tree, the middle browses sources and the right shows exact proposed paths. Browsing and dragging keep originals in place.\n\nKonMagic is independent and has no affiliation with Marie Kondo or KonMari."),
             ("Shape your semi-final structure", "New, Rename, Remove and destination drag/reparent edit a virtual structure. They do not create or rename real folders.\n\nKeep ongoing work in Projects and closed work in Archive. A project's active status is independent of an old parent-folder name. Add meaningful destinations for family memories, movies, work, research and other collections.\n\nStable destination identities keep assignments connected when you rename a branch. Undo draft edits without touching originals."),
             ("Assign drops and buckets", "A drop is an individual file. A bucket is a whole folder whose internal hierarchy and empty folders stay together.\n\nDrag directly from Finder onto a destination, or select sources and choose Assign selected. Multiple selected items can be assigned together. Rename output changes only the proposed copy's name.\n\nA bucket and its child cannot be assigned simultaneously. Split mixed collections into child buckets when they belong in different destinations."),
-            ("Understand access and observations", "Native folder browsing reads current metadata in bounded pages. Atlas Explorer connects the complete tagged catalogue and whole-disk metadata ledger, read-only. Retained observations may predate changes; their overlapping counts must not be added.\n\nFolder panels request access using your macOS account. KonMagic grants no privileges and bypasses no privacy permissions. Credentials, cloud placeholders, managed libraries, symlinks and operational project collections are held.\n\nNo server, login item, account or upload is installed."),
-            ("Explore content and metacontent", "Open Atlas Explorer from the header or File menu (Command-E). Browse List, physical Folder tree, Owner → Project → Family Tag tree, Treemap and Connections. Intersect owner, project, content family, purpose, lifecycle, reading status, protection, kind, extension, modification year, size, confidence and reading method. Map regions and tag groups filter observations; only real files or folders can become source assignments.\n\nSearch Names, paths & tags or the existing Indexed content. The inspector shows retained evidence, confidence, partial readings and broad visual labels. Show retained content excerpt reads only a bounded eligible cached reading; the original file remains unopened.\n\nChoose an explicit destination and assign selected drops or whole buckets to the same draft. Edit destinations returns to your structure. Inspect exact source → destination paths before verification or copying."),
-            ("Understand disk size with Disk Lens", "Open Disk Lens from the header or File menu (Command-D). Atlas recorded folder uses existing metadata; Scan folder observes current metadata. Neither reads original file bodies. Logical bytes, allocated bytes and unique-file tally answer different questions. Hard links are counted once; APFS clones, snapshots and cloud placeholders mean that allocated totals are not a promise of reclaimable space.\n\nHover to inspect; click locks selection; double-click zooms. Use arrows, Space for a checked Quick Look, parent/focus controls and depth settings. Choose file/package/folder views, twelve color schemes and six palettes. Masks preserve area; filters create separate snapshots; scan exclusions can prune whole subtrees. Saved filters and display choices remain private.\n\nSave/load complete scans, add notes, export images or selected text properties, compare observations, or create independent/linked windows. Stop scan retains partial coverage. Fresh access gaps and missing dates stay explicit. Assign a real source to a destination you choose, then review exact paths in the workspace. Cleanup review reveals the source in Finder; KonMagic never silently trashes data."),
+            ("Understand access and observations", "Native folder browsing reads current metadata in bounded pages. Content Explorer connects the complete tagged catalogue and whole-disk metadata ledger, read-only. Retained observations may predate changes; their overlapping counts must not be added.\n\nFolder panels request access using your macOS account. KonMagic grants no privileges and bypasses no privacy permissions. Credentials, cloud placeholders, managed libraries, symlinks and operational project collections are held.\n\nNo server, login item, account or upload is installed."),
+            ("Explore content and metacontent", "Open Content Explorer from the Toolkit or File menu (Command-E). Browse List, physical Folder tree, Owner → Project → Family Tag tree, Treemap and Connections. Intersect owner, project, content family, purpose, lifecycle, reading status, protection, kind, extension, modification year, size, confidence and reading method. Map regions and tag groups filter observations; only real files or folders can become source assignments.\n\nSearch Names, paths & tags or the existing Indexed content. The inspector shows retained evidence, confidence, partial readings and broad visual labels. Show retained content excerpt reads only a bounded eligible cached reading; the original file remains unopened.\n\nCorrect selected tags saves your exact-path semantic decisions with undo. Blank fields stay unchanged; folders do not silently reclassify their descendants. Collections reopen saved views. Rules save a query, an explicit destination and optional output naming; preview their exact proposals before adding them to the draft.\n\nChoose an explicit destination and assign selected drops or whole buckets to the same draft. Edit destinations returns to your structure. Inspect exact paths before verification or copying."),
+            ("Understand disk size with Disk Lens", "Open Disk Lens from the header or File menu (Command-D). Atlas recorded folder uses existing metadata; Scan folder observes current metadata. Neither reads original file bodies. Logical bytes, allocated bytes and unique-file tally answer different questions. Hard links are counted once; APFS clones, snapshots and cloud placeholders mean that allocated totals are not a promise of reclaimable space.\n\nHover to inspect; click locks selection; double-click zooms. Use arrows, Space for a checked Quick Look, parent/focus controls and depth settings. Choose file/package/folder views, twelve color schemes and six palettes. Masks preserve area; filters create separate snapshots; scan exclusions can prune whole subtrees. Saved filters and display choices remain private.\n\nSave/load complete scans, add notes, export images or selected text properties, compare observations, or create independent/linked windows. Stop scan retains partial coverage. Fresh access gaps and missing dates stay explicit. Assign a real source to a destination you choose, then review exact paths in the workspace. More tools groups filters, saved scans, comparisons, exports and notes. Volume & snapshots observes shared APFS container space and snapshot names without modifying them. Duplicate evidence groups equal sizes, then requests a separate explicit full-hash read for a bounded selected group. Hash equality does not authorize deletion.\n\nCleanup review reveals the source in Finder; KonMagic never silently trashes data."),
             ("Preview before you copy", "The draft shows exact source and destination paths immediately. Choose a local organized output folder, then Verify exact copy preview.\n\nVerification checks capacity before full-file hashing, source identities, all bucket contents, folder relationships and destination collisions. It creates no destination folders. Batches are bounded to 5,000 entries and 100 GiB, and leave 10 GiB free. Large video collections may need an external output drive.\n\nKeep reviewing or export the verified manifest. Verification alone applies nothing."),
             ("Copy deliberately; retain originals", "Review & copy opens a separate confirmation for the exact verified batch. All current identities, complete hashes and destinations are checked again.\n\nCopies preserve macOS file and folder metadata, verify every data hash and publish without overwriting. Originals stay intact. Receipts track completion and retained staging paths if interrupted; a batch is not one global transaction. Open Receipts & recovery to inspect them.\n\nMoving, deletion and deduplication are unavailable. Keep originals until a separate preservation and removal plan is reviewed.")]
         plan=nil;refreshDraft();var index=min(max(store.value.guidePage ?? 0,0),pages.count-1)
@@ -375,38 +381,46 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             let store=try WorkspaceStore(directory:state)
             lockFD=open(state.appendingPathComponent("instance.lock").path,O_RDWR | O_CREAT | O_NOFOLLOW,0o600)
             guard lockFD>=0,flock(lockFD,LOCK_EX | LOCK_NB)==0 else {throw KonMagicError("KonMagic is already running. Open the existing app window.")}
-            controller=KonMagicController(store:store,catalog:Catalog(path:store.value.cataloguePath ?? home.appendingPathComponent("Library/Application Support/Workstation Atlas/catalog.sqlite3").path))
+            controller=try KonMagicController(store:store,catalog:Catalog(path:store.value.cataloguePath ?? home.appendingPathComponent("Library/Application Support/Workstation Atlas/catalog.sqlite3").path))
             for a in store.value.assignments {if let b=a.bookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}}
             if let b=store.value.outputBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
             if let b=store.value.catalogueBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
             window=NSWindow(contentRect:NSRect(x:0,y:0,width:1360,height:820),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false)
-            window.title="KonMagic";window.titlebarAppearsTransparent=true;window.minSize=NSSize(width:1180,height:740)
-            if qa {window.appearance=NSAppearance(named:ProcessInfo.processInfo.environment["KONMAGIC_QA_APPEARANCE"]=="dark" ? .darkAqua : .aqua)}
-            window.contentViewController=controller;window.center();if !qa {window.setFrameAutosaveName("KonMagicWorkspace")};window.makeKeyAndOrderFront(nil)
-            controller.arrangeInitialPanes()
+            window.title="KonMagic";window.isReleasedWhenClosed=false;window.titlebarAppearsTransparent=true;window.minSize=NSSize(width:1180,height:740)
+            if qa {window.appearance=NSAppearance(named:ProcessInfo.processInfo.environment["KONMAGIC_QA_APPEARANCE"]=="dark" ? .darkAqua : .aqua);NSApp.appearance=window.appearance}
+            if !qa || CommandLine.arguments.contains("--toolkit-ui-smoke") {
+                let hub=ToolkitController(workspace:controller);controller.toolkit=hub;window.contentViewController=hub;window.setContentSize(NSSize(width:1180,height:810));window.minSize=NSSize(width:1050,height:700)
+                if !qa {window.setFrameAutosaveName("KonMagicToolkit")}
+            } else {window.contentViewController=controller;controller.arrangeInitialPanes()}
+            window.center();window.makeKeyAndOrderFront(nil)
             let menu=NSMenu(),appMenu=NSMenu(),fileMenu=NSMenu()
             let appItem=NSMenuItem();appItem.submenu=appMenu;menu.addItem(appItem)
             appMenu.addItem(withTitle:"Welcome guide",action:#selector(KonMagicController.showGuide),keyEquivalent:"?").target=controller
             appMenu.addItem(withTitle:"Preferences…",action:#selector(KonMagicController.showPreferences),keyEquivalent:",").target=controller
             appMenu.addItem(NSMenuItem.separator());appMenu.addItem(withTitle:"Quit KonMagic",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q")
             let fileItem=NSMenuItem(title:"File",action:nil,keyEquivalent:"");fileItem.submenu=fileMenu;menu.addItem(fileItem)
+            let navigation:[(String,Selector,String)]=[("Toolkit",#selector(KonMagicController.showToolkit),"0"),("Understand storage",#selector(KonMagicController.showDiskLens),"1"),("Find & refine content",#selector(KonMagicController.showExplorer),"2"),("Design organization",#selector(KonMagicController.showWorkspace),"3"),("Review draft",#selector(KonMagicController.showReview),"4")]
+            for (title,action,key) in navigation {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=controller}
+            fileMenu.addItem(NSMenuItem.separator())
             let commands:[(String,Selector,String)]=[("Choose source folder…",#selector(KonMagicController.chooseScope),"o"),("Connect catalogue…",#selector(KonMagicController.connectCatalog),""),("Choose output…",#selector(KonMagicController.chooseOutput),""),("Verify exact preview",#selector(KonMagicController.verifyPreview),"p"),("Undo draft edit",#selector(KonMagicController.undoDraft),"z")]
             for (title,action,key) in commands {fileMenu.addItem(withTitle:title,action:action,keyEquivalent:key).target=controller}
-            fileMenu.addItem(withTitle:"Atlas Explorer",action:#selector(KonMagicController.showExplorer),keyEquivalent:"e").target=controller
+            fileMenu.addItem(withTitle:"Content Explorer",action:#selector(KonMagicController.showExplorer),keyEquivalent:"e").target=controller
             fileMenu.addItem(withTitle:"Disk Lens",action:#selector(KonMagicController.showDiskLens),keyEquivalent:"d").target=controller
             fileMenu.addItem(withTitle:"Show hidden files in current folder",action:#selector(KonMagicController.toggleHidden(_:)),keyEquivalent:"").target=controller
             let editItem=NSMenuItem(title:"Edit",action:nil,keyEquivalent:""),editMenu=NSMenu();editItem.submenu=editMenu;menu.addItem(editItem)
             for (title,selector,key) in [("Cut","cut:","x"),("Copy","copy:","c"),("Paste","paste:","v"),("Select All","selectAll:","a")] {editMenu.addItem(withTitle:title,action:Selector(selector),keyEquivalent:key)}
             NSApp.mainMenu=menu;NSApp.activate(ignoringOtherApps:true)
-            if qa {if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}} else if !store.value.welcomed {DispatchQueue.main.asyncAfter(deadline:.now()+0.3) {self.controller.showGuide()}} else if FileManager.default.fileExists(atPath:controller.catalog.path) {controller.showExplorer()}
+            if qa {if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
+
         } catch {let a=NSAlert();a.messageText="KonMagic could not open safely";a.informativeText=error.localizedDescription;a.runModal();NSApp.terminate(nil)}
     }
+    func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool {controller?.showToolkit();return true}
     func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication) -> Bool {
         guard let controller=controller else{return true};let action=LensPreferences.load(controller.store.directory).lastWindow
         if action=="welcome" {DispatchQueue.main.async {self.window.makeKeyAndOrderFront(nil);controller.showGuide()};return false};return action != "stay"
     }
     func applicationShouldTerminate(_ sender:NSApplication) -> NSApplication.TerminateReply {
-        if controller?.lenses.contains(where:{$0.busy})==true {let a=NSAlert();a.messageText="A metadata scan or export is running";a.informativeText="Use Stop scan in Disk Lens, allow its partial observation to finish saving, then quit.";a.addButton(withTitle:"Keep KonMagic open");a.runModal();return .terminateCancel}
+        if controller?.lenses.contains(where:{$0.busy || $0.comparisonControllers.contains(where:{$0.busy}) || $0.duplicateControllers.contains(where:{$0.busy})})==true {let a=NSAlert();a.messageText="A metadata scan or export is running";a.informativeText="Use Stop scan in Disk Lens, allow its partial observation to finish saving, then quit.";a.addButton(withTitle:"Keep KonMagic open");a.runModal();return .terminateCancel}
         if controller?.busy==true {let a=NSAlert();a.messageText="A verification or copy is running";a.informativeText="Wait for it to finish. Quitting now could leave a retained stage that needs receipt review.";a.addButton(withTitle:"Keep KonMagic open");a.addButton(withTitle:"Quit and inspect receipts later");return a.runModal() == .alertSecondButtonReturn ? .terminateNow : .terminateCancel};return .terminateNow
     }
     func runUIQA() {

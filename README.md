@@ -54,12 +54,49 @@ describe SDK and runtime compatibility.
    Originals stay intact. A durable receipt records completed targets and
    retained stages if interrupted. Batches are not global transactions.
 
-## Atlas Explorer
+## Toolkit and personal decisions
 
-**Atlas Explorer** connects the complete tagged catalogue and its optional
+Launch into a native four-stage overview: understand storage, find and refine
+content, shape the proposed organization, then review exact destinations.
+Command-0 returns to the toolkit; Command-1 through Command-4 open the stages.
+Contextual tips explain the current workflow. Advanced disk tools are grouped
+in a menu, while display options expand only when requested. The overview
+reports overlapping catalogue scopes and explicit coverage exceptions.
+See the [workflow guide](docs/UI-workflows.md) for a task-by-task walkthrough.
+
+**Correct selected tags** stores exact-path semantic corrections separately from
+Atlas. Owner, project, family, purpose and lifecycle corrections apply to lists,
+search, facets and aggregate maps. They cannot change protection boundaries or
+retained reading evidence. Folder corrections do not silently cascade into
+active child projects. Reset and persistent correction undo restore prior
+classifications. Blank editor fields stay unchanged; only edited values are
+recorded. Use “Unassigned” to explicitly remove a category from the effective
+view. Source files and Finder tags are unchanged.
+
+**Collections** save the current folder, search, facet intersection, visualization,
+dimension and metric. **Rules** save that semantic query with an explicit stable
+destination and an optional filename-stem recipe. Prefix, suffix and literal
+replacement preserve the output extension. A rule displays exact source and
+proposed destination pairs before adding anything to the draft. Existing manual
+assignments, protected records, overlapping buckets and proposed name collisions
+are held. Rules consider a bounded page of 200 matches and the 100-assignment
+draft limit; they never execute unattended filesystem operations. Fresh source
+hashes, physical destination collisions and capacity remain separate checks.
+
+Human decisions live in an owned private `knowledge.json`, bounded to 8 MiB,
+5,000 exact-path corrections, 64 saved collections, 64 rules and 64 correction
+undo steps. Corrected values are joined through connection-local memory tables;
+the original catalogue remains read-only. Classification follows the exact
+recorded path and does not assert that a changed file still has the old contents.
+
+## Content Explorer
+
+**Content Explorer** connects the complete tagged Atlas catalogue and its optional
 whole-disk metadata ledger without modifying either database. Choose their
 folder through **File → Connect catalogue** if access is needed. When a retained
-catalogue is available, the explorer opens alongside the destination workspace.
+catalogue is available, open the explorer from the toolkit's Discover card. It
+starts in Downloads; quick places lead to other familiar personal folders or
+all retained content, and each stage has a route back to the toolkit.
 Native live-folder browsing remains available without any catalogue.
 
 - **List:** all tagged observations, including protected metadata, with bounded
@@ -98,7 +135,7 @@ them to the same organizational draft. Its exact source/destination preview
 appears immediately. Editing the destination tree updates assignments by stable
 identity. Browse, filter, map and assign actions never apply filesystem changes.
 
-Aggregates are cached privately and invalidated by catalogue/WAL identity.
+Aggregates are cached privately and invalidated by catalogue/WAL identity and semantic correction revision.
 Counts reconcile to each catalogue separately; disk metadata overlaps tagged
 observations and their counts must not be added. Logical bytes include duplicate
 files and represent neither allocated storage nor reclaimable space. These are
@@ -149,11 +186,26 @@ Derived scans live privately under application support. Work streams through
 SQLite and background queues, with a 3 GiB per-scan limit, 25 million-entry bound,
 256-level depth limit and 10 GiB free-space reserve. Stop retains explicit partial
 coverage. The visible list uses 200-row pages; complete data remains in the
-scan and export. A comparison window shows the first 500 changes, with limitations
-stated. Global tagged facets and full-text search remain in Atlas Explorer.
+scan and export. Comparison windows page through every metadata change in stable 500-row pages
+and can export the full comparison. Filters, exclusions and gaps can affect
+added/removed observations. Global tagged facets and full-text search remain in Atlas Explorer.
 
 See the [GrandPerspective capability contract](docs/GrandPerspective-capabilities.md)
-for the complete comparison and remaining compatibility gaps. This is an
+for the complete comparison and remaining compatibility gaps.
+
+**Volume & snapshots** reads bounded `diskutil` property lists in the background,
+showing APFS shared-container free space, sibling volume usage, quotas/reserves
+and reported snapshot names. Each command has time and output limits. Snapshot
+coverage failures stay explicit. It does not purge snapshots or predict how
+many shared blocks a deletion would reclaim.
+
+**Duplicate evidence** groups equal logical sizes from scan metadata in paged
+views, excluding recorded hard-link aliases and cloud placeholders. Equal size
+is only a candidate. An explicit group confirmation reads complete current data
+for SHA-256 verification, bounded to 2–100 files and 100 GiB. Linked, protected,
+changed or cloud-only sources are held; cancellation is checked between reads.
+Equal hashes establish current data-fork equality, not resource-fork/metadata
+equality or permission to delete. Sources remain intact. This is an
 independent implementation; no GrandPerspective GPL code or assets are embedded.
 
 The [macOS alternatives survey](docs/macOS-alternatives.md) compares the related
@@ -201,6 +253,9 @@ state; image and state paths are specified through `KONMAGIC_QA_IMAGE` and
 `KONMAGIC_QA_STATE`. Set `KONMAGIC_QA_APPEARANCE=dark` for a dark-mode check.
 Choose an explorer view with `KONMAGIC_QA_VIEW` (`list`, `foldertree`, `tagtree`,
 `treemap`, `connections` or `disk`). Never publish those local outputs.
+
+`--toolkit-ui-smoke` renders the overview and checks its stage/keyboard routes.
+`--volume-context-smoke` observes live volume metadata without changing settings.
 
 `--lens-recorded-smoke` imports a bounded recorded folder into private QA state.
 `--lens-ui-smoke` renders an isolated saved scan selected with `KONMAGIC_QA_SCAN`.

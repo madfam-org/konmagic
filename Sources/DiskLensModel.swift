@@ -1,4 +1,5 @@
 import Foundation
+import UniformTypeIdentifiers
 import Darwin
 import UniformTypeIdentifiers
 
@@ -113,7 +114,7 @@ struct LensNode {
         n.device=Int64(s.st_dev);n.inode=Int64(bitPattern:UInt64(s.st_ino));n.links=Int64(s.st_nlink);n.flags=s.st_flags
         n.package=n.directory && packageName(name);return n
     }
-    static func packageName(_ name:String)->Bool {let ext=(name as NSString).pathExtension.lowercased();return ["app","bundle","framework","plugin","component","vst","vst3","aaxplugin","photoslibrary","musiclibrary","imovielibrary","band","pages","numbers","key","rtfd","playground","xcworkspace","xcodeproj"].contains(ext)}
+    static func packageName(_ name:String)->Bool {let ext=(name as NSString).pathExtension.lowercased();return UTType(filenameExtension:ext)?.conforms(to:.package)==true || ["app","bundle","framework","plugin","component","vst","vst3","aaxplugin","photoslibrary","musiclibrary","imovielibrary","band","pages","numbers","key","rtfd","playground","xcworkspace","xcodeproj"].contains(ext)}
 }
 struct LensSnapshot:Codable {
     var version=1,id=UUID().uuidString,root="",source="",started=Date(),finished:Date?,status="scanning",entries:Int64=0,issues:Int64=0

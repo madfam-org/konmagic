@@ -20,12 +20,13 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     weak var workspace:KonMagicController?
     var window:NSWindow?
     let dataset=NSPopUpButton(),dimension=NSPopUpButton(),destination=NSPopUpButton(),search=NSSearchField()
-    let searchMode=NSPopUpButton(),metric=NSPopUpButton()
+    let searchMode=NSPopUpButton(),metric=NSPopUpButton(),places=NSPopUpButton()
     let mode=NSSegmentedControl(labels:["List","Folder tree","Tag tree","Treemap","Connections"],trackingMode:.selectOne,target:nil,action:nil)
     let overview=NSTextField(wrappingLabelWithString:"Connecting retained Atlas observations…")
     let filterLabel=NSTextField(wrappingLabelWithString:"No filters"),status=NSTextField(labelWithString:""),location=NSTextField(labelWithString:"")
-    let facetTable=NSTableView(),table=NSTableView(),tree=NSOutlineView(),inspector=NSTextView(),map=CatalogueMapView()
+    let facetTable=NSTableView(),table=NSTableView(),tree=NSOutlineView(),inspector=KonMagicInspector(),map=CatalogueMapView()
     let contentHost=NSView(),bodyButton=NSButton(),nextButton=NSButton(),previousButton=NSButton()
+    let correctButton=NSButton(),assignButton=NSButton(),revealButton=NSButton()
     var listScroll:NSScrollView!,treeScroll:NSScrollView!
     var records:[CatalogItem]=[],roots:[ExplorerNode]=[],facets:[CatalogueFacet]=[]
     var filters:[CatalogueDimension:String]=[:],folder:String?,cursor:String?,cursorHistory:[String?]=[]
@@ -38,10 +39,11 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     let aggregating=DispatchQueue(label:"org.madfam.konmagic.explorer-aggregates",qos:.utility)
     var displayedView=0
     var metadataTicket=0
+    var helpPopover:NSPopover?
     var tagged:Bool {dataset.indexOfSelectedItem==0}
-    var disk:DiskCatalogue {DiskCatalogue(path:URL(fileURLWithPath:workspace?.catalog.path ?? "").deletingLastPathComponent().appendingPathComponent("disk-coverage.sqlite3").path)}
+    var disk:DiskCatalogue {DiskCatalogue(path:URL(fileURLWithPath:workspace?.catalog.path ?? "").deletingLastPathComponent().appendingPathComponent("disk-coverage.sqlite3").path,knowledge:workspace?.knowledge)}
     var activeDimension:CatalogueDimension {CatalogueDimension.allCases[max(0,dimension.indexOfSelectedItem)]}
-    init(workspace:KonMagicController) {self.workspace=workspace;super.init(nibName:nil,bundle:nil)}
+    init(workspace:KonMagicController) {self.workspace=workspace;folder=FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads").path;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError("Use a workspace")}
     func text(_ value:String,size:CGFloat=12,weight:NSFont.Weight = .regular)->NSTextField {
         let label=NSTextField(labelWithString:value);label.font=NSFont.systemFont(ofSize:size,weight:weight);label.lineBreakMode = .byTruncatingMiddle;return label
@@ -56,20 +58,26 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     }
     override func loadView() {
         view=WorkspaceCanvas(frame:NSRect(x:0,y:0,width:1480,height:900))
-        dataset.addItems(withTitles:["Tagged catalogue","Whole-disk metadata","Coverage exceptions"]);dataset.target=self;dataset.action=#selector(changeDataset)
+        dataset.addItems(withTitles:["Content & tags","Recorded disk","Access exceptions"]);dataset.target=self;dataset.action=#selector(changeDataset)
         dimension.addItems(withTitles:CatalogueDimension.allCases.map(\.title));dimension.target=self;dimension.action=#selector(changeDimension)
         searchMode.addItems(withTitles:["Names, paths & tags","Indexed content"]);searchMode.target=self;searchMode.action=#selector(searchChanged)
         search.placeholderString="Search retained observations";search.delegate=self
         metric.addItems(withTitles:["Entries","Logical file bytes"]);metric.target=self;metric.action=#selector(changeMetric)
         mode.selectedSegment=0;mode.target=self;mode.action=#selector(changeVisualization)
         overview.font=NSFont.systemFont(ofSize:11);overview.textColor = .secondaryLabelColor
-        let header=row([text("Atlas Explorer",size:21,weight:.bold),dataset,NSView(),button("Edit destinations",#selector(editDestinations))])
-        let query=row([search,searchMode,button("Clear filters",#selector(clearFilters)),button("Refresh",#selector(refresh))])
+        let home=button("← Toolkit",#selector(returnToToolkit))
+        let header=row([home,text("Content Explorer",size:21,weight:.bold),dataset,NSView(),button("Tips",#selector(showTips(_:))),button("Edit destinations",#selector(editDestinations))])
+        places.addItem(withTitle:"All retained content")
+        for name in ["Downloads","Documents","Desktop","Pictures","Movies","Music"] {places.addItem(withTitle:name);places.lastItem?.representedObject=FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(name).path}
+        places.selectItem(at:1);places.target=self;places.action=#selector(changePlace)
+        places.widthAnchor.constraint(lessThanOrEqualToConstant:170).isActive=true
+        places.toolTip="Browse a familiar folder, or choose All retained content for the whole tagged catalogue. Searches within a folder include its descendants."
+        let query=row([places,search,searchMode,button("Clear filters",#selector(clearFilters)),button("Refresh",#selector(refresh)),button("Collections…",#selector(collectionsMenu)),button("Rules…",#selector(rulesMenu))])
         search.widthAnchor.constraint(greaterThanOrEqualToConstant:260).isActive=true
 
         setupTable(facetTable,columns:[("group","Facet",155),("count","Entries",72)]);facetTable.rowHeight=32;facetTable.target=self;facetTable.action=#selector(selectFacet)
         facetTable.setAccessibilityLabel("Complete catalogue facet groups. Selecting a group filters observations.")
-        let facetScroll=scroll(facetTable),left=column([text("DICE THE CATALOGUE",size:11,weight:.semibold),dimension,facetScroll])
+        let facetScroll=scroll(facetTable),left=column([text("NARROW YOUR VIEW",size:11,weight:.semibold),dimension,facetScroll])
         left.widthAnchor.constraint(equalToConstant:245).isActive=true
         facetScroll.widthAnchor.constraint(equalTo:left.widthAnchor).isActive=true
 
@@ -100,10 +108,16 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         inspector.isVerticallyResizable=true;inspector.autoresizingMask = [.width];inspector.textContainer?.widthTracksTextView=true
         inspector.string="Select a file or whole folder to inspect its tags, evidence, reading status and current metadata.\n\nMaps and virtual tag groups filter observations. Assign only real sources to a destination you choose.\n\nYour exact source → destination preview appears in the workspace before any filesystem action."
         let detailScroll=scroll(inspector)
+        correctButton.title="Correct selected tags…";correctButton.target=self;correctButton.action=#selector(correctTags)
+        assignButton.title="Assign selected to draft";assignButton.target=self;assignButton.action=#selector(assignSelected)
+        revealButton.title="Reveal source in Finder";revealButton.target=self;revealButton.action=#selector(revealSource)
+        for b in [correctButton,assignButton,revealButton] {b.bezelStyle = .rounded;b.isEnabled=false}
+        destination.target=self;destination.action=#selector(destinationChanged)
+        filterLabel.maximumNumberOfLines=2
         bodyButton.title="Show retained content excerpt";bodyButton.target=self;bodyButton.action=#selector(showReading);bodyButton.bezelStyle = .rounded;bodyButton.isEnabled=false
-        let right=column([text("CONTENT & METACONTENT",size:11,weight:.semibold),detailScroll,bodyButton,button("Reveal source in Finder",#selector(revealSource)),text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,button("Assign selected drops / buckets",#selector(assignSelected)),text("Exact preview appears in the workspace.",size:11)])
+        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,assignButton,text("Exact preview appears in the workspace.",size:11)])
         right.widthAnchor.constraint(equalToConstant:340).isActive=true
-        detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:430).isActive=true
+        detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:330).isActive=true
         destination.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
         let content=row([left,center,right]);content.alignment = .top
         let outer=column([header,overview,query,content]);outer.spacing=14;outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
@@ -129,7 +143,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func refresh() {allSummary=nil;resetPaging();loadPage();loadSummary();if mode.selectedSegment==1 {loadRoots()}}
     @objc func changeDataset() {
         filters=[:];folder=nil;search.stringValue="";resetPaging();mode.selectedSegment=0;updateMode()
-        searchMode.isEnabled=tagged;dimension.isEnabled=tagged;metric.isEnabled=tagged
+        searchMode.isEnabled=tagged;dimension.isEnabled=tagged;metric.isEnabled=tagged;places.isEnabled=dataset.indexOfSelectedItem != 2;places.item(at:0)?.title=tagged ? "All retained content" : "Recorded roots"
         dimension.removeAllItems();dimension.addItems(withTitles:tagged ? CatalogueDimension.allCases.map(\.title) : ["Protection · global disk counts"])
         if !tagged {metric.selectItem(at:0)}
         for i in [2,4] {mode.setEnabled(tagged,forSegment:i)}
@@ -137,6 +151,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         mode.setEnabled(dataset.indexOfSelectedItem != 2,forSegment:1)
         loadPage();loadSummary()
     }
+    @objc func changePlace() {folder=places.selectedItem?.representedObject as? String;filters=[:];search.stringValue="";resetPaging();loadPage();loadSummary();if mode.selectedSegment==1 {loadRoots()}}
     @objc func changeDimension() {renderSummary()}
     @objc func changeMetric() {renderSummary()}
     @objc func changeVisualization() {updateMode();if mode.selectedSegment==1 {loadRoots()} else if mode.selectedSegment==2 {loadTagTree()} else if mode.selectedSegment>=3 {loadSummary()}}
@@ -150,12 +165,14 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     @objc func selectFacet() {let row=facetTable.selectedRow;guard row>=0,row<facets.count else{return};guard tagged else {status.stringValue="These are whole-disk boundary totals. Browse their physical folders in Folder tree; semantic intersections are available in Tagged catalogue.";return};filters[activeDimension]=facets[row].value;mode.selectedSegment=0;updateMode();resetPaging();loadPage();loadSummary()}
     func loadPage() {
         guard let reader=workspace?.catalog else{return}
+        if let item=places.itemArray.first(where:{($0.representedObject as? String)==self.folder}) {places.select(item)}
+        else {if places.numberOfItems>7 {places.removeItem(at:7)};if let folder=self.folder {places.addItem(withTitle:URL(fileURLWithPath:folder).lastPathComponent);places.lastItem?.representedObject=folder;places.selectItem(at:7)} else {places.selectItem(at:0)}}
         pageCancellation.cancel();pageCancellation=CatalogueCancellation();let cancellation=pageCancellation
         generation+=1;let serial=generation,s=slice(),source=dataset.indexOfSelectedItem,diskReader=disk,start=diskOffset
         let folder=folder,query=search.stringValue
         var descriptions:[String]=[]
         for d in CatalogueDimension.allCases {if let value=filters[d] {descriptions.append(d.title+" = "+value)}}
-        filterLabel.stringValue=descriptions.isEmpty ? "All observations · no semantic filters" : descriptions.joined(separator:" · ")
+        filterLabel.stringValue=descriptions.isEmpty ? "All observations · no semantic filters" : descriptions.joined(separator:" · ");filterLabel.toolTip=filterLabel.stringValue
         location.stringValue=folder ?? (source==0 ? "All tagged roots" : source==1 ? "Recorded disk roots" : "Recorded access and traversal exceptions")
         status.stringValue="Loading one bounded page…"
         browsing.async {[weak self] in
@@ -167,7 +184,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
             }
             DispatchQueue.main.async {guard let self=self,self.generation==serial else{return}
                 switch result {
-                case .success(let page):self.table.deselectAll(nil);self.records=page.0;self.nextCursor=page.1;self.nextDiskOffset=page.2;self.table.reloadData();self.status.stringValue="\(page.0.count) entries on this page · "+page.3
+                case .success(let page):self.table.deselectAll(nil);self.records=page.0;self.nextCursor=page.1;self.nextDiskOffset=page.2;self.table.reloadData();self.status.stringValue="\(page.0.count) entries on this page · "+(source==0 && s.directChildren ? "direct folder children · " : "")+page.3
                 case .failure(let error):self.records=[];self.nextCursor=nil;self.nextDiskOffset=nil;self.table.reloadData();self.status.stringValue=error.localizedDescription
                 }
                 self.nextButton.isEnabled=self.nextCursor != nil || self.nextDiskOffset != nil;self.previousButton.isEnabled = !self.cursorHistory.isEmpty || self.diskOffset>0
@@ -201,7 +218,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         if tagged {
             facets=summary.groups(activeDimension);facetTable.reloadData()
             var text=number(summary.count)+" matching tagged observations · "+number(summary.readings)+" full/partial readings · "+ByteCountFormatter.string(fromByteCount:summary.bytes,countStyle:.file)+" logical file bytes"
-            if let disk=diskOverview {text+="\nWhole-disk ledger: "+number(disk.count)+" metadata entries · "+number(disk.exceptions)+" exceptions · "+disk.updated+". Counts overlap; these are retained observations, not current verified files or reclaimable space."}
+            if let disk=diskOverview {text+="\nWhole-disk ledger: "+number(disk.count)+" metadata entries · "+number(disk.exceptions)+" exceptions · "+friendlyObservationDate(disk.updated)+" · retained scopes overlap; verify current sources before copying."}
             overview.stringValue=text
             let useBytes=metric.indexOfSelectedItem==1 && summary.bytes>0
             map.configure(summary,dimension:activeDimension,connections:mode.selectedSegment==4,byBytes:useBytes)
@@ -216,10 +233,17 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         } else {overview.stringValue="The optional disk ledger is unavailable. The tagged catalogue remains separately accessible."}
     }
     func loadRoots() {
-        guard let reader=workspace?.catalog else{return};let source=dataset.indexOfSelectedItem,diskReader=disk
+        guard let reader=workspace?.catalog else{return};let source=dataset.indexOfSelectedItem,diskReader=disk,rootFolder=folder
         browsing.async {[weak self] in
-            let result:Result<[CatalogItem],Error>=Result {if source==0 {return try reader.catalogueRoots()};return try diskReader.roots()}
-            DispatchQueue.main.async {guard let self=self,self.mode.selectedSegment==1,self.dataset.indexOfSelectedItem==source else{return};switch result {case .success(let items):self.roots=items.map(ExplorerNode.init);self.tree.reloadData();case .failure(let error):self.status.stringValue=error.localizedDescription}}
+            let result:Result<[CatalogItem],Error>=Result {
+                if let path=rootFolder {
+                    if source==0,let item=try reader.observation(at:path) {return [item]}
+                    var item=CatalogItem(id:0,path:path,name:URL(fileURLWithPath:path).lastPathComponent,kind:"directory",bytes:0,context:"Selected recorded folder")
+                    item.origin=source==0 ? "Atlas tagged catalogue" : "Whole-disk metadata";return [reader.knowledge?.snapshot().applying(to:item) ?? item]
+                }
+                if source==0 {return try reader.catalogueRoots()};return try diskReader.roots()
+            }
+            DispatchQueue.main.async {guard let self=self,self.mode.selectedSegment==1,self.dataset.indexOfSelectedItem==source,self.folder==rootFolder else{return};switch result {case .success(let items):self.roots=items.map(ExplorerNode.init);self.tree.reloadData();case .failure(let error):self.status.stringValue=error.localizedDescription}}
         }
     }
     func loadTagTree() {
@@ -292,10 +316,19 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     }
     func tableViewSelectionDidChange(_ note:Notification) {if let selected=note.object as? NSTableView,selected === table {showMetadata()}}
     func tableView(_ tableView:NSTableView,pasteboardWriterForRow row:Int)->NSPasteboardWriting? {guard tableView===table else{return nil};return URL(fileURLWithPath:records[row].path) as NSURL}
+    @objc func destinationChanged() {updateSelectionControls()}
+    func updateSelectionControls() {
+        let selected=selectedRecords()
+        correctButton.isEnabled = !selected.isEmpty && selected.count<=200
+        revealButton.isEnabled = !selected.isEmpty
+        assignButton.isEnabled = !selected.isEmpty && selected.allSatisfy {$0.kind=="file" || $0.kind=="directory"} && destination.selectedItem?.representedObject != nil && workspace?.busy != true
+    }
     func showMetadata() {
+        updateSelectionControls()
         let selected=selectedRecords();guard let item=selected.first else {bodyButton.isEnabled=false;metadataTicket+=1;inspector.string="Select a real file or folder to inspect its tags, provenance, reading limits and current metadata.\n\nDouble-click a tag group or click a map region to list its real sources. Virtual groups are filters.\n\nChoose a destination explicitly, then assign sources to the draft. Exact previews and full verification happen in the workspace; originals remain in place.";return}
         var lines:[String]=["RETAINED OBSERVATION",item.name,item.path,"","Origin: "+item.origin,"Kind: "+item.kind,"Reading: "+item.state,"Boundary: "+(item.barrier.isEmpty ? "user_data" : item.barrier),"Recorded logical bytes: "+String(item.bytes)]
-        if let confidence=item.confidence {lines.append("Tag confidence: "+String(format:"%.0f%%",confidence*100)+(item.manual ? " · human reviewed" : " · inference"))}
+        if item.manual {lines.append("Classification: human reviewed")}
+        if let confidence=item.confidence {lines.append("Retained confidence: "+String(format:"%.0f%%",confidence*100)+" · original evidence preserved")}
         if item.modified>0 {let date=Date(timeIntervalSince1970:Double(item.modified)/1_000_000_000);let format=ISO8601DateFormatter();lines.append("Modified (UTC; not event date): "+format.string(from:date))}
         lines += ["","TAGS"]
         for key in item.tags.keys.sorted() {lines.append(key+": "+(item.tags[key] ?? ""))}
@@ -330,7 +363,8 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         }
     }
     @objc func revealSource() {if let item=selectedRecords().first {NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath:item.path)])}}
-    @objc func editDestinations() {workspace?.view.window?.makeKeyAndOrderFront(nil)}
+    @objc func returnToToolkit() {workspace?.showToolkit()}
+    @objc func editDestinations() {workspace?.showWorkspace()}
     @objc func assignSelected() {
         guard let workspace=workspace,let id=destination.selectedItem?.representedObject as? String else{return}
         guard !workspace.busy else {status.stringValue="Wait for the active verification or copy to finish before changing its draft.";return}
@@ -340,7 +374,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         catch {status.stringValue=error.localizedDescription}
     }
     func show() {
-        if window==nil {let w=NSWindow(contentRect:NSRect(x:0,y:0,width:1480,height:900),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false);w.title="KonMagic · Atlas Explorer";w.minSize=NSSize(width:1230,height:800);w.contentViewController=self;w.isReleasedWhenClosed=false;w.setFrameAutosaveName("KonMagicExplorer");w.center();window=w}
+        if window==nil {let w=NSWindow(contentRect:NSRect(x:0,y:0,width:1480,height:900),styleMask:[.titled,.closable,.miniaturizable,.resizable],backing:.buffered,defer:false);w.title="KonMagic · Content Explorer";w.minSize=NSSize(width:1230,height:800);w.contentViewController=self;w.isReleasedWhenClosed=false;w.setFrameAutosaveName("KonMagicExplorer");w.center();window=w}
         refreshDestinations();window?.makeKeyAndOrderFront(nil)
     }
 }

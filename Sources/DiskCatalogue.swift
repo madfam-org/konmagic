@@ -11,7 +11,8 @@ struct DiskOverview {
 struct DiskPage {let items:[CatalogItem];let total:Int;let canonical:String;let next:Int?}
 final class DiskCatalogue {
     let path:String
-    init(path:String) {self.path=path}
+    let knowledge:KnowledgeStore?
+    init(path:String,knowledge:KnowledgeStore?=nil) {self.path=path;self.knowledge=knowledge}
     func overview() throws -> DiskOverview {
         let reader=try AtlasDatabase(path);var record:[String:String]=[:],overview=DiskOverview()
         try reader.rows("SELECT key,value FROM meta") {s in record[AtlasDatabase.string(s,0)]=AtlasDatabase.string(s,1)}
@@ -29,7 +30,7 @@ final class DiskCatalogue {
         try reader.rows("SELECT path,status FROM roots ORDER BY path") {s in
             let path=AtlasDatabase.string(s,0)
             var item=CatalogItem(id:0,path:path,name:path,kind:"directory",bytes:0,context:AtlasDatabase.string(s,1))
-            item.origin="Whole-disk metadata";item.state="metadata_only";items.append(item)
+            item.origin="Whole-disk metadata";item.state="metadata_only";items.append(knowledge?.snapshot().applying(to:item) ?? item)
         };return items
     }
     func folder(_ requested:String,offset:Int=0,search:String="") throws -> DiskPage {
@@ -59,7 +60,7 @@ final class DiskCatalogue {
                 let flags=(row[7] as? NSNumber)?.uint32Value ?? 0
                 if flags & 0x40000000 != 0 {item.barrier="cloud"}
                 if kind=="link" {item.barrier="symlink"}
-                items.append(item)
+                items.append(knowledge?.snapshot().applying(to:item) ?? item)
             }
         }
         let more=items.count>200;if more {items.removeLast()}
@@ -70,12 +71,12 @@ final class DiskCatalogue {
         try reader.rows("SELECT path,reason FROM issues ORDER BY path LIMIT 200 OFFSET ?",[String(max(0,offset))]) {s in
             let path=AtlasDatabase.string(s,0)
             var item=CatalogItem(id:0,path:path,name:URL(fileURLWithPath:path).lastPathComponent,kind:"exception",bytes:0,context:AtlasDatabase.string(s,1))
-            item.origin="Whole-disk metadata";item.state="held";item.reason=item.context;items.append(item)
+            item.origin="Whole-disk metadata";item.state="held";item.reason=item.context;items.append(knowledge?.snapshot().applying(to:item) ?? item)
         };return items
     }
 }
 
-struct SummaryStamp:Codable,Equatable {let path:String;let file:Identity;let wal:Identity?}
+struct SummaryStamp:Codable,Equatable {let path:String;let file:Identity;let wal:Identity?;var tagStamp:String? = nil}
 struct SummaryCache:Codable {let stamp:SummaryStamp;let summary:CatalogueSummary}
 extension Catalog {
     func summaryStamp() throws -> SummaryStamp {
@@ -83,7 +84,7 @@ extension Catalog {
         let fd=try SafeFS.openDirectory(directory);defer {close(fd)}
         let file=try SafeFS.info(fd,name);var wal:Identity?
         var s=stat();if fstatat(fd,name+"-wal",&s,AT_SYMLINK_NOFOLLOW)==0 {guard SafeFS.isFile(s) else {throw KonMagicError("Catalogue WAL is not a regular file.")};wal=Identity(s)}
-        return SummaryStamp(path:path,file:Identity(file),wal:wal)
+        return SummaryStamp(path:path,file:Identity(file),wal:wal,tagStamp:knowledge?.snapshot().corrections.isEmpty == false ? knowledge?.snapshot().tagStamp : nil)
     }
     func cachedSummary(in directory:URL,cancellation:CatalogueCancellation?=nil) throws -> CatalogueSummary {
         let stamp=try summaryStamp(),url=directory.appendingPathComponent("catalogue-summary.json")

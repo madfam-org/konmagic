@@ -85,5 +85,6 @@ func runNativeTests() throws {
     try check(try library.liveFolder(browsing.path,offset:999).isEmpty,"End-of-folder pages are safely empty")
     checks += try runCatalogueTests(at:temp)
     checks += try runLensTests(at:temp)
+    checks += try runReviewTests(at:temp)
     print("NATIVE_SAFETY_TESTS passed=\(checks); synthetic fixtures only; actual user-source operations=0")
 }
