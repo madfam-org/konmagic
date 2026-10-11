@@ -1,6 +1,6 @@
 # Designer handoff: a friendly, expressive KonMagic
 
-This brief describes KonMagic 0.5.0's implemented native macOS interface and the design work we want next. Proposed styling is identified as a recommendation. The [screenshot atlas](../reference/screenshots.md) shows actual AppKit screens in light and dark appearances, entirely with invented data.
+This brief describes KonMagic 0.5.1's implemented native macOS interface and the design work we want next. Proposed styling is identified as a recommendation. The [screenshot atlas](../reference/screenshots.md) shows actual AppKit screens in light and dark appearances, entirely with invented data.
 
 ## Product personality and journey
 
@@ -210,7 +210,7 @@ Design a generous preview surface and useful held/unsupported placeholders. Dist
 
 ## Visual system and further design deliverables
 
-Version 0.5.0 ships shared pastel surfaces, rounded panels, system typography, local kitten illustrations and clearer five-page layouts. Build on those native components. The following recommendations extend the system across more states and interactions; they are not a claim that every detail already ships:
+Version 0.5.1 ships shared pastel surfaces, rounded panels, system typography, local kitten illustrations and clearer five-page layouts. Build on those native components. The following recommendations extend the system across more states and interactions; they are not a claim that every detail already ships:
 
 - Quiet neutrals with soft teal/lavender/apricot accents; status needs text and contrast in both appearances.
 - Consistent radius/spacing tokens; preserve recognizable native fields, menus and file panels.
@@ -224,3 +224,5 @@ Deliver annotated wide/compact layouts for all five views and the rich viewer; a
 Evaluate whether a first-time user can choose a tool, identify evidence freshness, find a family collection, correct context, choose a destination, edit a virtual hierarchy, return from a preview, read exact paths and explain verification versus approval. Repeat using keyboard navigation and compact layout. Measure completion, wrong-action attempts, context-recovery time, path-reading accuracy and perceived confidence. Establish a baseline before setting numerical targets. Validate VoiceOver, contrast and focus; existing native labels are a foundation rather than an accessibility certification.
 
 The desired result is a lovable tool whose kindness comes from clarity and control as much as visual charm.
+
+The discovery journey now keeps the destination/Review actions visible below scrolling evidence. Classification refresh retains matching selections and explicit destination choices. Loading, no-match and held views are first-class states; the complete pre-assignment destinations dialog belongs to this journey. Preserve these states when refining the visual design.

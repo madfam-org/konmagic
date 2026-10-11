@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.5.1 · build 10
+
+- Continuous discovery/inspection/classification with retained selection and destination.
+- Existing-value classification suggestions, live edit feedback and cross-window freshness guards.
+- Loading, held and empty result states; stale source actions and aggregate groups cleared.
+- Fixed destination controls below independently scrolling evidence.
+- Complete pre-assignment path preview preserving manual output names.
+- Gallery collection persistence and complete draft/tag revision checks for rule proposals.
+- Viewport gallery recycling, retained card reuse, metadata type icons and shared artwork; no hidden gallery construction during List discovery.
+- Private real-catalogue query/native-journey speed and resident-memory benchmark protocol.
+
+
 ## 0.5.0 · build 9
 
 - Refreshed all five native main views with shared pastel surfaces, illustrated headers and clearer navigation.

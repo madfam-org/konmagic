@@ -75,12 +75,12 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `final class KonMagicDelegate: NSObject, NSApplicationDelegate` | [L423](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L423) |
 | `init(qa:Bool=false)` | [L429](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L429) |
 | `func applicationDidFinishLaunching(_ n:Notification)` | [L430](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L430) |
-| `func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool` | [L486](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L486) |
-| `func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication) -> Bool` | [L487](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L487) |
-| `func applicationShouldTerminate(_ sender:NSApplication) -> NSApplication.TerminateReply` | [L491](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L491) |
-| `func runUIQA()` | [L495](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L495) |
-| `func runExplorerQA()` | [L517](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L517) |
-| `func runLensQA()` | [L556](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L556) |
+| `func applicationShouldHandleReopen(_ sender:NSApplication,hasVisibleWindows:Bool)->Bool` | [L487](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L487) |
+| `func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication) -> Bool` | [L488](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L488) |
+| `func applicationShouldTerminate(_ sender:NSApplication) -> NSApplication.TerminateReply` | [L492](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L492) |
+| `func runUIQA()` | [L496](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L496) |
+| `func runExplorerQA()` | [L518](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L518) |
+| `func runLensQA()` | [L557](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift#L557) |
 
 ## Catalog.swift
 
@@ -92,6 +92,23 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `init(path: String,knowledge:KnowledgeStore?=nil)` | [L29](https://github.com/madfam-org/konmagic/blob/main/Sources/Catalog.swift#L29) |
 | `func liveFolder(_ path:String,search:String="",offset:Int=0,includeHidden:Bool=false) throws -> [CatalogItem]` | [L30](https://github.com/madfam-org/konmagic/blob/main/Sources/Catalog.swift#L30) |
 | `func query(scope: String?, search: String, offset: Int = 0) throws -> [CatalogItem]` | [L46](https://github.com/madfam-org/konmagic/blob/main/Sources/Catalog.swift#L46) |
+
+## CatalogueBenchmark.swift
+
+| Declaration | Source |
+|---|---|
+| `struct PerformanceSample:Codable` | [L5](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L5) |
+| `struct PerformanceReport:Codable` | [L9](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L9) |
+| `func benchmarkMemory()->(UInt64,Int64)` | [L20](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L20) |
+| `func benchmarkSample(_ name:String,start:UInt64,value:Int64=0,status:String="ok",detail:String?=nil)->PerformanceSample` | [L26](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L26) |
+| `func validateBenchmarkState(_ state:URL) throws` | [L30](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L30) |
+| `func runCatalogueBenchmark() throws` | [L35](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L35) |
+| `func measure(_ name:String,repeats:Int=5,_ work:()throws->Int64)` | [L42](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L42) |
+| `func runJourneyBenchmark()` | [L83](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L83) |
+| `func paint()` | [L87](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L87) |
+| `func measure(_ name:String,_ body:()->Void)` | [L88](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L88) |
+| `func finish(_ error:String?=nil)` | [L89](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L89) |
+| `func wait(_ name:String,start:UInt64,ready:@escaping ()->Bool,then:@escaping ()->Void)` | [L97](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift#L97) |
 
 ## CatalogueDatabase.swift
 
@@ -132,75 +149,78 @@ Generated from the current Swift sources. Includes internal and test declaration
 |---|---|
 | `struct ExplorerDrillContext` | [L4](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L4) |
 | `final class ExplorerNode:NSObject` | [L9](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L9) |
-| `init(_ item:CatalogItem)` | [L19](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L19) |
-| `init(title:String,choices:[CatalogueDimension:String],level:Int)` | [L20](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L20) |
-| `final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,NSTableViewDelegate,` | [L23](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L23) |
-| `init(workspace:KonMagicController)` | [L58](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L58) |
-| `func text(_ value:String,size:CGFloat=12,weight:NSFont.Weight = .regular)->NSTextField` | [L60](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L60) |
-| `func button(_ title:String,_ action:Selector)->NSButton` | [L63](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L63) |
-| `func row(_ views:[NSView])->NSStackView` | [L64](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L64) |
-| `func column(_ views:[NSView])->NSStackView` | [L65](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L65) |
-| `func scroll(_ view:NSView)->NSScrollView` | [L66](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L66) |
-| `func setupTable(_ table:NSTableView,columns:[(String,String,CGFloat)])` | [L67](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L67) |
-| `override func loadView()` | [L71](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L71) |
-| `func refreshDestinations()` | [L157](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L157) |
-| `func drillInto(_ choices:[CatalogueDimension:String])` | [L166](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L166) |
-| `@objc func restoreDrillContext()` | [L172](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L172) |
-| `func updateFilterChips()` | [L176](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L176) |
-| `@objc func removeFilter(_ sender:NSButton)` | [L181](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L181) |
-| `func showRecordedFolder(_ path:String)` | [L182](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L182) |
-| `func slice()->CatalogueSlice` | [L185](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L185) |
-| `func resetPaging()` | [L186](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L186) |
-| `@objc func searchChanged()` | [L187](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L187) |
-| `func controlTextDidChange(_ note:Notification)` | [L188](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L188) |
-| `@objc func clearFilters()` | [L189](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L189) |
-| `@objc func refresh()` | [L190](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L190) |
-| `@objc func changeDataset()` | [L191](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L191) |
-| `@objc func changePlace()` | [L202](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L202) |
-| `@objc func changeDimension()` | [L203](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L203) |
-| `@objc func changeMetric()` | [L204](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L204) |
-| `@objc func changeVisualization()` | [L205](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L205) |
-| `func updateMode()` | [L206](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L206) |
-| `@objc func selectFacet()` | [L215](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L215) |
-| `func loadPage()` | [L216](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L216) |
-| `func loadSummary()` | [L246](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L246) |
-| `func number(_ n:Int64)->String` | [L267](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L267) |
-| `func renderSummary()` | [L268](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L268) |
-| `func loadRoots()` | [L289](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L289) |
-| `func loadTagTree()` | [L303](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L303) |
-| `func outlineView(_ outline:NSOutlineView,numberOfChildrenOfItem item:Any?)->Int` | [L307](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L307) |
-| `func outlineView(_ outline:NSOutlineView,child index:Int,ofItem item:Any?)->Any` | [L308](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L308) |
-| `func outlineView(_ outline:NSOutlineView,isItemExpandable item:Any)->Bool` | [L309](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L309) |
-| `func outlineView(_ outline:NSOutlineView,shouldExpandItem item:Any)->Bool` | [L310](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L310) |
-| `func loadChildren(_ node:ExplorerNode)` | [L320](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L320) |
-| `func outlineView(_ outline:NSOutlineView,viewFor tableColumn:NSTableColumn?,item:Any)->NSView?` | [L337](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L337) |
-| `func outlineViewSelectionDidChange(_ note:Notification)` | [L340](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L340) |
-| `func outlineView(_ outline:NSOutlineView,pasteboardWriterForItem item:Any)->NSPasteboardWriting?` | [L341](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L341) |
-| `func selectedRecords()->[CatalogItem]` | [L342](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L342) |
-| `@objc func openTreeSelection()` | [L347](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L347) |
-| `@objc func openObservation()` | [L353](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L353) |
-| `func open(_ item:CatalogItem)` | [L354](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L354) |
-| `@objc func parentFolder()` | [L355](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L355) |
-| `@objc func nextPage()` | [L356](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L356) |
-| `@objc func previousPage()` | [L357](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L357) |
-| `func numberOfRows(in tableView:NSTableView)->Int` | [L358](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L358) |
-| `func tableView(_ tableView:NSTableView,viewFor column:NSTableColumn?,row:Int)->NSView?` | [L359](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L359) |
-| `func tableViewSelectionDidChange(_ note:Notification)` | [L371](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L371) |
-| `func tableView(_ tableView:NSTableView,pasteboardWriterForRow row:Int)->NSPasteboardWriting?` | [L372](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L372) |
-| `@objc func destinationChanged()` | [L373](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L373) |
-| `func updateSelectionControls()` | [L374](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L374) |
-| `func showMetadata()` | [L387](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L387) |
-| `@objc func showReading()` | [L424](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L424) |
-| `@objc func toggleContentDetails()` | [L431](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L431) |
-| `@objc func selectContentFamily(_ sender:NSButton)` | [L432](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L432) |
-| `@objc func loadGalleryThumbnails()` | [L433](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L433) |
-| `@objc func clearGalleryImages()` | [L434](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L434) |
-| `override func viewDidLayout()` | [L435](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L435) |
-| `@objc func revealSource()` | [L436](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L436) |
-| `@objc func returnToToolkit()` | [L437](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L437) |
-| `@objc func editDestinations()` | [L438](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L438) |
-| `@objc func assignSelected()` | [L439](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L439) |
-| `func show()` | [L447](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L447) |
+| `init(_ item:CatalogItem)` | [L20](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L20) |
+| `init(title:String,choices:[CatalogueDimension:String],level:Int)` | [L21](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L21) |
+| `final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,NSTableViewDelegate,` | [L24](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L24) |
+| `init(workspace:KonMagicController)` | [L65](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L65) |
+| `func text(_ value:String,size:CGFloat=12,weight:NSFont.Weight = .regular)->NSTextField` | [L67](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L67) |
+| `func button(_ title:String,_ action:Selector)->NSButton` | [L70](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L70) |
+| `func row(_ views:[NSView])->NSStackView` | [L71](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L71) |
+| `func column(_ views:[NSView])->NSStackView` | [L72](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L72) |
+| `func scroll(_ view:NSView)->NSScrollView` | [L73](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L73) |
+| `func setupTable(_ table:NSTableView,columns:[(String,String,CGFloat)])` | [L74](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L74) |
+| `override func loadView()` | [L78](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L78) |
+| `func refreshDestinations()` | [L172](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L172) |
+| `func drillInto(_ choices:[CatalogueDimension:String])` | [L181](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L181) |
+| `@objc func restoreDrillContext()` | [L187](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L187) |
+| `func updateFilterChips()` | [L191](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L191) |
+| `@objc func removeFilter(_ sender:NSButton)` | [L196](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L196) |
+| `func showRecordedFolder(_ path:String)` | [L197](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L197) |
+| `func slice()->CatalogueSlice` | [L200](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L200) |
+| `func resetPaging()` | [L201](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L201) |
+| `@objc func searchChanged()` | [L202](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L202) |
+| `func controlTextDidChange(_ note:Notification)` | [L203](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L203) |
+| `@objc func clearFilters()` | [L208](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L208) |
+| `@objc func refresh()` | [L209](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L209) |
+| `@objc func changeDataset()` | [L210](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L210) |
+| `@objc func changePlace()` | [L221](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L221) |
+| `@objc func changeDimension()` | [L222](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L222) |
+| `@objc func changeMetric()` | [L223](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L223) |
+| `@objc func changeVisualization()` | [L224](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L224) |
+| `func updateMode()` | [L225](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L225) |
+| `@objc func selectFacet()` | [L235](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L235) |
+| `func loadPage(preserving paths:Set<String>=[])` | [L236](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L236) |
+| `func loadSummary()` | [L273](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L273) |
+| `func number(_ n:Int64)->String` | [L296](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L296) |
+| `func renderSummary()` | [L297](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L297) |
+| `func loadRoots()` | [L318](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L318) |
+| `func loadTagTree()` | [L333](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L333) |
+| `func outlineView(_ outline:NSOutlineView,numberOfChildrenOfItem item:Any?)->Int` | [L337](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L337) |
+| `func outlineView(_ outline:NSOutlineView,child index:Int,ofItem item:Any?)->Any` | [L338](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L338) |
+| `func outlineView(_ outline:NSOutlineView,isItemExpandable item:Any)->Bool` | [L339](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L339) |
+| `func outlineView(_ outline:NSOutlineView,shouldExpandItem item:Any)->Bool` | [L340](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L340) |
+| `func loadChildren(_ node:ExplorerNode)` | [L350](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L350) |
+| `func outlineView(_ outline:NSOutlineView,viewFor tableColumn:NSTableColumn?,item:Any)->NSView?` | [L367](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L367) |
+| `func outlineViewSelectionDidChange(_ note:Notification)` | [L370](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L370) |
+| `func reloadSelectedTreeKnowledge()` | [L375](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L375) |
+| `func outlineView(_ outline:NSOutlineView,pasteboardWriterForItem item:Any)->NSPasteboardWriting?` | [L398](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L398) |
+| `func selectedRecords()->[CatalogItem]` | [L399](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L399) |
+| `@objc func openTreeSelection()` | [L405](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L405) |
+| `@objc func openObservation()` | [L412](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L412) |
+| `func open(_ item:CatalogItem)` | [L413](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L413) |
+| `@objc func parentFolder()` | [L414](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L414) |
+| `@objc func nextPage()` | [L415](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L415) |
+| `@objc func previousPage()` | [L416](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L416) |
+| `func numberOfRows(in tableView:NSTableView)->Int` | [L417](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L417) |
+| `func tableView(_ tableView:NSTableView,viewFor column:NSTableColumn?,row:Int)->NSView?` | [L418](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L418) |
+| `func tableViewSelectionDidChange(_ note:Notification)` | [L430](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L430) |
+| `func tableView(_ tableView:NSTableView,pasteboardWriterForRow row:Int)->NSPasteboardWriting?` | [L431](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L431) |
+| `@objc func destinationChanged()` | [L432](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L432) |
+| `func updateSelectionControls()` | [L433](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L433) |
+| `func showMetadata()` | [L450](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L450) |
+| `@objc func showReading()` | [L489](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L489) |
+| `@objc func toggleContentDetails()` | [L496](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L496) |
+| `@objc func selectContentFamily(_ sender:NSButton)` | [L497](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L497) |
+| `@objc func loadGalleryThumbnails()` | [L498](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L498) |
+| `@objc func clearGalleryImages()` | [L499](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L499) |
+| `func updateResultState()` | [L500](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L500) |
+| `@objc func previewPlacement()` | [L512](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L512) |
+| `override func viewDidLayout()` | [L527](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L527) |
+| `@objc func revealSource()` | [L528](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L528) |
+| `@objc func returnToToolkit()` | [L529](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L529) |
+| `@objc func editDestinations()` | [L530](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L530) |
+| `@objc func assignSelected()` | [L531](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L531) |
+| `func show()` | [L539](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift#L539) |
 
 ## CatalogueTests.swift
 
@@ -229,25 +249,38 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `override func mouseDown(with event:NSEvent)` | [L104](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueVisuals.swift#L104) |
 | `override func keyDown(with event:NSEvent)` | [L108](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueVisuals.swift#L108) |
 
+## ClassificationTestsUI.swift
+
+| Declaration | Source |
+|---|---|
+| `func runClassificationJourneyQA()` | [L5](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift#L5) |
+| `func check(_ value:Bool,_ label:String)` | [L9](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift#L9) |
+| `func finish()` | [L10](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift#L10) |
+| `func wait(_ ready:@escaping ()->Bool,deadline:Date=Date().addingTimeInterval(15),_ next:@escaping ()->Void)` | [L19](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift#L19) |
+| `func descendants(_ v:NSView)->[NSView]` | [L36](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift#L36) |
+
 ## ContentGallery.swift
 
 | Declaration | Source |
 |---|---|
-| `final class ContentGalleryCard:FriendlyPanel` | [L4](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L4) |
-| `init(_ item:CatalogItem,index:Int,owner:ContentGallery)` | [L7](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L7) |
-| `override func draw(_ rect:NSRect)` | [L22](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L22) |
-| `final class ContentGallery:NSView` | [L26](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L26) |
-| `init(owner:CatalogueExplorerController)` | [L32](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L32) |
-| `func rebuild()` | [L34](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L34) |
-| `override func setFrameSize(_ size:NSSize)` | [L39](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L39) |
-| `func arrange()` | [L40](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L40) |
-| `func syncSelection()` | [L47](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L47) |
-| `func updateImages()` | [L48](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L48) |
-| `@objc func toggle(_ sender:NSButton)` | [L49](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L49) |
-| `@objc func choose(_ sender:NSButton)` | [L50](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L50) |
-| `func clear()` | [L51](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L51) |
-| `func loadThumbnails()` | [L52](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L52) |
-| `func pump(_ token:Int)` | [L55](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L55) |
+| `final class ContentGalleryCard:FriendlyPanel` | [L5](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L5) |
+| `init(_ item:CatalogItem,index:Int,owner:ContentGallery)` | [L8](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L8) |
+| `override func draw(_ rect:NSRect)` | [L23](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L23) |
+| `final class ContentGallery:NSView` | [L27](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L27) |
+| `init(owner:CatalogueExplorerController)` | [L34](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L34) |
+| `override func viewDidMoveToSuperview()` | [L36](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L36) |
+| `func icon(_ item:CatalogItem)->NSImage` | [L44](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L44) |
+| `func invalidatePage()` | [L50](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L50) |
+| `func rebuild()` | [L53](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L53) |
+| `override func setFrameSize(_ size:NSSize)` | [L58](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L58) |
+| `func arrange()` | [L59](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L59) |
+| `func syncSelection()` | [L74](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L74) |
+| `func updateImages()` | [L75](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L75) |
+| `@objc func toggle(_ sender:NSButton)` | [L76](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L76) |
+| `@objc func choose(_ sender:NSButton)` | [L77](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L77) |
+| `func clear()` | [L78](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L78) |
+| `func loadThumbnails()` | [L79](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L79) |
+| `func pump(_ token:Int)` | [L82](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift#L82) |
 
 ## ContextHelp.swift
 
@@ -255,13 +288,13 @@ Generated from the current Swift sources. Includes internal and test declaration
 |---|---|
 | `final class DialogValidation:NSObject` | [L3](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L3) |
 | `init(fields:[NSTextField]=[],popups:[NSPopUpButton]=[],evaluate:@escaping ()->Void)` | [L6](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L6) |
-| `@objc func refresh(_ sender:Any?)` | [L12](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L12) |
-| `func run(_ alert:NSAlert)->NSApplication.ModalResponse` | [L13](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L13) |
-| `func dialogAccessory(_ views:[NSView])->NSView` | [L16](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L16) |
-| `func contextHelp(from sender:NSButton,title:String,body:String)->NSPopover` | [L27](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L27) |
-| `@objc func showTips(_ sender:NSButton)` | [L35](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L35) |
-| `@objc func showTips(_ sender:NSButton)` | [L41](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L41) |
-| `@objc func showWorkspaceTips(_ sender:NSButton)` | [L46](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L46) |
+| `@objc func refresh(_ sender:Any?)` | [L13](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L13) |
+| `func run(_ alert:NSAlert)->NSApplication.ModalResponse` | [L14](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L14) |
+| `func dialogAccessory(_ views:[NSView])->NSView` | [L17](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L17) |
+| `func contextHelp(from sender:NSButton,title:String,body:String)->NSPopover` | [L28](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L28) |
+| `@objc func showTips(_ sender:NSButton)` | [L36](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L36) |
+| `@objc func showTips(_ sender:NSButton)` | [L42](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L42) |
+| `@objc func showWorkspaceTips(_ sender:NSButton)` | [L47](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift#L47) |
 
 ## DiskCatalogue.swift
 
@@ -606,31 +639,32 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `static func row(_ views:[NSView],spacing:CGFloat=10)->NSStackView` | [L19](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L19) |
 | `static func column(_ views:[NSView],spacing:CGFloat=10)->NSStackView` | [L20](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L20) |
 | `static func panel(_ content:NSView,tint:NSColor?=nil,padding:CGFloat=16)->FriendlyPanel` | [L21](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L21) |
-| `static func scrollingPanel(_ content:NSView,width:CGFloat,tint:NSColor?=nil,padding:CGFloat=14)->FriendlyPanel` | [L26](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L26) |
-| `static func button(_ title:String,symbol:String?=nil,tint:NSColor?=nil,target:AnyObject?,action:Selector)->NSButton` | [L32](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L32) |
-| `static func artwork(_ name:String)->NSImage?` | [L38](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L38) |
-| `final class FriendlyCanvas:NSView` | [L44](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L44) |
-| `override func draw(_ rect:NSRect)` | [L45](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L45) |
-| `final class FriendlyDocument:NSView` | [L47](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L47) |
-| `final class FriendlyMascot:NSView` | [L48](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L48) |
-| `init(kind:Int)` | [L50](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L50) |
-| `override func draw(_ rect:NSRect)` | [L52](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L52) |
-| `class FriendlyPanel:NSView` | [L57](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L57) |
-| `init(tint:NSColor?=nil)` | [L60](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L60) |
-| `override func draw(_ rect:NSRect)` | [L62](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L62) |
-| `override func viewDidChangeEffectiveAppearance()` | [L67](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L67) |
-| `final class FriendlyActionButton:NSButton` | [L72](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L72) |
-| `init(title:String,tint:NSColor,target:AnyObject?,action:Selector)` | [L75](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L75) |
-| `override func draw(_ dirtyRect:NSRect)` | [L81](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L81) |
-| `override func viewDidChangeEffectiveAppearance()` | [L94](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L94) |
-| `final class FriendlyMetric:NSView` | [L97](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L97) |
-| `init(title:String,symbol:String,tint:NSColor,compact:Bool=false)` | [L99](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L99) |
-| `final class ToolkitHero:FriendlyPanel` | [L110](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L110) |
-| `init()` | [L112](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L112) |
-| `override func draw(_ rect:NSRect)` | [L114](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L114) |
-| `final class FriendlyTaskIcon:NSView` | [L130](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L130) |
-| `init(kind:Int,tint:NSColor)` | [L132](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L132) |
-| `override func draw(_ rect:NSRect)` | [L134](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L134) |
+| `static func scrollingContent(_ content:NSView)->NSScrollView` | [L26](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L26) |
+| `static func scrollingPanel(_ content:NSView,width:CGFloat,tint:NSColor?=nil,padding:CGFloat=14)->FriendlyPanel` | [L32](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L32) |
+| `static func button(_ title:String,symbol:String?=nil,tint:NSColor?=nil,target:AnyObject?,action:Selector)->NSButton` | [L35](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L35) |
+| `static func artwork(_ name:String)->NSImage?` | [L42](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L42) |
+| `final class FriendlyCanvas:NSView` | [L50](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L50) |
+| `override func draw(_ rect:NSRect)` | [L51](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L51) |
+| `final class FriendlyDocument:NSView` | [L53](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L53) |
+| `final class FriendlyMascot:NSView` | [L54](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L54) |
+| `init(kind:Int)` | [L56](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L56) |
+| `override func draw(_ rect:NSRect)` | [L58](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L58) |
+| `class FriendlyPanel:NSView` | [L63](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L63) |
+| `init(tint:NSColor?=nil)` | [L66](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L66) |
+| `override func draw(_ rect:NSRect)` | [L68](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L68) |
+| `override func viewDidChangeEffectiveAppearance()` | [L73](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L73) |
+| `final class FriendlyActionButton:NSButton` | [L78](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L78) |
+| `init(title:String,tint:NSColor,target:AnyObject?,action:Selector)` | [L81](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L81) |
+| `override func draw(_ dirtyRect:NSRect)` | [L87](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L87) |
+| `override func viewDidChangeEffectiveAppearance()` | [L100](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L100) |
+| `final class FriendlyMetric:NSView` | [L103](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L103) |
+| `init(title:String,symbol:String,tint:NSColor,compact:Bool=false)` | [L105](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L105) |
+| `final class ToolkitHero:FriendlyPanel` | [L116](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L116) |
+| `init()` | [L118](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L118) |
+| `override func draw(_ rect:NSRect)` | [L120](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L120) |
+| `final class FriendlyTaskIcon:NSView` | [L136](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L136) |
+| `init(kind:Int,tint:NSColor)` | [L138](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L138) |
+| `override func draw(_ rect:NSRect)` | [L140](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift#L140) |
 
 ## InspectorTypography.swift
 
@@ -638,6 +672,16 @@ Generated from the current Swift sources. Includes internal and test declaration
 |---|---|
 | `final class KonMagicInspector:NSTextView` | [L5](https://github.com/madfam-org/konmagic/blob/main/Sources/InspectorTypography.swift#L5) |
 | `func friendlyObservationDate(_ value:String)->String` | [L24](https://github.com/madfam-org/konmagic/blob/main/Sources/InspectorTypography.swift#L24) |
+
+## JourneySupport.swift
+
+| Declaration | Source |
+|---|---|
+| `struct PlacementPair` | [L4](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift#L4) |
+| `struct PlacementPreview` | [L7](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift#L7) |
+| `static func make(_ items:[CatalogItem],node:String,workspace:Workspace) throws -> PlacementPreview` | [L11](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift#L11) |
+| `final class ContentResultState:FriendlyPanel` | [L25](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift#L25) |
+| `init(owner:CatalogueExplorerController)` | [L29](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift#L29) |
 
 ## JourneyTestsUI.swift
 
@@ -683,8 +727,8 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `func runKnowledgeTests(at directory:URL,catalogueURL:URL) throws -> Int` | [L4](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L4) |
 | `func check(_ result:Bool,_ message:String) throws` | [L6](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L6) |
 | `func refuses(_ message:String,_ body:()throws->Void) throws` | [L7](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L7) |
-| `func runReviewTests(at directory:URL) throws -> Int` | [L60](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L60) |
-| `func check(_ result:Bool,_ message:String) throws` | [L62](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L62) |
+| `func runReviewTests(at directory:URL) throws -> Int` | [L67](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L67) |
+| `func check(_ result:Bool,_ message:String) throws` | [L69](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift#L69) |
 
 ## KnowledgeUI.swift
 
@@ -695,11 +739,11 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `func field(_ value:String="",placeholder:String="")->NSTextField` | [L13](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L13) |
 | `func knowledgeChanged()` | [L16](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L16) |
 | `func reloadKnowledge()` | [L17](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L17) |
-| `@objc func correctTags()` | [L21](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L21) |
-| `@objc func collectionsMenu()` | [L53](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L53) |
-| `@objc func rulesMenu()` | [L81](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L81) |
-| `func createRule()` | [L101](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L101) |
-| `func previewRule(_ rule:ProposalRule)` | [L121](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L121) |
+| `@objc func correctTags()` | [L24](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L24) |
+| `@objc func collectionsMenu()` | [L67](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L67) |
+| `@objc func rulesMenu()` | [L95](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L95) |
+| `func createRule()` | [L115](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L115) |
+| `func previewRule(_ rule:ProposalRule)` | [L135](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeUI.swift#L135) |
 
 ## MetadataLabels.swift
 
@@ -839,8 +883,8 @@ Generated from the current Swift sources. Includes internal and test declaration
 | `private func captureOwnedView(_ view:NSView,to path:String) throws` | [L3](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L3) |
 | `func runReviewUIQA()` | [L15](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L15) |
 | `func runKnowledgeUIQA()` | [L38](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L38) |
-| `func runDialog(_ name:String,fields:Int,popups:Int,_ action:()->Void)` | [L48](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L48) |
-| `func descendants(_ v:NSView)->[NSView]` | [L52](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L52) |
+| `func runDialog(_ name:String,fields:Int,popups:Int,_ action:()->Void)` | [L49](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L49) |
+| `func descendants(_ v:NSView)->[NSView]` | [L53](https://github.com/madfam-org/konmagic/blob/main/Sources/ReviewTestsUI.swift#L53) |
 
 ## ScanComparisonUI.swift
 

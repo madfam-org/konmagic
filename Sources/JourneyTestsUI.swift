@@ -11,6 +11,7 @@ extension KonMagicDelegate {
             func check(_ value:Bool,_ name:String) {checks+=1;if !value {failures.append(name)}}
             func go(_ page:KonMagicPage) {let start=Date();host.navigate(page);transitions.append(Date().timeIntervalSince(start)*1000)}
             guard let explorer=self.controller.explorer else {exit(1)}
+            check(explorer.gallery.cards.isEmpty,"list discovery allocates no hidden gallery cards")
             do {
                 go(.review)
                 guard let review=self.controller.review else {exit(1)}
@@ -21,12 +22,20 @@ extension KonMagicDelegate {
                 let node=FolderNode(parent:nil,name:"Synthetic thoughtful collection")
                 try self.controller.store.change {$0.nodes.append(node)};self.controller.refreshDraft()
                 go(.content)
-                explorer.pageCancellation.cancel();explorer.generation+=1
+                explorer.pageCancellation.cancel();explorer.generation+=1;explorer.pageLoading=false
                 let item=CatalogItem(id:0,path:"/synthetic/family/celebration.mov",name:"celebration.mov",kind:"file",bytes:42,context:"Synthetic family collection")
                 explorer.mode.selectedSegment=0;explorer.updateMode();explorer.records=[item];explorer.table.reloadData();explorer.table.selectRowIndexes(IndexSet(integer:0),byExtendingSelection:false)
                 explorer.mode.selectedSegment=5;explorer.updateMode()
                 check(explorer.selectedRecords().first?.path==item.path && explorer.gallery.cards.count==1,"gallery shares exact list selection authority")
                 check(explorer.gallery.images.isEmpty && explorer.gallery.requests.isEmpty,"gallery presentation does not request source bodies")
+                let card=explorer.gallery.cards.first;explorer.gallery.rebuild()
+                check(card === explorer.gallery.cards.first,"returning to gallery reuses unchanged visible cards")
+                explorer.generation+=1;explorer.records=(0..<200).map {CatalogItem(id:0,path:"/synthetic/gallery/\($0).txt",name:"\($0).txt",kind:"file",bytes:12,context:"Synthetic scrolling fixture")};explorer.table.reloadData();explorer.gallery.rebuild()
+                let clip=explorer.galleryScroll.contentView;clip.scroll(to:NSPoint(x:0,y:max(0,explorer.gallery.frame.height-clip.bounds.height)));explorer.galleryScroll.reflectScrolledClipView(clip);explorer.gallery.arrange()
+                check(explorer.gallery.cards.count<40 && explorer.gallery.cards.contains(where:{$0.index==199}),"gallery recycles visible cards and reaches the final page source")
+                if let last=explorer.gallery.cards.first(where:{$0.index==199}) {explorer.gallery.choose(last.check)}
+                check(explorer.selectedRecords().first?.path=="/synthetic/gallery/199.txt","recycled card selection retains exact source authority")
+                explorer.generation+=1;explorer.records=[item];explorer.table.reloadData();explorer.table.selectRowIndexes(IndexSet(integer:0),byExtendingSelection:false);clip.scroll(to:.zero);explorer.gallery.rebuild();explorer.showMetadata()
                 explorer.mode.selectedSegment=3;explorer.updateMode();check(explorer.selectedRecords().isEmpty && !explorer.assignButton.isEnabled,"gallery authority held on semantic maps")
                 explorer.mode.selectedSegment=0;explorer.updateMode()
                 explorer.destination.select(explorer.destination.itemArray.first {$0.representedObject as? String==node.id});explorer.destinationChanged()

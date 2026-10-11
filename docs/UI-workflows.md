@@ -76,7 +76,7 @@ much space a removal would reclaim.
 
 ## Refine a collection you understand
 
-Select real files or folders and choose **Correct selected tags**. Owner,
+Select real files or folders and choose **Refine selected tags**. Owner,
 project, family, role and lifecycle describe context; they do not choose a
 destination automatically. Blank fields stay unchanged. **Unassigned** clears
 a category. Folder corrections apply to that exact path, so active descendants

@@ -10,7 +10,7 @@ Developer ID signing/notarization, a universal release strategy, updater/rollbac
 
 Native whole-machine body ingestion, richer extractor pipelines, full semantic/perceptual inference and robust external rename reconciliation are not implemented. The app consumes compatible retained readings/tags. Exact-path corrections can become stale after external changes. No Finder tag writing, unattended automation or content upload service is configured.
 
-Rule proposals are bounded and need rerunning after classification changes during preparation; workspace revision is checked, but correction-revision freshness is not comprehensively guarded for every async rule path. Some aggregate groups remain visible briefly while new counts load. UI status must retain the loading distinction.
+Rule proposals are bounded and need rerunning after draft or classification changes. Proposal preparation and approval check the complete workspace hash and correction stamp. Explorer queries clear prior aggregate groups during loading and hold old source actions until the current page completes.
 
 ## Storage compatibility
 

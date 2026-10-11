@@ -14,6 +14,8 @@ The app is designed to observe large catalogues while holding bounded UI pages. 
 | Preview/copy | Dedicated utility transfer queue |
 | AppKit state | Main-thread updates only |
 | Content gallery thumbnails | Explicit request, up to 24 files and three concurrent providers; update existing cards, cancel on context change |
+| Content gallery cards | Only visible rows plus one adjacent row on either side; reuse unchanged cards, no hidden List-view gallery allocation |
+| System icons and decorative artwork | Type icons from retained metadata; bounded page icon cache and shared bundled artwork |
 
 A newer request cancels or supersedes old page/summary work. Results must match their generation before touching views. A background source completion must not overwrite the active transfer’s status. Keep cancellation checks inside long enumeration/streaming loops, not only at operation boundaries.
 
@@ -33,6 +35,16 @@ Use synthetic inputs for public benchmarks. Local large-catalogue smoke output i
 
 ## Known constraints
 
-Some aggregation is inherently proportional to the retained catalogue. Displayed prior groups may remain briefly while a new summary loads; the loading status must make that visible. Rules are bounded proposals rather than streaming machine-wide execution. A saved scan refresh without live event history performs full enumeration.
+Some aggregation is inherently proportional to the retained catalogue. Prior groups are cleared while a new summary loads; the status explains that work without holding ordinary browsing. Rules are bounded proposals rather than streaming machine-wide execution. A saved scan refresh without live event history performs full enumeration.
 
 Avoid broad repeated whole-machine scans for UI interactions. Keep expensive content inference out of hover handlers and folder selection. Do not weaken reserve/cancellation checks for a faster benchmark.
+
+## Private real-catalogue benchmark
+
+Run `python3 scripts/benchmark.py` after building the current code. The wrapper checks bounded, owned private app state, creates an isolated `/private/tmp/konmagic-benchmark-*` directory and copies decisions/cache into it. The working draft, tags and original catalogue remain untouched. It does not create the proposed output folder. Results, logs, machine context and the local HTML report stay private; never commit real runs.
+
+`--benchmark-catalogue` measures process-cold connections, first/next pages, familiar-folder paging, metadata/FTS searches, an uncached full summary, cached summaries, facet intersections, disk-ledger paging and cancellation. Small queries use five samples; search/disk/cancellation use three; full aggregation uses one. Operating-system filesystem caches are not flushed. A held/timed-out query remains a held sample rather than an empty success.
+
+`--journey-benchmark` measures the native display cycle for Content, metadata presentation, opening/cancelling classification, exact placement calculation, an isolated draft/Review handoff, Gallery rebuilds, semantic maps and cached page transitions. It requests no thumbnails, source previews, full hashes or approved copies. The classification open/cancel sample includes a fixed 400 ms cancellation timer; it is not an editor-open latency measurement. Storage page samples display controls without importing a whole-machine scan. Other view samples measure the native display cycle, not physical input-to-photon latency. Resident and peak resident memory include the process, SQLite, AppKit, artwork and decoding; peak is a cumulative high-water mark.
+
+Both modes require an owned temporary benchmark state. The wrapper checks working decision hashes and input database identities before/after, and records machine load so background workload remains visible. Use `--skip-ui` for query-only measurements. Synthetic documentation captures remain a separate workflow and cannot be populated from these private runs.

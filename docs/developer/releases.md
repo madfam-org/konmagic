@@ -1,6 +1,6 @@
 # Builds, installation and release claims
 
-The app version is `CFBundleShortVersionString`; the build is `CFBundleVersion` in `scripts/Info.plist`. The current interface release is **0.5.0 / build 9**. The deployment target is macOS 13. Source compatibility is Swift 5.8+ with Swift 5 language mode in the build script.
+The app version is `CFBundleShortVersionString`; the build is `CFBundleVersion` in `scripts/Info.plist`. The current interface release is **0.5.1 / build 10**. The deployment target is macOS 13. Source compatibility is Swift 5.8+ with Swift 5 language mode in the build script.
 
 ## Local build lifecycle
 

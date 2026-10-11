@@ -13,7 +13,8 @@ The GitHub native workflow builds on `macos-latest` and runs these checks. UI re
 | Mode | Purpose |
 |---|---|
 | `--navigation-ui-smoke` | Five stages in one host, Back/Forward, cached views, shared decisions, pop-outs, viewport and global holds |
-| `--journey-ui-smoke` | Exact assignment handoff, Review empty/filtered states, output rename, map-return/chips, inventory paging and transfer holds |
+| `--classification-ui-smoke` | Synthetic editor save, selection/destination retention, loading/empty states and held transfers |
+| `--journey-ui-smoke` | Exact assignment handoff, recycled gallery end-of-page selection, retained cards, Review empty/filtered states, output rename, map-return/chips, inventory paging and transfer holds |
 | `--toolkit-ui-smoke` | Balanced cards and stage/keyboard routes |
 | `--explorer-ui-smoke` | Dataset/list/tree/map views and exact assignment preview |
 | `--lens-ui-smoke` | Own-view render, bounded rows and proportional map conservation |
@@ -29,7 +30,7 @@ Ordinary QA can connect real local observations. Its outputs are **always privat
 
 `--documentation-capture` validates the fixture marker, root, catalogue path, output and assignment sources before initializing the app. It composites only this process’s owned synthetic windows, including native alerts and Quick Look layers; it never captures the desktop or another app. Older local SDKs use the owned-window Core Graphics API, while modern toolchains use macOS screencapture with that exact window number. Capture can be unavailable under macOS privacy restrictions; the workflow fails rather than publishing an empty view. It does not change permissions. It traverses the invented source metadata, reads synthetic cached text, verifies one small synthetic plan using the explicit fixture allowance, cancels native editing dialogs, and walks all eight welcome pages. It cancels copy confirmation and never invokes approved copying. The viewer examples explicitly request only invented file/thumbnail content.
 
-The workflow also checks folder metadata without body requests, bounded gallery/thumbnail requests, clearing then reopening native previews, and clearing stale Storage selection summaries on navigation. It captures 42 owned views per appearance, including Content before and after an explicit thumbnail request. It activates its owned window, forces display/flush, and rejects identical compositor frames for the distinct Structure and Recorded disk pages. The output folder must be new. Create a separate fixture for each appearance or rerun. The app’s production source eligibility and current-state guards are not relaxed.
+The workflow also checks folder metadata without body requests, bounded gallery/thumbnail requests, clearing then reopening native previews, and clearing stale Storage selection summaries on navigation. It captures 43 owned views per appearance, including Content before and after an explicit thumbnail request. It activates its owned window, forces display/flush, and rejects identical compositor frames for the distinct Structure and Recorded disk pages. The output folder must be new. Create a separate fixture for each appearance or rerun. The app’s production source eligibility and current-state guards are not relaxed.
 
 ## Refresh public screenshots
 

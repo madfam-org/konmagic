@@ -50,6 +50,7 @@ extension KonMagicDelegate {
             check(controller.plan==nil && !controller.applyButton.isEnabled,"stale verification invalidated in other window")
             var item=CatalogItem(id:0,path:"/synthetic/navigation.txt",name:"navigation.txt",kind:"file",bytes:12,context:"Synthetic navigation fixture")
             item.tags=["owner":"Synthetic"]
+            other.pageCancellation.cancel();other.generation+=1;other.pageLoading=false
             other.records=[item];other.table.reloadData();other.table.selectRowIndexes(IndexSet(integer:0),byExtendingSelection:false)
             if let menu=other.destination.itemArray.first(where:{$0.representedObject as? String==newNode.id}) {other.destination.select(menu)}
             third.workspace.setBusy(true)

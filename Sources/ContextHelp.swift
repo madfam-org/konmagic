@@ -6,6 +6,7 @@ final class DialogValidation:NSObject {
     init(fields:[NSTextField]=[],popups:[NSPopUpButton]=[],evaluate:@escaping ()->Void) {
         self.evaluate=evaluate;super.init()
         for field in fields {observers.append(NotificationCenter.default.addObserver(forName:NSControl.textDidChangeNotification,object:field,queue:nil) {[weak self] _ in self?.evaluate()})}
+        for combo in fields.compactMap({$0 as? NSComboBox}) {observers.append(NotificationCenter.default.addObserver(forName:NSComboBox.selectionDidChangeNotification,object:combo,queue:nil) {[weak self] _ in self?.evaluate()})}
         for popup in popups {popup.target=self;popup.action=#selector(refresh(_:))}
     }
     deinit {for observer in observers {NotificationCenter.default.removeObserver(observer)}}

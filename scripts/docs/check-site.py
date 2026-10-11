@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """Validate local site links/anchors, synthetic asset hashes and native Help routes."""
-import hashlib, json, re, sys
+import hashlib, json, os, re, sys
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 ROOT=Path(__file__).resolve().parents[2]
 SITE=ROOT/'.build/docs-site'
 errors=[]
+local_user=Path.home().name
+private_user=local_user if local_user not in {'runner','root','example','user','build'} else None
+private_session=os.environ.get('CODEX_THREAD_ID')
 manifest=ROOT/'docs/assets/screenshots/manifest.json'
 if not manifest.exists(): raise SystemExit('Missing synthetic screenshot manifest')
 m=json.loads(manifest.read_text())
-assert m['synthetic_only'] is True and m['app_version']=='0.5.0'
+assert m['synthetic_only'] is True and m['app_version']=='0.5.1'
 images=m['images'];listed=set()
 for row in images:
  p=manifest.parent/row['file'];listed.add(row['file'])
@@ -22,7 +25,7 @@ if listed!={p.name for p in manifest.parent.glob('*.png')}:errors.append('Unmani
 for p in list((ROOT/'docs').rglob('*'))+[ROOT/'mkdocs.yml']:
  if p.suffix in ['.md','.json','.js','.css','.yml']:
   s=p.read_text()
-  if re.search(r'/Users/(?!example(?:/|\b)|<)[A-Za-z0-9_.-]+|aldoruizluna|\.machine-audit|01a122a5-6cd2',s):errors.append('Private path/identity in '+str(p.relative_to(ROOT)))
+  if re.search(r'/Users/(?!example(?:/|\b)|<)[A-Za-z0-9_.-]+|\.machine-audit',s) or (private_user and private_user in s) or (private_session and private_session in s):errors.append('Private path/identity in '+str(p.relative_to(ROOT)))
 class Page(HTMLParser):
  def __init__(self):super().__init__();self.ids=set();self.links=[];self.images=[]
  def handle_starttag(self,tag,attrs):

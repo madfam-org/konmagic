@@ -32,6 +32,9 @@ func runKnowledgeTests(at directory:URL,catalogueURL:URL) throws -> Int {
     var collectionSlice=CatalogueSlice();collectionSlice.facets=[.family:"Family memories"];collectionSlice.search="file"
     let collection=SavedCollection(name:"Family",slice:collectionSlice,mode:3,dimension:.project,metric:1)
     try knowledge.save(collection)
+    let gallery=SavedCollection(name:"Gallery",slice:collectionSlice,mode:5,dimension:.family,metric:0)
+    try knowledge.save(gallery)
+    try check(try KnowledgeStore(directory:privateDir).snapshot().collections.contains(where:{$0.id==gallery.id && $0.mode==5}),"gallery collections persist and reopen as a supported visualization")
     var workspace=Workspace.initial();let node=workspace.nodes.first(where:{$0.name=="Movies"})!.id
     let rule=ProposalRule(name:"Reviewed collection",slice:collectionSlice,destination:node,recipe:NameRecipe(prefix:"Keep-",suffix:"",find:"file-",replacement:"item-"))
     try knowledge.save(rule)
@@ -39,6 +42,10 @@ func runKnowledgeTests(at directory:URL,catalogueURL:URL) throws -> Int {
     try check(restored.collections.first?.slice==collectionSlice && restored.rules.first?.destination==node,"saved views and explicit rule destinations persist")
     try check(try rule.recipe.output("file-001.PDF")=="Keep-item-001.PDF","output naming preserves the original extension")
     try workspace.assign([first],to:node)
+    workspace.assignments[0].outputName="Chosen memory.txt"
+    let placement=try PlacementPreview.make([CatalogItem(id:0,path:first,name:"file-001.txt",kind:"file",bytes:1,context:""),CatalogItem(id:0,path:second,name:"file-002.txt",kind:"file",bytes:1,context:"")],node:node,workspace:workspace)
+    try check(placement.pairs.count==2 && placement.pairs.first?.destination.hasSuffix("/Chosen memory.txt")==true && placement.newAssignments==1,"full placement preview preserves manual output names and counts new assignments")
+    workspace.assignments[0].outputName="file-001.txt"
     let candidates=try reader.cataloguePage(CatalogueSlice()).items
     let proposal=try DraftProposal.make(items:Array(candidates.prefix(3)),rule:rule,workspace:workspace)
     try check(proposal.assignments.map(\.source)==[second] && proposal.held.count==2,"rules hold existing manual choices and protected observations")

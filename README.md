@@ -6,11 +6,16 @@ Native file/folder viewing includes embedded Quick Look, paged list/gallery, exp
 
 The native Toolkit and Help menu link to the manual, current-page help and engineering handbook. Public screenshots use entirely synthetic fixtures.
 
-Version **0.5.0** refreshes all five pages with appearance-aware pastel panels,
+Version **0.5.1** refreshes all five pages with appearance-aware pastel panels,
 original kitten illustrations, clearer task cards, a selectable Content gallery,
 and a Review trust center. Thumbnail requests are explicit and bounded; verified
 manifest pages keep full path/hash evidence available. The artwork ships inside
 the app and needs no network access.
+
+The discovery journey preserves selections through classification, provides complete
+pre-assignment destination previews, and holds stale actions while results load.
+Private real-catalogue speed/memory measurements are available through
+`scripts/benchmark.py`; real reports stay outside Git.
 
 A native macOS utility for organizing files with a structure you control.
 Create destinations, drag individual **drops** or whole **buckets** onto them,
@@ -92,7 +97,7 @@ in a menu, while display options expand only when requested. The overview
 reports overlapping catalogue scopes and explicit coverage exceptions.
 See the [workflow guide](docs/UI-workflows.md) for a task-by-task walkthrough.
 
-**Correct selected tags** stores exact-path semantic corrections separately from
+**Refine selected tags** stores exact-path semantic corrections separately from
 Atlas. Owner, project, family, purpose and lifecycle corrections apply to lists,
 search, facets and aggregate maps. They cannot change protection boundaries or
 retained reading evidence. Folder corrections do not silently cascade into

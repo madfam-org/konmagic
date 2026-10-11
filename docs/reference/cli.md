@@ -16,6 +16,9 @@ The native executable accepts explicit diagnostic flags. They are development to
 | `--lens-ui-smoke` | Provided saved scan rendering | Local/private |
 | `--navigation-ui-smoke` | Single/multi-window navigation acceptance | Isolated state; outputs private |
 | `--journey-ui-smoke` | Guided placement and Review acceptance | Isolated state; outputs private |
+| `--classification-ui-smoke` | Editor save, retained selection/destination and held/empty states | Restricted generated synthetic root |
+| `--benchmark-catalogue` | Real read-only query/cancellation and memory measurements | Owned private temporary benchmark state |
+| `--journey-benchmark` | Native display-cycle journey and memory measurements | Isolated app decisions; real observations stay private |
 | `--knowledge-ui-smoke` | Cancelled editing dialogs | Isolated state; outputs private |
 | `--review-ui-smoke` | Comparison/candidate metadata acceptance | Synthetic review records; app state still private unless fixture-isolated |
 
@@ -30,7 +33,11 @@ The native executable accepts explicit diagnostic flags. They are development to
 | KONMAGIC_QA_PAGE | review, structure, content or toolkit for journey screenshot |
 | KONMAGIC_QA_SCAN | Existing private native scan for Disk Lens render |
 | KONMAGIC_QA_ROOT | Selected root for recorded scan smoke |
+| KONMAGIC_BENCHMARK_CATALOGUE | Existing read-only catalogue input for query measurement |
+| KONMAGIC_BENCHMARK_STATE | Owned `/private/tmp/konmagic-benchmark-*` state/cache/report folder |
 
 Normal app mode ignores the QA state override. Each state root has a separate instance lock. Do not point ordinary QA at the genuine decision store. Some smoke modes intentionally use the local Atlas path; their logs/screenshots are never public.
 
 Documentation capture ignores the ordinary image prefix and creates a new Light/Dark screenshots directory beside its validated fixture State. The script prints that new state path. It refuses normal app state, missing markers and unexpected catalogue/output roots.
+
+`python3 scripts/benchmark.py` prepares the isolated state and runs both benchmark modes. It leaves real app decisions intact and writes a private HTML report, raw JSON samples, logs and preservation receipt outside the repository. These outputs must never be promoted as public documentation fixtures. See [performance methodology](../developer/performance.md).

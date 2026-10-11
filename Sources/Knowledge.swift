@@ -58,7 +58,7 @@ struct Knowledge:Codable {
             for p in u.paths {_ = try SafeFS.components(p)}
             for (p,c) in u.previous {try correction(p,c)}
         }
-        for c in collections {try Workspace.checkName(c.name);try c.slice.validate();guard (0...4).contains(c.mode),(0...1).contains(c.metric) else {throw KonMagicError("Invalid collection view.")}}
+        for c in collections {try Workspace.checkName(c.name);try c.slice.validate();guard (0...5).contains(c.mode),(0...1).contains(c.metric) else {throw KonMagicError("Invalid collection view.")}}
         for r in rules {
             try Workspace.checkName(r.name);try r.slice.validate()
             guard !r.destination.isEmpty,[r.recipe.prefix,r.recipe.suffix,r.recipe.find,r.recipe.replacement].allSatisfy({$0.utf8.count<=100 && !$0.contains("\0")}) else {throw KonMagicError("Invalid proposal recipe.")}

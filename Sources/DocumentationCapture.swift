@@ -88,6 +88,7 @@ extension KonMagicDelegate {
                 if let i=e.records.firstIndex(where:{$0.name=="Design brief.txt"}) {e.table.selectRowIndexes(IndexSet(integer:i),byExtendingSelection:false)}
                 dialog("tag-corrections",{e.correctTags()});dialog("collections",{e.collectionsMenu()})
                 if let id=self.controller.store.value.nodes.first(where:{$0.name=="Research"})?.id {e.destination.select(e.destination.itemArray.first(where:{$0.representedObject as? String==id}));e.destinationChanged()}
+                dialog("placement-preview",{e.previewPlacement()})
                 dialog("rules",{e.rulesMenu()});dialog("create-rule",{e.createRule()});dialog("preferences",{self.controller.showPreferences()})
                 for page in 0..<8 {try? self.controller.store.change {$0.guidePage=page};dialog("welcome-\(page+1)",{self.controller.showGuide()})}
                 for p in KonMagicPage.allCases {let url=KonMagicDocumentation.base.appendingPathComponent(KonMagicDocumentation.route(p));guard url.host=="madfam-org.github.io",url.query==nil else {exit(1)}}

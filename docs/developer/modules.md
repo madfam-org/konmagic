@@ -6,10 +6,12 @@ This inventory follows the current source tree. Links point to public generic im
 |---|---|
 | [App.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/App.swift) | Application startup, menus, Structure, source browser and preview/copy commands. |
 | [Catalog.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Catalog.swift) | Live bounded source metadata and compatible tagged observation adapter. |
+| [CatalogueBenchmark.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueBenchmark.swift) | Isolated real-catalogue query and native-journey timing/resident-memory measurement. |
 | [CatalogueDatabase.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueDatabase.swift) | Read-only SQLite, compression, query slices, partitions, FTS and tag overlay queries. |
 | [CatalogueExplorer.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueExplorer.swift) | Dataset/query/facet/list/tree/map controls, evidence and exact destination handoff. |
 | [CatalogueTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueTests.swift) | Synthetic verification and native UI acceptance checks. |
 | [CatalogueVisuals.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/CatalogueVisuals.swift) | Content treemap and bounded semantic relationship drawing. |
+| [ClassificationTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ClassificationTestsUI.swift) | Synthetic editable classification, retained selection, exact handoff and loading-state acceptance. |
 | [ContentGallery.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContentGallery.swift) | Exact-source selection cards and explicit bounded, cancellable in-memory thumbnails. |
 | [ContextHelp.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/ContextHelp.swift) | Native contextual explanations and popover guidance. |
 | [DiskCatalogue.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/DiskCatalogue.swift) | Compressed whole-disk ledger, aliases, exceptions and stamped aggregate caches. |
@@ -28,6 +30,7 @@ This inventory follows the current source tree. Links point to public generic im
 | [Filesystem.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Filesystem.swift) | Descriptor identity, eligibility, no-follow traversal, full hashing, copy plans and durable publication. |
 | [FriendlyUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/FriendlyUI.swift) | Appearance-aware native surfaces, primary-action buttons, illustrated headers and vector task icons. |
 | [InspectorTypography.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/InspectorTypography.swift) | Native path/evidence text and dialog layout helpers. |
+| [JourneySupport.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneySupport.swift) | Read-only placement calculations and explicit Content loading/empty/held state surfaces. |
 | [JourneyTestsUI.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/JourneyTestsUI.swift) | Synthetic verification and native UI acceptance checks. |
 | [Knowledge.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/Knowledge.swift) | Exact-path human corrections, saved collections/rules, naming and draft proposal semantics. |
 | [KnowledgeTests.swift](https://github.com/madfam-org/konmagic/blob/main/Sources/KnowledgeTests.swift) | Synthetic verification and native UI acceptance checks. |

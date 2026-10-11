@@ -1,6 +1,9 @@
 import AppKit
 import Foundation
 
+if CommandLine.arguments.contains("--benchmark-catalogue") {
+    do {try runCatalogueBenchmark();exit(0)} catch {fputs("Catalogue benchmark held: \(error.localizedDescription)\n",stderr);exit(1)}
+}
 if CommandLine.arguments.contains("--lens-recorded-smoke") {
     do {
         let home=FileManager.default.homeDirectoryForCurrentUser,environment=ProcessInfo.processInfo.environment
@@ -48,7 +51,7 @@ if CommandLine.arguments.contains("--catalog-smoke") {
     } catch {fputs("Catalogue check: \(error.localizedDescription)\n",stderr);exit(1)}
 }
 let application=NSApplication.shared
-let delegate=KonMagicDelegate(qa:CommandLine.arguments.contains("--documentation-capture") || CommandLine.arguments.contains("--journey-ui-smoke") || CommandLine.arguments.contains("--navigation-ui-smoke") || CommandLine.arguments.contains("--review-ui-smoke") || CommandLine.arguments.contains("--knowledge-ui-smoke") || CommandLine.arguments.contains("--toolkit-ui-smoke") || CommandLine.arguments.contains("--ui-smoke") || CommandLine.arguments.contains("--explorer-ui-smoke") || CommandLine.arguments.contains("--lens-ui-smoke"))
+let delegate=KonMagicDelegate(qa:CommandLine.arguments.contains("--classification-ui-smoke") || CommandLine.arguments.contains("--journey-benchmark") || CommandLine.arguments.contains("--documentation-capture") || CommandLine.arguments.contains("--journey-ui-smoke") || CommandLine.arguments.contains("--navigation-ui-smoke") || CommandLine.arguments.contains("--review-ui-smoke") || CommandLine.arguments.contains("--knowledge-ui-smoke") || CommandLine.arguments.contains("--toolkit-ui-smoke") || CommandLine.arguments.contains("--ui-smoke") || CommandLine.arguments.contains("--explorer-ui-smoke") || CommandLine.arguments.contains("--lens-ui-smoke"))
 application.delegate=delegate
 application.setActivationPolicy(.regular)
 application.run()

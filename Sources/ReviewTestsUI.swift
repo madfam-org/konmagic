@@ -40,6 +40,7 @@ extension KonMagicDelegate {
         DispatchQueue.main.asyncAfter(deadline:.now()+2) {
             var item=CatalogItem(id:0,path:"/synthetic/family-film.mov",name:"family-film.mov",kind:"file",bytes:900,context:"Synthetic family fixture")
             item.tags=["owner":"Personal","family":"Video","project":"Family celebration","role":"Memory","lifecycle":"Archive"]
+            explorer.pageCancellation.cancel();explorer.generation+=1;explorer.pageLoading=false
             explorer.records=[item];explorer.table.reloadData();explorer.table.selectRowIndexes(IndexSet(integer:0),byExtendingSelection:false)
             let before=self.controller.knowledge.snapshot()
             let preferences=self.controller.store.directory.appendingPathComponent("disk-lens-preferences.json")

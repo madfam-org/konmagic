@@ -15,20 +15,30 @@ extension CatalogueExplorerController {
     }
     func knowledgeChanged() {if let navigation=workspace?.navigation {navigation.knowledgeChanged()} else {reloadKnowledge();workspace?.plan=nil;workspace?.refreshDraft()}}
     func reloadKnowledge() {
-        allSummary=nil;summary=nil;resetPaging();loadPage();loadSummary()
-        if displayedView==1 {loadRoots()} else if displayedView==2 {roots=[];tree.reloadData()}
+        let paths=Set(selectedRecords().map(\.path))
+        allSummary=nil;summary=nil
+        if displayedView==1 {reloadSelectedTreeKnowledge()} else {loadPage(preserving:paths)}
+        loadSummary()
+        if displayedView==2 {roots=[];tree.reloadData()}
     }
     @objc func correctTags() {
-        guard let knowledge=workspace?.knowledge else{return}
+        guard let knowledge=workspace?.knowledge,workspace?.busy != true,!selectionPending else{return}
         let selected=selectedRecords(),paths=selected.map(\.path)
-        let a=NSAlert();a.messageText="Your tags override inference"
+        guard !paths.isEmpty,paths.count<=200,selected.allSatisfy({$0.kind=="file" || $0.kind=="directory"}) else{return}
+        let revision=knowledge.snapshot().tagStamp
+        let a=NSAlert();a.messageText="Refine your classification"
         a.informativeText="\(selected.count) selected files / folders. Your choices stay private and apply to these exact paths. Folder descendants keep their own tags. Blank fields stay unchanged; “Unassigned” clears a category. Original evidence and protection stay intact."
         let fields=Knowledge.fields.map {key -> NSTextField in
             let values=Set(selected.map {$0.tags[key] ?? ""})
-            return field(values.count==1 ? values.first! : "",placeholder:values.count>1 ? "Mixed — leave unchanged" : "Leave unchanged")
+            let f=NSComboBox();f.stringValue=values.count==1 ? values.first! : "";f.placeholderString=values.count>1 ? "Mixed — leave unchanged":"Leave unchanged";f.widthAnchor.constraint(equalToConstant:410).isActive=true;f.completes=true
+            let dimension=CatalogueDimension.allCases.first {$0.rawValue==key}
+            let suggestions=dimension.map {Array((allSummary ?? summary)?.groups($0).prefix(30).map(\.value) ?? [])} ?? []
+            f.addItems(withObjectValues:Array(Set(suggestions+values.filter {!$0.isEmpty}+["Unassigned"])).sorted());f.toolTip="Choose an existing value or type your own. Unassigned clears only this category."
+            return f
         }
         let note=field(placeholder:"Why this classification? (optional)")
-        a.accessoryView=knowledgeAccessory([knowledgeForm(Knowledge.fields.map {$0.capitalized}+["Note"],fields+[note])])
+        let feedback=text("Edit a classification to see what will change.",size:11);feedback.textColor=FriendlyUI.muted
+        a.accessoryView=knowledgeAccessory([knowledgeForm(["Owner","Project","Content family","Purpose","Lifecycle","Note"],fields+[note]),feedback])
         a.addButton(withTitle:"Save corrections");a.addButton(withTitle:"Cancel");a.addButton(withTitle:"Reset selected");a.addButton(withTitle:"Undo last correction")
         a.buttons[0].isEnabled = !paths.isEmpty && paths.count<=200
         a.buttons[2].isEnabled=paths.contains {knowledge.snapshot().corrections[$0] != nil}
@@ -37,9 +47,13 @@ extension CatalogueExplorerController {
             let changed=zip(Knowledge.fields,fields).contains {key,f in let value=f.stringValue.trimmingCharacters(in:.whitespacesAndNewlines);let corrected=value=="Unassigned" ? "" : value;return !value.isEmpty && !selected.allSatisfy {($0.tags[key] ?? "")==corrected}}
             a.buttons[0].isEnabled = !paths.isEmpty && paths.count<=200 && changed && fields.allSatisfy {$0.stringValue.utf8.count<=240} && note.stringValue.utf8.count<=2000
             a.buttons[0].toolTip=changed ? "Save your edited classifications privately." : "Edit at least one semantic field to save a correction."
+            let count=zip(Knowledge.fields,fields).filter {key,f in let value=f.stringValue.trimmingCharacters(in:.whitespacesAndNewlines);return !value.isEmpty && !selected.allSatisfy {($0.tags[key] ?? "")==((value=="Unassigned") ? "":value)}}.count
+            feedback.stringValue=count==0 ? "No classification changes yet." : "\(count) categories will change for \(paths.count) exact sources. Folder descendants keep their own tags."
         }
         let response=validation.run(a)
         do {
+            guard response != .alertSecondButtonReturn else{return}
+            guard workspace?.busy != true,knowledge.snapshot().tagStamp==revision else {throw KonMagicError("Classification changed in another window or a transfer started. Reopen this editor to review current tags.")}
             if response == .alertFirstButtonReturn {
                 var tags:[String:String]=[:]
                 for (key,f) in zip(Knowledge.fields,fields) {let value=f.stringValue.trimmingCharacters(in:.whitespacesAndNewlines);if !value.isEmpty {let corrected=value=="Unassigned" ? "" : value;if !selected.allSatisfy({($0.tags[key] ?? "")==corrected}) {tags[key]=corrected}}}
@@ -120,7 +134,8 @@ extension CatalogueExplorerController {
     }
     func previewRule(_ rule:ProposalRule) {
         guard let workspace=workspace,!workspace.busy else {status.stringValue="Wait for verification or copying to finish before proposing a new draft.";return}
-        let original=workspace.store.value,reader=workspace.catalog
+        let original=workspace.store.value,reader=workspace.catalog,tagRevision=workspace.knowledge.snapshot().tagStamp
+        guard let workspaceHash=try? SafeFS.workspaceHash(original) else{return}
         status.stringValue="Preparing a bounded rule preview…"
         browsing.async {[weak self,weak workspace] in
             let result:Result<DraftProposal,Error>=Result {let page=try reader.cataloguePage(rule.slice);return try DraftProposal.make(items:page.items,rule:rule,workspace:original,more:page.next != nil)}
@@ -128,7 +143,7 @@ extension CatalogueExplorerController {
                 guard let self=self,let workspace=workspace else{return}
                 do {
                     let proposal=try result.get()
-                    guard workspace.store.value.version==original.version,!workspace.busy else {throw KonMagicError("The workspace changed while preparing this proposal. Preview the rule again.")}
+                    guard (try? SafeFS.workspaceHash(workspace.store.value))==workspaceHash,workspace.knowledge.snapshot().tagStamp==tagRevision,!workspace.busy else {throw KonMagicError("The draft or classifications changed while preparing this proposal. Preview the rule again.")}
                     let a=NSAlert();a.messageText="Exact proposal · "+rule.name
                     a.informativeText="\(proposal.assignments.count) assignments proposed · \(proposal.held.count) held. "+(proposal.limited ? "Bounded to the first 200 matches and 100 draft assignments; narrow the query for the rest. " : "")+"Adding these edits only the draft. Fresh source hashes, access, destination existence and capacity are checked separately by Verify exact preview."
                     let text=NSTextView();text.isEditable=false;text.font=NSFont.monospacedSystemFont(ofSize:11,weight:.regular)
@@ -136,7 +151,7 @@ extension CatalogueExplorerController {
                     let sc=self.scroll(text);sc.frame=NSRect(x:0,y:0,width:720,height:410);text.frame=sc.bounds;text.isVerticallyResizable=true;text.autoresizingMask = [.width];text.textContainer?.widthTracksTextView=true
                     a.accessoryView=sc;a.addButton(withTitle:"Add to draft");a.addButton(withTitle:"Keep reviewing");a.buttons[0].isEnabled = !proposal.assignments.isEmpty
                     guard a.runModal() == .alertFirstButtonReturn else{return}
-                    guard workspace.store.value.version==original.version,!workspace.busy else {throw KonMagicError("The draft changed during review. Preview the rule again.")}
+                    guard (try? SafeFS.workspaceHash(workspace.store.value))==workspaceHash,workspace.knowledge.snapshot().tagStamp==tagRevision,!workspace.busy else {throw KonMagicError("The draft or classifications changed during review. Preview the rule again.")}
                     try workspace.store.change {try proposal.apply(to:&$0)};workspace.plan=nil;workspace.refreshDraft();workspace.showWorkspace()
                     self.status.stringValue="Exact proposal added to the draft. No source or destination files were changed."
                 } catch {self.status.stringValue=error.localizedDescription}

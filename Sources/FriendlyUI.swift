@@ -23,11 +23,14 @@ enum FriendlyUI {
         NSLayoutConstraint.activate([content.leadingAnchor.constraint(equalTo:v.leadingAnchor,constant:padding),content.trailingAnchor.constraint(equalTo:v.trailingAnchor,constant:-padding),content.topAnchor.constraint(equalTo:v.topAnchor,constant:padding),content.bottomAnchor.constraint(equalTo:v.bottomAnchor,constant:-padding)])
         return v
     }
-    static func scrollingPanel(_ content:NSView,width:CGFloat,tint:NSColor?=nil,padding:CGFloat=14)->FriendlyPanel {
+    static func scrollingContent(_ content:NSView)->NSScrollView {
         let scroll=NSScrollView(),document=FriendlyDocument();scroll.hasVerticalScroller=true;scroll.autohidesScrollers=true;scroll.drawsBackground=false;scroll.documentView=document
         document.translatesAutoresizingMaskIntoConstraints=false;content.translatesAutoresizingMaskIntoConstraints=false;document.addSubview(content)
         NSLayoutConstraint.activate([document.widthAnchor.constraint(equalTo:scroll.contentView.widthAnchor),content.leadingAnchor.constraint(equalTo:document.leadingAnchor),content.trailingAnchor.constraint(equalTo:document.trailingAnchor),content.topAnchor.constraint(equalTo:document.topAnchor),content.bottomAnchor.constraint(equalTo:document.bottomAnchor)])
-        let v=panel(scroll,tint:tint,padding:padding);v.widthAnchor.constraint(equalToConstant:width).isActive=true;return v
+        return scroll
+    }
+    static func scrollingPanel(_ content:NSView,width:CGFloat,tint:NSColor?=nil,padding:CGFloat=14)->FriendlyPanel {
+        let v=panel(scrollingContent(content),tint:tint,padding:padding);v.widthAnchor.constraint(equalToConstant:width).isActive=true;return v
     }
     static func button(_ title:String,symbol:String?=nil,tint:NSColor?=nil,target:AnyObject?,action:Selector)->NSButton {
         let b:NSButton=tint.map {FriendlyActionButton(title:title,tint:$0,target:target,action:action)} ?? NSButton(title:title,target:target,action:action);b.bezelStyle = .rounded;b.controlSize = .large;b.font=NSFont.systemFont(ofSize:12,weight:.medium)
@@ -35,9 +38,12 @@ enum FriendlyUI {
         if let tint=tint {b.bezelColor=tint}
         return b
     }
+    private static var artworkCache:[String:NSImage]=[:]
     static func artwork(_ name:String)->NSImage? {
+        if let image=artworkCache[name] {return image}
         let paths=[Bundle.main.resourceURL?.appendingPathComponent("Artwork/"+name+".png"),URL(fileURLWithPath:CommandLine.arguments[0]).deletingLastPathComponent().appendingPathComponent("Resources/Artwork/"+name+".png")]
-        return paths.compactMap {$0}.compactMap {NSImage(contentsOf:$0)}.first
+        let image=paths.compactMap {$0}.compactMap {NSImage(contentsOf:$0)}.first
+        if let image=image {artworkCache[name]=image};return image
     }
 }
 

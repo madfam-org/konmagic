@@ -56,6 +56,21 @@ To place a real source, choose an explicit destination, inspect its full propose
 
 **Gallery** shows up to 200 exact observations as selectable cards with system icons, retained sizes, and owner/family context. Checkboxes support multiple selections; selecting a card updates the same source authority as List. Physical folders stay buckets. Semantic maps keep hidden source selections disabled.
 
+Only visible rows and adjacent rows have native cards. Scrolling reaches every source on the page, while returning to an unchanged gallery reuses its cards. Type icons use retained metadata; original custom icons and thumbnails are not requested by ordinary browsing.
+
 **Load 24 thumbnails** explicitly requests eligible current source contents through macOS providers. It handles at most three requests concurrently, holds protected/cloud/linked sources and files over 128 MiB, and times out each request after 15 seconds. Images stay in memory. Changing the page/scope, leaving Content, or **Clear images** cancels requests and releases representations. Unsupported files keep icons.
 
 The right inspector summarizes the exact retained source and supported thumbnail. **Details & retained evidence** expands the technical observation; **View file / folder…** opens the full native viewer. Camera, GPS, similarity and duplicate proof are not inferred from a filename or illustrative mock.
+
+## A continuous discovery journey
+
+Select real sources, inspect the evidence, then use **Refine selected tags**. The editor offers existing semantic values and accepts your own text. It explains exactly how many categories and sources change. Saving preserves selected sources that still match the current page and preserves your chosen destination. If a changed classification removes a source from the active filter, the view explains this rather than keeping a hidden selection actionable.
+
+Loading and empty states keep the next step explicit. While a query changes the page, old source actions are held. No-match views offer a clear-search/filter action. Classification is held during verification/copy and stale cross-window edits are refused.
+
+The destination controls remain below the independently scrolling inspector. **Preview exact destinations** shows every selected source and target, retaining existing output names and whole-folder hierarchy. **Add selection to Review** edits only the draft and selects those sources in Review. Back returns to your discovery context. Oversized selections explain the 100-assignment draft limit while keeping their path preview available. Gallery collections can be saved and reopened.
+
+<figure markdown>
+![Native placement preview listing an invented source and its exact proposed destination before assignment](../assets/screenshots/light-placement-preview.png)
+<figcaption>This calculation does not open source bodies, create output folders or approve copying. Review performs fresh verification separately.</figcaption>
+</figure>

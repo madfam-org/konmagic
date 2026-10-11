@@ -1,6 +1,6 @@
 # Screenshot atlas
 
-**86 native screenshots · KonMagic 0.5.0 · entirely invented fixture data.**
+**88 native screenshots · KonMagic 0.5.1 · entirely invented fixture data.**
 
 All images depict real AppKit views. Example sources, tags and readings are synthetic. No ordinary local QA image or personal catalogue is included. Enlarge images with the image button; Escape closes the viewer. See [testing/capture workflow](../developer/testing.md) and [documentation maintenance](../developer/documentation.md).
 
@@ -11,7 +11,7 @@ All images depict real AppKit views. Example sources, tags and readings are synt
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `97a107e53cc0c9fbc351c1a0d0c0553aa40d15b523ab1eba7b81110ddc26a5d1`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `97a107e53cc0c9fbc351c1a0d0c0553aa40d15b523ab1eba7b81110ddc26a5d1`
 
 ## Content Connections · dark
 
@@ -20,7 +20,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `62c46f359b4ca2eaefde6147c0cc6679dbf47d50154c8b7be857680ed5b57a5d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `bcec6e7dfe47099dba36a146e4636ba664262ef8314247113fb8db61fb05e87d`
 
 ## Content Filters · dark
 
@@ -29,7 +29,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `f6097659648bac77c2b8536019fcbe1cbbcbca439525557a6dc5979f99b324ce`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `aeee18d4d86e55b801e0cac81669d459c904718f516a6c45e307b91409f183dd`
 
 ## Content Folder Tree · dark
 
@@ -38,7 +38,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `cd34331902bbf40b4ad24dcb71fc68c547cbd42cf0a2a71c91930034d9a13e48`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `ff77befdc109a49eff6691c1269431f8ea87935a62f51c61a63a42edc1df5cc7`
 
 ## Content Gallery Thumbnails · dark
 
@@ -47,7 +47,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `127cebb179a253bfdcaf1475419740e8e81a945fbb9538889179eaeb51c04b97`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `53e16a3b9e7da18cda0c79193ecc6679e0805884c98daf1ce86173e0e1bbd13f`
 
 ## Content Gallery · dark
 
@@ -56,7 +56,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a87682cef4e3d42a4fecc6e2b043b11ef5ba1a6b9ae2f8e3a55cdaf46d705634`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `5cd5c6c1aad9f17a8b518f27935c704793175b7cb032518b68b9c687d47daf00`
 
 ## Content Inspector · dark
 
@@ -65,7 +65,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `98b6cbe1b16a7f06fae0313069abf1e1761ee74d228248d006e2e4e382d04499`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `785f9386d0019014bdcde870e338375aa1fba64428ce14516c5beb5a9dd1d9c1`
 
 ## Content List · dark
 
@@ -74,7 +74,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `bbae6158d4fc18f8be0f1e86b79676d9901200c201e8379a3db39298d0c4b385`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `7fe6a8f99ec90cf50ca0180acda7ae39a27151dd8c77a57a68fce9c2c3107f40`
 
 ## Content Reading · dark
 
@@ -83,7 +83,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a8fae6eaecbafcc197908d81a2c9d391b1aead7b363f796a7441f49463509c09`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `320d19ebcc2b0dd1eecd0da846adef9747724269815acc9c11cea217e8984e8f`
 
 ## Content Restored · dark
 
@@ -92,7 +92,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `39c228e44131268ead6a11414daf2d47b3f0b5c135073426dae97033fac00d64`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `9c3b4d18b6a3e0eca47df2c63c0d07c006e5a76756d86e423bc19c6cee4b68e5`
 
 ## Content Tag Tree · dark
 
@@ -101,7 +101,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `ac88c4a786a4dd54951f9656677875e37f0052fb55ec39d5380ac057632ad776`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `e22690a556ffd4aee61e9b8418c702ab4526c985c9c0a1fc9637e4c0c6962722`
 
 ## Content Treemap · dark
 
@@ -110,7 +110,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `6929e773a60dfa053a9e11382e6043653c19a2ae9cbcf739da53e2327f63dc47`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `285c475b3a52e5a61c6e8474b1e08195a1ad505ba948b673983652f434bb44f1`
 
 ## Copy Confirmation · dark
 
@@ -119,7 +119,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a0302704265fdb4c9a32cfb8f74964f5921f52c8e70aaad69915a48d7dae6ac5`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `84bcf435e3814ecfd649abe8a8316de40dd510e8e8752b7ee016a2b44dbae0eb`
 
 ## Create Rule · dark
 
@@ -128,7 +128,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `65f15b8a2890ba15853ce88bba83417cb9cf7896d4eee3b0cb78ff70f66ac364`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `a253788e93e0b3e753f1723109dc0d4f42fe61c9a0d7389e78cd5f95d29f2e07`
 
 ## File Viewer · dark
 
@@ -137,7 +137,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `daeb5992fb4c4bbb43bfcd468c7cc03fb82d0c900bd7b8b6f07d8ca43b1af8f3`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `c15b39519dd0ef3e481643ddc5f6c191c539fb0360d667f05f7a26d7a610fe13`
 
 ## Folder Gallery · dark
 
@@ -146,7 +146,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `e44f9fa30750e109112842b0b6db2b38ea028ab10c9aa3b57c434c3b9075a95b`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `52520a96959ddee30f3c6475c949dd092fe256d8c17fde54b19a7cfd3418a4c6`
 
 ## Folder Thumbnails · dark
 
@@ -155,7 +155,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `608fa1e9d6e0314f2d1936ed4a35087ff964b9bfdf0e5c8fc8c97d15d086692b`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `4ac60920132ad2f4624ee9a6b373601e86a6a22627f5c543bcc36ca1ee6e894c`
 
 ## Folder Viewer · dark
 
@@ -164,7 +164,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `ac20d5b4ee2717429910d885a5609c3bd6313b1d0374756e23907ea3c67570a1`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `3804f3c4608fc3a8166e02e8996a2af94025f77af0d102d610ff9ed11d3d3b89`
 
 ## Image Viewer · dark
 
@@ -173,7 +173,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `8256a67de7dc99b74823dc710c63692ebbc515e9590e0036cef2284ff6da6c51`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `b43f6d2a3792ea8256e808dca7c1455b5df6df8dc5b2def7d628252345fcde9b`
 
 ## Mask Editor · dark
 
@@ -182,7 +182,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `f94701c8b2715c306fd8de7d7c80d3c26ceb3838d791a94c8680c6887dffa273`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `f94701c8b2715c306fd8de7d7c80d3c26ceb3838d791a94c8680c6887dffa273`
 
 ## New Folder · dark
 
@@ -191,7 +191,16 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `4955ebd6b53707f460ba02578b8b708c24bb58e2cbbe72c126e8d0249f4e1338`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `4955ebd6b53707f460ba02578b8b708c24bb58e2cbbe72c126e8d0249f4e1338`
+
+## Placement Preview · dark
+
+<figure markdown>
+![KonMagic native placement preview with synthetic example data](../assets/screenshots/dark-placement-preview.png){ loading=lazy decoding=async width="1504" height="1284" }
+<figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
+</figure>
+
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `c3c97e9dc777ea34cbbe3e9d85f8ba56d525ce0cc8c169221674af2757198fa7`
 
 ## Preferences · dark
 
@@ -200,7 +209,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `eb8f064ea4d116cd73f652c2cb64e6c765252dedb0a2f666c2556f47797cf7ec`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `eb8f064ea4d116cd73f652c2cb64e6c765252dedb0a2f666c2556f47797cf7ec`
 
 ## Recorded Disk · dark
 
@@ -209,7 +218,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a629f50c4e5a44a558818b0a782c9f22bf38b45f9c041cd6e953d872a1ee68b0`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `038c9edfeba8cbf4e67a1c3b2ef149cca8c04aaabbd48ad8d58c4c5ea052805d`
 
 ## Review Unverified · dark
 
@@ -218,7 +227,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `916d0eaf909a77b09fbfcf3b546fbe7026c4b666106eaabdc6de2b3ce547d29a`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `f9f3efe8766511c4320fc06bec155c0fd27b942bf5b628ebf8075b8b6a756d29`
 
 ## Review Verified · dark
 
@@ -227,7 +236,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Exact preview verified against one small generated temporary file using the test-only fixture allowance. No copy is approved.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `215c14bbfdff5c1f4b9036b4929972736ce4f5150a286622334935bf3f1140d8`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `5c3d518aa554f939f1dbe577395f14dbb6a33585dc3c7488df878fd486a8f519`
 
 ## Rules · dark
 
@@ -236,7 +245,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `6e49fa2a86a00198e543ea6f452388036e035b345e083701601b05a9a11a1c2f`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6e49fa2a86a00198e543ea6f452388036e035b345e083701601b05a9a11a1c2f`
 
 ## Scan Filters · dark
 
@@ -245,7 +254,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `c28e91315402d2aaaf5780d9e47c47ceec12c5333988d8f4d90c667286f70a4d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `c28e91315402d2aaaf5780d9e47c47ceec12c5333988d8f4d90c667286f70a4d`
 
 ## Scan Notes · dark
 
@@ -254,7 +263,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `028f7879f485d506b767032d028b9bfc00183baca79282e9a3b27a70a476129d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `028f7879f485d506b767032d028b9bfc00183baca79282e9a3b27a70a476129d`
 
 ## Storage Focused · dark
 
@@ -263,7 +272,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `d7aa2bce78e6aa4250064013ff4ebc06327e5c2af7353fb0299efb63732de9e9`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `f6ca8da149341a961de3f21be50091f69387fb66f8e8abc56f782b792dbdbc42`
 
 ## Storage Options · dark
 
@@ -272,7 +281,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `0fbff275469043623b92466914fb55c3fa966ecb04aaf574f2aa93c4fb859015`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `97f73c1c5786e908164bb7ed81a90288b0552081594e363c5b38220abf53ac6e`
 
 ## Storage · dark
 
@@ -281,7 +290,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `e76ef17e62103c23276c8c1e54145ba471288ab897e6bdfda9dc14919cd09f8e`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `58ec5c0118e9c704bce3ef23287d28eb60deb90ae08614a268a1d05eedd024f6`
 
 ## Structure · dark
 
@@ -290,16 +299,16 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `174c977fcd1ad445e1c5bfedaebd1005dcc00fcf9dc4a22a15c570f85be2f2b8`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `1dbc34be58e3a4767f5c181f8d19ee6c1f2d9e5f09945cb20f80fcd96e4af002`
 
 ## Tag Corrections · dark
 
 <figure markdown>
-![KonMagic native tag corrections with synthetic example data](../assets/screenshots/dark-tag-corrections.png){ loading=lazy decoding=async width="1106" height="1146" }
+![KonMagic native tag corrections with synthetic example data](../assets/screenshots/dark-tag-corrections.png){ loading=lazy decoding=async width="1170" height="1184" }
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `b11b141e3783208edb9db5770ac47f752c84ce2b486662fea6cb6d0221bd5b41`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `9522d795ac25905ee2362a9566e0f926b508e038607e37b09c0176f40ccea725`
 
 ## Toolkit · dark
 
@@ -308,7 +317,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `269335bf570d26d074f57fa54ab7495243aa23523fcca940ef2ec4ed9010fd9e`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `269335bf570d26d074f57fa54ab7495243aa23523fcca940ef2ec4ed9010fd9e`
 
 ## Welcome 1 · dark
 
@@ -317,7 +326,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `dd3dfc084fe2d45d5a2810d925c9c4adabc477c204ecc70081ace7abd480de56`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `dd3dfc084fe2d45d5a2810d925c9c4adabc477c204ecc70081ace7abd480de56`
 
 ## Welcome 2 · dark
 
@@ -326,7 +335,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `6842de5b5d8439757571762c82f83960f92a303241adde368709467ddfcd6dff`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6842de5b5d8439757571762c82f83960f92a303241adde368709467ddfcd6dff`
 
 ## Welcome 3 · dark
 
@@ -335,7 +344,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `883a10971016deea7d439603ceb19e153c08495903b9f9e4fe6b3c5e2cc796c9`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `883a10971016deea7d439603ceb19e153c08495903b9f9e4fe6b3c5e2cc796c9`
 
 ## Welcome 4 · dark
 
@@ -344,7 +353,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `bfbca6aef185894153e35befeca7598d5dec94cd6d517348e9964f013dc1ae61`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `bfbca6aef185894153e35befeca7598d5dec94cd6d517348e9964f013dc1ae61`
 
 ## Welcome 5 · dark
 
@@ -353,7 +362,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `4d31d165bce59c6ea4654f99500a80b36ee44f875cbb4f082d5be626f523bd77`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `4d31d165bce59c6ea4654f99500a80b36ee44f875cbb4f082d5be626f523bd77`
 
 ## Welcome 6 · dark
 
@@ -362,7 +371,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `dee676954c9209102670888f2656cc7ed743920b180eb378ec5fa6d72271655d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `dee676954c9209102670888f2656cc7ed743920b180eb378ec5fa6d72271655d`
 
 ## Welcome 7 · dark
 
@@ -371,7 +380,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `6f955a4bfdbb799206a666d06ebd09a2b8703989f2c1fd9a5de9c71d4abd908c`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6f955a4bfdbb799206a666d06ebd09a2b8703989f2c1fd9a5de9c71d4abd908c`
 
 ## Welcome 8 · dark
 
@@ -380,7 +389,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `e158a1a6dee9abd42166da835e8628e40b84a1356f87a0cc4136746d31319961`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `e158a1a6dee9abd42166da835e8628e40b84a1356f87a0cc4136746d31319961`
 
 ## Collections · light
 
@@ -389,7 +398,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `0e12e3ddf5b96f4e853c33d615c7fab1bc389062127cbfa7e33d7a2b9898b196`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `0e12e3ddf5b96f4e853c33d615c7fab1bc389062127cbfa7e33d7a2b9898b196`
 
 ## Comparison · light
 
@@ -407,7 +416,7 @@ Capture: `--review-ui-smoke` · Version: `0.4.2` · Origin: `synthetic-review-me
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `c4a96b924c770eec526032a5d839ee7292b52e020ba2519b9fa827ff9fdd28ef`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `516e97d737810e61506d71a429fa5a711edc431357b2bb7dbab89ee6ab134afa`
 
 ## Content Filters · light
 
@@ -416,7 +425,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `cbebd88be89a62955d37290b4b04e272377e9dd20af763941704fab5349d7dc7`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `b2b5ec53f57fb163af2af0ca1a0f366174baf8e91d8d5efc1a7c24dde8e70f18`
 
 ## Content Folder Tree · light
 
@@ -425,7 +434,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `7ddfae6614c3f82608c658ef22359b8d91a7df28b201d70602f2d92aa31f604e`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `dc897b07419c7ec65e933df73aaa0a8cf0f7cedce466bf564520aa04c0494597`
 
 ## Content Gallery Thumbnails · light
 
@@ -434,7 +443,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `7afa6c39e9eac130af7c3af11daf3e7701ff746e5d8b46de3da80b103a43207e`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `0e138dcfee214c2abddb37e580be8febbd78e103d328ff8a553741f696cce671`
 
 ## Content Gallery · light
 
@@ -443,7 +452,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `8002703bd95f50f49c5eb092a352256a6f542b82e6472aaa743404cffd90fd00`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `e220e36f63421d5defbb1c255deae593da102e1f12c33a4cf4af57f0b0f636c4`
 
 ## Content Inspector · light
 
@@ -452,7 +461,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `09000581a54d145145efc6e61b0e15c77ef0065f780e043634f46900609f9190`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `01adcc239aedea8bb7ec9a1ded3e30c7dbfdd224505da43dc61d7fbc429ea610`
 
 ## Content List · light
 
@@ -461,7 +470,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `f8b16964f624ba8df2bbe4323f31e6f6c3ef93a2760608d9510b5278a1c6f749`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6f5098a5bfdcf534c576800eee76289dcd1d1fc5eb704081e4401087496a2c2a`
 
 ## Content Reading · light
 
@@ -470,7 +479,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `e189f4e9dbb94fa3eb4d73fd8c5a3914eece83954fb35fb504d4fb6fb19d748b`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `2790d438c611f50fd015e2d837d08c8f042943962e3e7d79e491e020d576aa58`
 
 ## Content Restored · light
 
@@ -479,7 +488,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `4f1468ac972f89709b9934e74c3c73b00fecc16d6c84a8ab9113511470d50e6a`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `1ffd6359b98880aa7798427de151657cfb672a0908b9e199a9d04137533c76b9`
 
 ## Content Tag Tree · light
 
@@ -488,7 +497,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `c5b6f5782c016abf708b02f4981bfccd8eee7661583ba856d43905f49ad3dfd2`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `5f8add17908a1a5002b9c65a6f0c0708028da0073345aaae43addd9bb9129c79`
 
 ## Content Treemap · light
 
@@ -497,7 +506,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `dcbdba21e9c41cbf420a00070dc751d2e866a2856d40c7c5606a254eb6bc82ef`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `765032561eaa75b929fff44453c316abdd2230719122cf6a312ce9208fe124de`
 
 ## Copy Confirmation · light
 
@@ -506,7 +515,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `68fecbfa21c1ae410cbecae6a095a1c520772b7374037cbbc3a87427305f9045`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `9aff8e00442f30208490bd68a03bd10435d071f491899feec8b03d78d9c89e18`
 
 ## Create Rule · light
 
@@ -515,7 +524,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `318b882bdbcf4054e31bba531cc2d43a08a07baca5cf5a34dda0ed5a97b86205`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `d117603df731b47fef032e09ce8fb807fe2d48b8a8c4018316d565ee2b0f457a`
 
 ## Duplicates · light
 
@@ -533,7 +542,7 @@ Capture: `--review-ui-smoke` · Version: `0.4.2` · Origin: `synthetic-review-me
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `786fc26e9ef1ec22d85aa1e39a798bf2f1a3267e29c3494a1979429a00ef81ee`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `0c229532ff9507f5fe1f3a61f840f180784d856f199ab5b2056aeb57921b6382`
 
 ## Folder Gallery · light
 
@@ -542,7 +551,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `700f216217598b1142199b139c5c1772e388dfa69f5ae2f5b6445e4b1932fc4d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6e6103ede1ff3f4d4187ad71e6f9eebc1ef45512f93b9b8cd740918734481890`
 
 ## Folder Thumbnails · light
 
@@ -551,7 +560,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `100132b7b2ec178aea513ae806b4ac6a1fe45c913bf07e4f97d7964f35442816`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `cb24b861593e339f1e53b4121d8a45a0f85bab8abd8a3fae61237b3ced92c3fa`
 
 ## Folder Viewer · light
 
@@ -560,7 +569,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `4acd02c60f09abcbdf5e2149b1b63866d60af0cfba934019c2ebb269e63545dc`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `996cd9ddae6d92663450220195af575e4f37235dae470969bedf3355f7ae9b54`
 
 ## Image Viewer · light
 
@@ -569,7 +578,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `d32bf8e168a93ec559fbe1b93731aabfbc5697f61066cb57e6a2fab29676f6cd`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `1693f8575e4acf72920f384cf52ffa4a56d21eef1a66f9f960c58b21007d96d7`
 
 ## Mask Editor · light
 
@@ -578,7 +587,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `e8dbbafa01985345ea3b6fbbfc5367d977b31ac5fed0d2754425600b217fb991`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `e8dbbafa01985345ea3b6fbbfc5367d977b31ac5fed0d2754425600b217fb991`
 
 ## New Folder · light
 
@@ -587,7 +596,16 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `afb6b503a57aec39483be861cfd56d2a04630df82c19f1acd68bd74fcdcee73b`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `afb6b503a57aec39483be861cfd56d2a04630df82c19f1acd68bd74fcdcee73b`
+
+## Placement Preview · light
+
+<figure markdown>
+![KonMagic native placement preview with synthetic example data](../assets/screenshots/light-placement-preview.png){ loading=lazy decoding=async width="1504" height="1284" }
+<figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
+</figure>
+
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `fcf1373d1b80d7e242367ab79b36efba0f7d378bb459c688b2c6444080472018`
 
 ## Preferences · light
 
@@ -596,7 +614,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `7edc1349cafc9a84892ab22c80d0d2feb545a09aff2b8d9312661ea6049a198f`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `7edc1349cafc9a84892ab22c80d0d2feb545a09aff2b8d9312661ea6049a198f`
 
 ## Recorded Disk · light
 
@@ -605,7 +623,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `aea124a6ba31fb628ab99ed35edb255f50c3c4efe7afb9fd3c84a97eee59a07d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `bfc8dda2d9e3fc94f822778a5fdc47a00c856edc49c32776fa19a0888ea7a427`
 
 ## Review Unverified · light
 
@@ -614,7 +632,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `0013a9a84b2075cbec20e0ffa7dfa7b458113eee28764a1f6dbbedd1c00b2566`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `8da7795c7267dbcc24c8c32dcca59fcbd6f2df9c69413231a67e47ac3656a764`
 
 ## Review Verified · light
 
@@ -623,7 +641,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Exact preview verified against one small generated temporary file using the test-only fixture allowance. No copy is approved.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `0e529ef4f4dd0809abc428180dd16468f28a8af461bfca19d5ec85badb29f721`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `ca01c965f8cf7f8f88eca3c302de73e7cf35da61ac585f4d70493ba4c5fe242c`
 
 ## Rules · light
 
@@ -632,7 +650,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `f4fe8e0201bcdc733c6d9671cd2f43e916b23ba7dd946f9e38577aa43db50a0f`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `f4fe8e0201bcdc733c6d9671cd2f43e916b23ba7dd946f9e38577aa43db50a0f`
 
 ## Scan Filters · light
 
@@ -641,7 +659,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `ee2d2df82717deeb3ce54ecb14e3ebb9125a74f838326d0e1a13dfa7f4c06e9d`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `ee2d2df82717deeb3ce54ecb14e3ebb9125a74f838326d0e1a13dfa7f4c06e9d`
 
 ## Scan Notes · light
 
@@ -650,7 +668,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a772a3a46ccde13ea42a41b7f4b9f05c0b7efd7cd9fd0b6a2c1f5b7e1ef20b8a`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `a772a3a46ccde13ea42a41b7f4b9f05c0b7efd7cd9fd0b6a2c1f5b7e1ef20b8a`
 
 ## Storage Focused · light
 
@@ -659,7 +677,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `94e21f261cfdb7d8b3b2ef1bfc359e5920a83933c5ae985eb07e638cde5fdb33`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `af2d162e732e5c2ada00a46ce7acd7cdf466985bbd3254476dbeb1ce1baa43fa`
 
 ## Storage Options · light
 
@@ -668,7 +686,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `a684c7245c775606196a95acafba923637deb05d4989066b8b954279f9e35eb6`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `6df0f80c7f81a92c93effc9df3419f187eb699da32327ee06e782f993766d45f`
 
 ## Storage · light
 
@@ -677,7 +695,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `08ca1659c1c6e6b5af8e1fce1df413d3e5267a32ad7dfa9d8d6efdb86cef9f88`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `a75e696f432bbf26cb455b385ff36ecfe45cc591f23dc2968e0b612649a5fd10`
 
 ## Structure · light
 
@@ -686,16 +704,16 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `1488147ad05ac434e931a480ad18a85fccefab8cbf5bdfa95556216ee90a57d2`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `1b2e7343f548af5cb1a922b2809eb9d7a93ecdc239b3841373ddd989ed0e08a0`
 
 ## Tag Corrections · light
 
 <figure markdown>
-![KonMagic native tag corrections with synthetic example data](../assets/screenshots/light-tag-corrections.png){ loading=lazy decoding=async width="1106" height="1146" }
+![KonMagic native tag corrections with synthetic example data](../assets/screenshots/light-tag-corrections.png){ loading=lazy decoding=async width="1170" height="1184" }
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `5c18ca6d6515dae517d5cf3eee70f04fee2bea13786f4e9624a4e018ee3645dd`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `0ae2be60bfeaa5ff31129852423a4648d6009389edde16310fe2c2bcc6427c22`
 
 ## Toolkit · light
 
@@ -704,7 +722,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `1ce68de7bfba972d0d8debf25699ae674da0b60cccd740f2adfa133492173d37`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `1ce68de7bfba972d0d8debf25699ae674da0b60cccd740f2adfa133492173d37`
 
 ## Welcome 1 · light
 
@@ -713,7 +731,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `b941625d41136509782f65fb8e3106437a35159109d4b106a881982b50bb2e9c`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `b941625d41136509782f65fb8e3106437a35159109d4b106a881982b50bb2e9c`
 
 ## Welcome 2 · light
 
@@ -722,7 +740,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `f8b26d7f933fe2ab308ce4469157eccb23a411198457e661e484c4b84c8a9686`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `f8b26d7f933fe2ab308ce4469157eccb23a411198457e661e484c4b84c8a9686`
 
 ## Welcome 3 · light
 
@@ -731,7 +749,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `5a853b52cca6cf3e948e0e033d86bcadfdea9019f8d93e1583304386bf02aefe`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `5a853b52cca6cf3e948e0e033d86bcadfdea9019f8d93e1583304386bf02aefe`
 
 ## Welcome 4 · light
 
@@ -740,7 +758,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `3442761786e9d8e241ccf12d1b550b83bd83d9f8bc51d182aed11b9f6bb2e1d7`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `3442761786e9d8e241ccf12d1b550b83bd83d9f8bc51d182aed11b9f6bb2e1d7`
 
 ## Welcome 5 · light
 
@@ -749,7 +767,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `d655f2d38223996288a2a6a4ee6021d6463c8fb76bbbc70b09008fd40ffdf8c5`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `d655f2d38223996288a2a6a4ee6021d6463c8fb76bbbc70b09008fd40ffdf8c5`
 
 ## Welcome 6 · light
 
@@ -758,7 +776,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `944780daf601e0b1ac986b62cde976bb0bb396cbf97811b73ef983326c4c7949`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `944780daf601e0b1ac986b62cde976bb0bb396cbf97811b73ef983326c4c7949`
 
 ## Welcome 7 · light
 
@@ -767,7 +785,7 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `2685bec095ec04b39e191d21a719b0f0214c14ab199ca6ad9310c520a0ba597b`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `2685bec095ec04b39e191d21a719b0f0214c14ab199ca6ad9310c520a0ba597b`
 
 ## Welcome 8 · light
 
@@ -776,4 +794,4 @@ Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-doc
 <figcaption>Real native AppKit view populated exclusively by the invented documentation library; no personal catalogue or file content. Capture performs no approved copy.</figcaption>
 </figure>
 
-Capture: `--documentation-capture` · Version: `0.5.0` · Origin: `generated-documentation-library-v1` · SHA-256: `b60c81d6c43d39edc905855a2723fb2d729ea407dd022cb71cf0fc942f5f6113`
+Capture: `--documentation-capture` · Version: `0.5.1` · Origin: `generated-documentation-library-v1` · SHA-256: `b60c81d6c43d39edc905855a2723fb2d729ea407dd022cb71cf0fc942f5f6113`

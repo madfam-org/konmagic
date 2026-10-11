@@ -432,12 +432,13 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             let home=FileManager.default.homeDirectoryForCurrentUser
             let qaDefault=home.appendingPathComponent("Library/Caches/KonMagic UI QA").path
             let state=qa ? URL(fileURLWithPath:ProcessInfo.processInfo.environment["KONMAGIC_QA_STATE"] ?? qaDefault) : home.appendingPathComponent("Library/Application Support/KonMagic")
-            if CommandLine.arguments.contains("--documentation-capture") {try validateDocumentationFixture(state)}
+            if CommandLine.arguments.contains("--documentation-capture") || CommandLine.arguments.contains("--classification-ui-smoke") {try validateDocumentationFixture(state)}
+            if CommandLine.arguments.contains("--journey-benchmark") {try validateBenchmarkState(state)}
             let store=try WorkspaceStore(directory:state)
             lockFD=open(state.appendingPathComponent("instance.lock").path,O_RDWR | O_CREAT | O_NOFOLLOW,0o600)
             guard lockFD>=0,flock(lockFD,LOCK_EX | LOCK_NB)==0 else {throw KonMagicError("KonMagic is already running. Open the existing app window.")}
             controller=try KonMagicController(store:store,catalog:Catalog(path:store.value.cataloguePath ?? home.appendingPathComponent("Library/Application Support/Workstation Atlas/catalog.sqlite3").path))
-            if CommandLine.arguments.contains("--documentation-capture") {controller.scopePath=state.deletingLastPathComponent().appendingPathComponent("Sources").path}
+            if CommandLine.arguments.contains("--documentation-capture") || CommandLine.arguments.contains("--classification-ui-smoke") {controller.scopePath=state.deletingLastPathComponent().appendingPathComponent("Sources").path}
             for a in store.value.assignments {if let b=a.bookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}}
             if let b=store.value.outputBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
             if let b=store.value.catalogueBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
@@ -445,7 +446,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             window.title="KonMagic";window.isReleasedWhenClosed=false;window.titlebarAppearsTransparent=true;window.minSize=NSSize(width:1180,height:740)
             if qa {window.appearance=NSAppearance(named:ProcessInfo.processInfo.environment["KONMAGIC_QA_APPEARANCE"]=="dark" ? .darkAqua : .aqua);NSApp.appearance=window.appearance}
             navigation=KonMagicNavigation(workspace:controller);navigation.main.makeWindow(window,saveFrame:!qa)
-            let start:KonMagicPage = qa && !CommandLine.arguments.contains("--toolkit-ui-smoke") && !CommandLine.arguments.contains("--navigation-ui-smoke") ? .structure : .toolkit
+            let start:KonMagicPage = qa && !CommandLine.arguments.contains("--journey-benchmark") && !CommandLine.arguments.contains("--toolkit-ui-smoke") && !CommandLine.arguments.contains("--navigation-ui-smoke") ? .structure : .toolkit
             navigation.main.navigate(start)
             window.makeKeyAndOrderFront(nil)
             let menu=NSMenu(),appMenu=NSMenu(),fileMenu=NSMenu()
@@ -479,7 +480,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             helpMenu.addItem(withTitle:"Developer Handbook",action:#selector(KonMagicNavigation.showDeveloperDocumentation),keyEquivalent:"").target=self.navigation
             NSApp.helpMenu=helpMenu
             NSApp.mainMenu=menu;NSApp.activate(ignoringOtherApps:true)
-            if qa {if CommandLine.arguments.contains("--documentation-capture") {runDocumentationCapture()} else if CommandLine.arguments.contains("--journey-ui-smoke") {runJourneyQA()} else if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
+            if qa {if CommandLine.arguments.contains("--classification-ui-smoke") {runClassificationJourneyQA()} else if CommandLine.arguments.contains("--journey-benchmark") {runJourneyBenchmark()} else if CommandLine.arguments.contains("--documentation-capture") {runDocumentationCapture()} else if CommandLine.arguments.contains("--journey-ui-smoke") {runJourneyQA()} else if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
 
         } catch {let a=NSAlert();a.messageText="KonMagic could not open safely";a.informativeText=error.localizedDescription;a.runModal();NSApp.terminate(nil)}
     }
