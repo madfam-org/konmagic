@@ -1,0 +1,105 @@
+site_name: KonMagic
+site_description: The native Mac workspace for observation, understanding and deliberate organization.
+site_url: https://madfam-org.github.io/konmagic/
+repo_url: https://github.com/madfam-org/konmagic
+repo_name: madfam-org/konmagic
+edit_uri: edit/main/docs/
+site_dir: .build/docs-site
+copyright: MIT licensed · MADFAM contributors · Independent; no affiliation with Marie Kondo or KonMari.
+theme:
+  name: material
+  font: false
+  language: en
+  icon:
+    logo: material/auto-fix
+  palette:
+    - scheme: default
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.action.edit
+plugins:
+  - search
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/gallery.js
+nav:
+  - Start:
+    - Welcome: index.md
+    - Getting started: guide/getting-started.md
+    - Developer quickstart: developer/quickstart.md
+    - What is implemented: reference/capabilities.md
+  - Illustrated manual:
+    - Workflow overview: guide/index.md
+    - Storage & Disk Lens: guide/storage.md
+    - Content & retained readings: guide/content.md
+    - Trees, maps & relationships: guide/visualizations.md
+    - File & folder previews: guide/previews.md
+    - Tags, collections & rules: guide/knowledge.md
+    - Design your structure: guide/structure.md
+    - Exact review & copying: guide/review.md
+    - Comparisons & duplicate evidence: guide/evidence.md
+    - Windows, shortcuts & preferences: guide/navigation.md
+    - Welcome guide gallery: guide/welcome.md
+    - Troubleshooting: guide/troubleshooting.md
+  - Engineering:
+    - Architecture: developer/architecture.md
+    - Source module map: developer/modules.md
+    - State & navigation: developer/navigation.md
+    - Catalogue adapter: developer/catalogue.md
+    - Native scan engine: developer/scanning.md
+    - Filesystem safety: developer/safety.md
+    - Copy lifecycle & recovery: developer/copy-lifecycle.md
+    - Querying & performance: developer/performance.md
+    - Native UI & accessibility: developer/ui.md
+    - UI/UX designer handoff: developer/designer-handoff.md
+    - Native preview architecture: developer/previews.md
+    - Testing & synthetic captures: developer/testing.md
+    - Contributing: developer/contributing.md
+    - Releases & signing: developer/releases.md
+    - Documentation & Pages: developer/documentation.md
+    - Architecture decisions: developer/decisions.md
+  - Reference:
+    - Data formats: reference/formats.md
+    - Limits & invariants: reference/limits.md
+    - CLI & environment: reference/cli.md
+    - Source symbols: reference/symbols.md
+    - Screenshot atlas: reference/screenshots.md
+    - Glossary: reference/glossary.md
+    - Security & privacy: reference/privacy.md
+    - Changelog: reference/changelog.md
+    - Roadmap & known gaps: reference/roadmap.md
+    - GrandPerspective contract: GrandPerspective-capabilities.md
+    - macOS alternatives: macOS-alternatives.md
+    - UI acceptance workflows: UI-workflows.md

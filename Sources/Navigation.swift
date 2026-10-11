@@ -119,6 +119,7 @@ final class PageEntry {
     var busy:Bool {
         if let c=controller as? ScanComparisonController {return c.busy}
         if let c=controller as? DuplicateReviewController {return c.busy}
+        if let c=controller as? SourcePreviewController {return c.busy}
         return false
     }
 }
@@ -213,6 +214,7 @@ final class PageHostController:NSViewController,NSWindowDelegate {
     func show(_ entry:PageEntry,remember:Bool=true) {
         _ = view
         if remember,let old=current,old.id != entry.id {history.append(old.id);history=Array(history.suffix(32));future=[]}
+        if let old=current,old.id != entry.id,let viewer=old.controller as? SourcePreviewController {viewer.clearContents()}
         let first=presentations[ObjectIdentifier(entry.controller)]==nil
         current=entry
         let scroll:NSScrollView
@@ -241,7 +243,8 @@ final class PageHostController:NSViewController,NSWindowDelegate {
         let changed:()->Void = {[weak navigation] in navigation?.refreshActivity()}
         if let c=controller as? ScanComparisonController {c.activityChanged=changed}
         if let c=controller as? DuplicateReviewController {c.activityChanged=changed}
-        let e=PageEntry(id:UUID().uuidString,title:title,controller:controller,minimum:NSSize(width:1050,height:700),duplicate:duplicate);entries[e.id]=e;show(e)
+        if let c=controller as? SourcePreviewController {c.activityChanged=changed}
+        let e=PageEntry(id:UUID().uuidString,title:title,controller:controller,minimum:controller is SourcePreviewController ? NSSize(width:1260,height:850):NSSize(width:1050,height:700),duplicate:duplicate);entries[e.id]=e;show(e)
     }
     func updateNavigation() {
         back.isEnabled = !history.isEmpty;forward.isEnabled = !future.isEmpty;popout.isEnabled=current != nil

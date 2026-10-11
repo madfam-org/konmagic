@@ -12,3 +12,7 @@ build/
 *.tmp
 .atlas-*/
 .konmagic-*/
+__pycache__/
+# Reviewed synthetic documentation assets only; private QA remains ignored.
+!docs/assets/screenshots/*.png
+!docs/assets/screenshots/manifest.json

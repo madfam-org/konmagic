@@ -386,7 +386,7 @@ final class KonMagicController: NSViewController, NSOutlineViewDataSource, NSOut
     @objc func showGuide() {
         guard !busy else{return}
         let pages:[(String,String)]=[
-            ("Welcome to KonMagic", "A native Mac workspace for organizing with intention. You choose the structure and decide where things belong. Suggestions cannot override your assignments.\n\nStart at the Toolkit: understand storage, find and refine content, design your organization, then review exact destinations. Command-0 returns to the overview; Command-1 through Command-4 open the stages. Tips explains the current view.\n\nIn the organization workspace, the left pane is your virtual destination tree, the middle browses sources and the right shows exact proposed paths. Browsing and dragging keep originals in place.\n\nKonMagic is independent and has no affiliation with Marie Kondo or KonMari."),
+            ("Welcome to KonMagic", "A native Mac workspace for organizing with intention. You choose the structure and decide where things belong. Suggestions cannot override your assignments.\n\nStart at the Toolkit: understand storage, find and refine content, design your organization, then review exact destinations. Command-0 returns to the overview; Command-1 through Command-4 open the stages. Tips explains the current view.\n\nHelp → Help for This Page opens the illustrated web manual for the current stage. Help → Developer Handbook explains the implementation. These links open public documentation in your browser without sending catalogue paths or searches.\n\nIn the organization workspace, the left pane is your virtual destination tree, the middle browses sources and the right shows exact proposed paths. Browsing and dragging keep originals in place.\n\nKonMagic is independent and has no affiliation with Marie Kondo or KonMari."),
             ("Shape your semi-final structure", "New, Rename, Remove and destination drag/reparent edit a virtual structure. They do not create or rename real folders.\n\nKeep ongoing work in Projects and closed work in Archive. A project's active status is independent of an old parent-folder name. Add meaningful destinations for family memories, movies, work, research and other collections.\n\nStable destination identities keep assignments connected when you rename a branch. Undo draft edits without touching originals."),
             ("Assign drops and buckets", "A drop is an individual file. A bucket is a whole folder whose internal hierarchy and empty folders stay together.\n\nDrag directly from Finder onto a destination, or select sources and choose Assign selected. Multiple selected items can be assigned together. Rename output changes only the proposed copy's name.\n\nA bucket and its child cannot be assigned simultaneously. Split mixed collections into child buckets when they belong in different destinations."),
             ("Understand access and observations", "Native folder browsing reads current metadata in bounded pages. Content Explorer connects the complete tagged catalogue and whole-disk metadata ledger, read-only. Retained observations may predate changes; their overlapping counts must not be added.\n\nFolder panels request access using your macOS account. KonMagic grants no privileges and bypasses no privacy permissions. Credentials, cloud placeholders, managed libraries, symlinks and operational project collections are held.\n\nNo server, login item, account or upload is installed."),
@@ -424,10 +424,12 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             let home=FileManager.default.homeDirectoryForCurrentUser
             let qaDefault=home.appendingPathComponent("Library/Caches/KonMagic UI QA").path
             let state=qa ? URL(fileURLWithPath:ProcessInfo.processInfo.environment["KONMAGIC_QA_STATE"] ?? qaDefault) : home.appendingPathComponent("Library/Application Support/KonMagic")
+            if CommandLine.arguments.contains("--documentation-capture") {try validateDocumentationFixture(state)}
             let store=try WorkspaceStore(directory:state)
             lockFD=open(state.appendingPathComponent("instance.lock").path,O_RDWR | O_CREAT | O_NOFOLLOW,0o600)
             guard lockFD>=0,flock(lockFD,LOCK_EX | LOCK_NB)==0 else {throw KonMagicError("KonMagic is already running. Open the existing app window.")}
             controller=try KonMagicController(store:store,catalog:Catalog(path:store.value.cataloguePath ?? home.appendingPathComponent("Library/Application Support/Workstation Atlas/catalog.sqlite3").path))
+            if CommandLine.arguments.contains("--documentation-capture") {controller.scopePath=state.deletingLastPathComponent().appendingPathComponent("Sources").path}
             for a in store.value.assignments {if let b=a.bookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}}
             if let b=store.value.outputBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
             if let b=store.value.catalogueBookmark {var stale=false;if let u=try? URL(resolvingBookmarkData:b,options:[.withSecurityScope,.withoutUI],relativeTo:nil,bookmarkDataIsStale:&stale),!stale {controller.grant(u)}}
@@ -440,7 +442,7 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             window.makeKeyAndOrderFront(nil)
             let menu=NSMenu(),appMenu=NSMenu(),fileMenu=NSMenu()
             let appItem=NSMenuItem();appItem.submenu=appMenu;menu.addItem(appItem)
-            appMenu.addItem(withTitle:"Welcome guide",action:#selector(KonMagicNavigation.showGuide),keyEquivalent:"?").target=self.navigation
+            appMenu.addItem(withTitle:"Welcome guide",action:#selector(KonMagicNavigation.showGuide),keyEquivalent:"").target=self.navigation
             appMenu.addItem(withTitle:"Preferences…",action:#selector(KonMagicNavigation.showPreferences),keyEquivalent:",").target=self.navigation
             appMenu.addItem(NSMenuItem.separator());appMenu.addItem(withTitle:"Quit KonMagic",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q")
             let fileItem=NSMenuItem(title:"File",action:nil,keyEquivalent:"");fileItem.submenu=fileMenu;menu.addItem(fileItem)
@@ -463,8 +465,13 @@ final class KonMagicDelegate: NSObject, NSApplicationDelegate {
             windowMenu.addItem(.separator());windowMenu.addItem(withTitle:"Minimize",action:#selector(NSWindow.performMiniaturize(_:)),keyEquivalent:"m")
             windowMenu.addItem(withTitle:"Bring All to Front",action:#selector(NSApplication.arrangeInFront(_:)),keyEquivalent:"")
             NSApp.windowsMenu=windowMenu
+            let helpItem=NSMenuItem(title:"Help",action:nil,keyEquivalent:""),helpMenu=NSMenu(title:"Help");helpItem.submenu=helpMenu;menu.addItem(helpItem)
+            helpMenu.addItem(withTitle:"KonMagic Documentation",action:#selector(KonMagicNavigation.showDocumentation),keyEquivalent:"").target=self.navigation
+            let pageHelp=helpMenu.addItem(withTitle:"Help for This Page",action:#selector(KonMagicNavigation.showPageDocumentation),keyEquivalent:"?");pageHelp.keyEquivalentModifierMask=[.command,.shift];pageHelp.target=self.navigation
+            helpMenu.addItem(withTitle:"Developer Handbook",action:#selector(KonMagicNavigation.showDeveloperDocumentation),keyEquivalent:"").target=self.navigation
+            NSApp.helpMenu=helpMenu
             NSApp.mainMenu=menu;NSApp.activate(ignoringOtherApps:true)
-            if qa {if CommandLine.arguments.contains("--journey-ui-smoke") {runJourneyQA()} else if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
+            if qa {if CommandLine.arguments.contains("--documentation-capture") {runDocumentationCapture()} else if CommandLine.arguments.contains("--journey-ui-smoke") {runJourneyQA()} else if CommandLine.arguments.contains("--navigation-ui-smoke") {runNavigationQA()} else if CommandLine.arguments.contains("--review-ui-smoke") {runReviewUIQA()} else if CommandLine.arguments.contains("--knowledge-ui-smoke") {runKnowledgeUIQA()} else if CommandLine.arguments.contains("--toolkit-ui-smoke") {runToolkitQA()} else if CommandLine.arguments.contains("--lens-ui-smoke") {runLensQA()} else if CommandLine.arguments.contains("--explorer-ui-smoke") {runExplorerQA()} else {runUIQA()}}
 
         } catch {let a=NSAlert();a.messageText="KonMagic could not open safely";a.informativeText=error.localizedDescription;a.runModal();NSApp.terminate(nil)}
     }

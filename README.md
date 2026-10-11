@@ -1,5 +1,11 @@
 # KonMagic
 
+[**Illustrated documentation & developer handbook**](https://madfam-org.github.io/konmagic/) · [Developer quickstart](docs/developer/quickstart.md) · [Screenshot atlas](docs/reference/screenshots.md)
+
+Native file/folder viewing includes embedded Quick Look, paged list/gallery, explicit bounded content thumbnails and tree/map handoffs; [preview guide](docs/guide/previews.md).
+
+The native Toolkit and Help menu link to the manual, current-page help and engineering handbook. Public screenshots use entirely synthetic fixtures.
+
 A native macOS utility for organizing files with a structure you control.
 Create destinations, drag individual **drops** or whole **buckets** onto them,
 inspect exact paths, and apply a verified copy while keeping originals intact.
@@ -251,7 +257,7 @@ explicit remaining gaps and a focused development sequence.
 Workspace settings and receipts live privately in
 `~/Library/Application Support/KonMagic`, outside this repository. Personal
 catalogues, document bodies, names, source paths, snapshots, build caches and
-screenshots must never enter Git.
+ordinary local screenshots must never enter Git. The reviewed synthetic documentation assets are the sole exception.
 
 ## Verification
 

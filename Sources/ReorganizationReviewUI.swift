@@ -7,7 +7,7 @@ final class ReorganizationReviewController:NSViewController,NSTableViewDataSourc
     let table=NSTableView(),search=NSSearchField(),inspector=KonMagicInspector()
     let summary=NSTextField(wrappingLabelWithString:""),message=NSTextField(wrappingLabelWithString:"")
     let source=NSTextField(wrappingLabelWithString:""),destination=NSTextField(wrappingLabelWithString:""),output=NSTextField(labelWithString:"")
-    let verify=NSButton(),copy=NSButton(),rename=NSButton(),remove=NSButton(),export=NSButton(),previous=NSButton(),next=NSButton()
+    let viewSource=NSButton(),verify=NSButton(),copy=NSButton(),rename=NSButton(),remove=NSButton(),export=NSButton(),previous=NSButton(),next=NSButton()
     var assignments:[Assignment]=[],selectedIDs=Set<String>(),recordOffset=0,refreshing=false
     init(workspace:KonMagicController) {self.workspace=workspace;super.init(nibName:nil,bundle:nil)}
     required init?(coder:NSCoder) {fatalError("Use workspace")}
@@ -51,7 +51,8 @@ final class ReorganizationReviewController:NSViewController,NSTableViewDataSourc
         let receipts=NSButton(title:"Receipts & recovery",target:workspace,action:#selector(KonMagicController.openJournal));receipts.bezelStyle = .rounded
         button(verify,"Verify exact preview",#selector(verifyDraft));button(copy,"Review & copy…",#selector(copyDraft))
         let root=row([label("OUTPUT ROOT",size:10,weight:.semibold),output,choose]);output.setContentCompressionResistancePriority(.defaultLow,for:.horizontal)
-        let actions=row([edit,receipts,NSView(),verify,copy]);message.font=NSFont.systemFont(ofSize:12);message.textColor = .secondaryLabelColor;message.maximumNumberOfLines=2
+        viewSource.title="View source…";viewSource.target=self;viewSource.action=#selector(previewSelectedSource);viewSource.bezelStyle = .rounded
+        let actions=row([edit,receipts,viewSource,NSView(),verify,copy]);message.font=NSFont.systemFont(ofSize:12);message.textColor = .secondaryLabelColor;message.maximumNumberOfLines=2
         let line=NSBox();line.boxType = .separator
         let outer=column([body,line,root,actions,message]);outer.translatesAutoresizingMaskIntoConstraints=false;view.addSubview(outer)
         NSLayoutConstraint.activate([outer.leadingAnchor.constraint(equalTo:view.leadingAnchor,constant:22),outer.trailingAnchor.constraint(equalTo:view.trailingAnchor,constant:-22),outer.topAnchor.constraint(equalTo:view.topAnchor,constant:18),outer.bottomAnchor.constraint(equalTo:view.bottomAnchor,constant:-18)])
@@ -68,6 +69,7 @@ final class ReorganizationReviewController:NSViewController,NSTableViewDataSourc
         refreshing=false
         output.stringValue=w.store.value.output;output.toolTip=output.stringValue
         verify.isEnabled = !w.busy && !w.store.value.assignments.isEmpty;copy.isEnabled = !w.busy && w.plan != nil
+        viewSource.isEnabled=index != nil && !w.busy
         rename.isEnabled = !w.busy && index != nil;remove.isEnabled=rename.isEnabled;export.isEnabled=w.plan != nil
         refreshStatus();renderSelection()
     }

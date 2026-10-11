@@ -86,5 +86,6 @@ func runNativeTests() throws {
     checks += try runCatalogueTests(at:temp)
     checks += try runLensTests(at:temp)
     checks += try runReviewTests(at:temp)
+    checks += try runSourcePreviewTests(at:temp)
     print("NATIVE_SAFETY_TESTS passed=\(checks); synthetic fixtures only; actual user-source operations=0")
 }

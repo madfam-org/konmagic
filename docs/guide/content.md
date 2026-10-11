@@ -1,0 +1,48 @@
+# Find and understand retained content
+
+Content Explorer joins classifications, provenance and retained readings with exact source paths. It offers three datasets: **Content & tags**, **Recorded disk** and **Access exceptions**. They are overlapping observations with different coverage; adding their counts does not count unique files on the machine.
+
+<figure markdown>
+![Content Explorer list with facet groups, files and destination inspector](../assets/screenshots/light-content-list.png)
+<figcaption>A bounded list uses 200-row pages. Complete aggregate groups remain available for narrowing the view.</figcaption>
+</figure>
+
+## Names, paths and indexed content
+
+Choose a familiar location or All retained content, then search. **Names, paths & tags** matches retained metadata. **Indexed content** searches the existing catalogue’s FTS index, including eligible canonical/shared readings. It does not open every original document. Operator-looking terms are treated as literal tokens rather than raw SQL or FTS syntax.
+
+Semantic facets include owner, project, family, role and lifecycle. Additional dimensions cover reading state, barrier, kind, extension, modification year, size, confidence and method. Choose a group, combine filters and remove an individual chip without losing the others.
+
+<figure markdown>
+![Content Explorer filtered to personal videos with two removable semantic filter chips](../assets/screenshots/light-content-filters.png)
+<figcaption>Context distinguishes family memories from a film collection even when both have a video extension.</figcaption>
+</figure>
+
+## Inspect evidence before assigning
+
+The inspector shows retained classification and provenance, current metadata where accessible, a proposed destination, and explicit protections. The current metadata check does not establish that a body has been read or its bytes have been hashed. A catalogue row can outlive its original source; fresh verification is required later.
+
+<figure markdown>
+![Content Explorer selected synthetic design brief with tags, evidence and proposed destination controls](../assets/screenshots/light-content-inspector.png)
+<figcaption>Selection exposes exact context. Destination selection previews placement before assignment.</figcaption>
+</figure>
+
+**Read retained excerpt** decodes an already cached reading, within compression and presentation bounds. It does not read the original file. Credential and audit barriers remain refused even when a body is cached; your semantic tag corrections cannot remove a protection barrier.
+
+<figure markdown>
+![Retained synthetic design brief excerpt shown in Content Explorer](../assets/screenshots/light-content-reading.png)
+<figcaption>The displayed reading is invented text stored in the synthetic catalogue, not a fresh source-body ingestion.</figcaption>
+</figure>
+
+**View file / folder…** opens the native current-source viewer. Unlike a retained excerpt, this is an explicit request to view an eligible original file. Folder selection remains metadata only until a file or thumbnail request. [Rich previews](previews.md).
+
+## Recorded disk and access exceptions
+
+Recorded disk reads compressed directory blocks and aliases from the ledger. Browse its physical hierarchy or a bounded direct-child page. A recorded folder that was not scanned remains an explicit exception; the app does not invent its contents. The Access exceptions dataset makes traversal and permission gaps reviewable.
+
+<figure markdown>
+![Content Explorer browsing the recorded synthetic disk ledger](../assets/screenshots/light-recorded-disk.png)
+<figcaption>Recorded metadata coverage is separate from semantic and reading coverage.</figcaption>
+</figure>
+
+To place a real source, choose an explicit destination, inspect its full proposed path, and assign. The app carries the exact choice into Review. Edit destinations returns to Structure with the selected destination highlighted, while Back retains the discovery context.

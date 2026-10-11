@@ -31,7 +31,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
     let filterLabel=NSTextField(wrappingLabelWithString:"No filters"),status=NSTextField(labelWithString:""),location=NSTextField(labelWithString:"")
     let facetTable=NSTableView(),table=NSTableView(),tree=NSOutlineView(),inspector=KonMagicInspector(),map=CatalogueMapView()
     let contentHost=NSView(),bodyButton=NSButton(),nextButton=NSButton(),previousButton=NSButton()
-    let correctButton=NSButton(),assignButton=NSButton(),revealButton=NSButton()
+    let correctButton=NSButton(),assignButton=NSButton(),revealButton=NSButton(),previewSourceButton=NSButton()
     let proposedPath=NSTextField(wrappingLabelWithString:"Choose a destination to preview placement."),backToMap=NSButton(),filterChips=NSStackView(),chipScroll=NSScrollView()
     var drillContext:ExplorerDrillContext?
     var listScroll:NSScrollView!,treeScroll:NSScrollView!
@@ -119,12 +119,13 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         correctButton.title="Correct selected tags…";correctButton.target=self;correctButton.action=#selector(correctTags)
         assignButton.title="Assign selected to draft";assignButton.target=self;assignButton.action=#selector(assignSelected)
         revealButton.title="Reveal source in Finder";revealButton.target=self;revealButton.action=#selector(revealSource)
-        for b in [correctButton,assignButton,revealButton] {b.bezelStyle = .rounded;b.isEnabled=false}
+        previewSourceButton.title="View file / folder…";previewSourceButton.target=self;previewSourceButton.action=#selector(previewSelectedSource)
+        for b in [correctButton,assignButton,revealButton,previewSourceButton] {b.bezelStyle = .rounded;b.isEnabled=false}
         destination.target=self;destination.action=#selector(destinationChanged)
         filterLabel.maximumNumberOfLines=2
         bodyButton.title="Show retained content excerpt";bodyButton.target=self;bodyButton.action=#selector(showReading);bodyButton.bezelStyle = .rounded;bodyButton.isEnabled=false
         proposedPath.font=NSFont.systemFont(ofSize:11);proposedPath.textColor = .secondaryLabelColor;proposedPath.maximumNumberOfLines=3;proposedPath.lineBreakMode = .byTruncatingMiddle
-        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,proposedPath,assignButton])
+        let right=column([text("DETAILS & CONTEXT",size:11,weight:.semibold),detailScroll,bodyButton,previewSourceButton,correctButton,revealButton,text("ASSIGN TO YOUR DRAFT",size:11,weight:.semibold),destination,proposedPath,assignButton])
         right.widthAnchor.constraint(equalToConstant:340).isActive=true
         detailScroll.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true;detailScroll.heightAnchor.constraint(greaterThanOrEqualToConstant:330).isActive=true
         destination.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true
@@ -354,6 +355,7 @@ final class CatalogueExplorerController:NSViewController,NSTableViewDataSource,N
         let selected=selectedRecords()
         correctButton.isEnabled = !selected.isEmpty && selected.count<=200
         revealButton.isEnabled = !selected.isEmpty
+        previewSourceButton.isEnabled=selected.count==1 && selected.allSatisfy {$0.kind=="file" || $0.kind=="directory"}
         assignButton.isEnabled = !selected.isEmpty && selected.allSatisfy {$0.kind=="file" || $0.kind=="directory"} && destination.selectedItem?.representedObject != nil && workspace?.busy != true
         if let item=selected.first,let w=workspace?.store.value,let id=destination.selectedItem?.representedObject as? String {
             var proposed=w.assignments.first {$0.source==item.path} ?? Assignment(source:item.path,node:id,outputName:item.name);proposed.node=id

@@ -43,7 +43,7 @@ final class ToolkitController:NSViewController {
         NSLayoutConstraint.activate([scroll.leadingAnchor.constraint(equalTo:view.leadingAnchor),scroll.trailingAnchor.constraint(equalTo:view.trailingAnchor),scroll.topAnchor.constraint(equalTo:view.topAnchor),scroll.bottomAnchor.constraint(equalTo:view.bottomAnchor),document.widthAnchor.constraint(equalTo:scroll.contentView.widthAnchor),document.heightAnchor.constraint(greaterThanOrEqualTo:scroll.contentView.heightAnchor)])
         let title=label("KonMagic",size:30,weight:.bold),subtitle=label("Make room for what matters. Keep control of every decision.",size:15)
         subtitle.textColor = .secondaryLabelColor
-        let heading=NSStackView(views:[title,NSView(),button("Welcome guide",#selector(guide)),button("Refresh overview",#selector(refresh))]);heading.orientation = .horizontal;heading.spacing=12
+        let heading=NSStackView(views:[title,NSView(),button("Documentation",#selector(documentation)),button("Welcome guide",#selector(guide)),button("Refresh overview",#selector(refresh))]);heading.orientation = .horizontal;heading.spacing=12
         let privacy=label("ON YOUR MAC  ·  PRIVATE BY DEFAULT  ·  ORIGINALS RETAINED",size:10,weight:.semibold);privacy.textColor = .secondaryLabelColor
         coverage.font=NSFont.systemFont(ofSize:12);coverage.textColor = .secondaryLabelColor;coverage.maximumNumberOfLines=3
         let values=[
@@ -95,6 +95,7 @@ final class ToolkitController:NSViewController {
     @objc func shape() {workspace?.showWorkspace()}
     @objc func review() {workspace?.showReview()}
     @objc func guide() {workspace?.showGuide()}
+    @objc func documentation() {KonMagicDocumentation.open("guide/getting-started/")}
 }
 
 extension KonMagicController {

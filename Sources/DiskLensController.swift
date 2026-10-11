@@ -42,7 +42,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
             [("Recorded Atlas folder…",#selector(chooseRecorded)),("Full rescan",#selector(rescan)),("Scan exclusions…",#selector(scanFilters))],
             [("Focus up",#selector(focusUp)),("Focus down",#selector(focusDown)),("Duplicate view",#selector(duplicate)),("Twin view",#selector(twin))],
             [("Mask…",#selector(editMask)),("Create filtered view…",#selector(filterView)),("Saved filters…",#selector(filterLibrary)),("File-type colors…",#selector(typeColors))],
-            [("Save scan…",#selector(saveScan)),("Compare scans…",#selector(compareScan)),("Volume & snapshots…",#selector(showVolumeContext)),("Duplicate evidence…",#selector(duplicateReview)),("Scan notes…",#selector(notes))],
+            [("Save scan…",#selector(saveScan)),("Compare scans…",#selector(compareScan)),("Volume & snapshots…",#selector(showVolumeContext)),("Duplicate evidence…",#selector(duplicateReview)),("Scan notes…",#selector(notes)),("File & folder viewer…",#selector(richPreview))],
             [("Export map PNG / TIFF…",#selector(exportImage)),("Export complete scan text…",#selector(exportText))]]
         for group in groups {tools.menu?.addItem(.separator());for (title,action) in group {let item=NSMenuItem(title:title,action:action,keyEquivalent:"");item.target=self;tools.menu?.addItem(item)}}
         tools.setAccessibilityLabel("Additional disk analysis tools, filters, comparisons and exports")
@@ -73,7 +73,7 @@ final class DiskLensController:NSViewController,NSTableViewDataSource,NSTableVie
         assignSourceButton.title="Assign source to draft";assignSourceButton.target=self;assignSourceButton.action=#selector(assign);assignSourceButton.bezelStyle = .rounded;assignSourceButton.isEnabled=false
         destination.target=self;destination.action=#selector(destinationChanged)
         for b in sourceActionButtons {b.isEnabled=false}
-        let right=column([search,list,row([pagePrevious,pageNext]),detail,actions,destination,assignSourceButton,button("Review cleanup in Finder",#selector(reviewCleanup)),button("Scan notes…",#selector(notes))]);right.widthAnchor.constraint(equalToConstant:340).isActive=true
+        let right=column([search,list,row([pagePrevious,pageNext]),detail,actions,destination,assignSourceButton,button("Review cleanup in Finder",#selector(reviewCleanup)),button("Scan notes…",#selector(notes)),button("File & folder viewer…",#selector(richPreview))]);right.widthAnchor.constraint(equalToConstant:340).isActive=true
         for v in [search,list,detail,destination] {v.widthAnchor.constraint(equalTo:right.widthAnchor).isActive=true}
         let center=column([location,canvas,legend]);let content=row([center,right]);content.alignment = .top
         canvas.widthAnchor.constraint(equalTo:center.widthAnchor).isActive=true;center.widthAnchor.constraint(equalTo:content.widthAnchor,constant:-348).isActive=true
